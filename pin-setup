@@ -24,3 +24,7 @@ done
 for pin in 1 2 3 4 5; do
 	gpio_output 2 $pin
 done
+
+for pin in 16 19; do
+	gpio_output 3 $pin
+done

@@ -34,6 +34,26 @@
 #define gpio0_bit14 30
 #define gpio0_bit15 31
 
+#define gpio1_bit0 12
+#define gpio1_bit1 13
+#define gpio1_bit2 14
+#define gpio1_bit3 15
+#define gpio1_bit4 16
+#define gpio1_bit5 17
+#define gpio1_bit6 18
+#define gpio1_bit7 19
+#define gpio1_bit8 28
+#define gpio1_bit9 29
+
+#define gpio2_bit0 1
+#define gpio2_bit1 2
+#define gpio2_bit2 3
+#define gpio2_bit3 4
+#define gpio2_bit4 5
+
+#define gpio3_bit0 16
+#define gpio3_bit1 19
+
 // wtf "parameter too long"?  Only 128 bytes allowed.
 #define GPIO0_LED_MASK (0\
 |(1<<gpio0_bit0)\
@@ -52,6 +72,32 @@
 |(1<<gpio0_bit13)\
 |(1<<gpio0_bit14)\
 |(1<<gpio0_bit15)\
+)
+
+#define GPIO1_LED_MASK (0\
+|(1<<gpio1_bit0)\
+|(1<<gpio1_bit1)\
+|(1<<gpio1_bit2)\
+|(1<<gpio1_bit3)\
+|(1<<gpio1_bit4)\
+|(1<<gpio1_bit5)\
+|(1<<gpio1_bit6)\
+|(1<<gpio1_bit7)\
+|(1<<gpio1_bit8)\
+|(1<<gpio1_bit9)\
+)
+
+#define GPIO2_LED_MASK (0\
+|(1<<gpio2_bit0)\
+|(1<<gpio2_bit1)\
+|(1<<gpio2_bit2)\
+|(1<<gpio2_bit3)\
+|(1<<gpio2_bit4)\
+)
+
+#define GPIO3_LED_MASK (0\
+|(1<<gpio3_bit0)\
+|(1<<gpio3_bit1)\
 )
 
  // 10 pins on GPIO1: 12 13 14 15 16 17 18 19 28 29
@@ -89,6 +135,8 @@
 
 #define GPIO0 0x44E07000
 #define GPIO1 0x4804c000
+#define GPIO2 0x481AC000
+#define GPIO3 0x481AE000
 #define GPIO_CLEARDATAOUT 0x190
 #define GPIO_SETDATAOUT 0x194
 
@@ -100,9 +148,10 @@
 #define data_len r1
 #define gpio0_zeros r2
 #define gpio1_zeros r3
-#define gpio3_zeros r4
-#define bit_num r5
-#define sleep_counter r6
+#define gpio2_zeros r4
+#define gpio3_zeros r5
+#define bit_num r6
+#define sleep_counter r7
 // r8 - r24 are used for temp storage and bitmap processing
 
 
@@ -194,7 +243,7 @@ WORD_LOOP:
 		LBBO sleep_counter, r8, 0xC, 4
 
 		// Load 16 registers of data, starting at r8
-		LBBO r8, r0, 0, 64
+		LBBO r10, r0, 0, 64
 
 		// For each of these 16 registers, set the
 		// corresponding bit in the gpio0_zeros register
@@ -203,25 +252,54 @@ WORD_LOOP:
 	SET gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
 	gpioN##_##regN##_skip: ; \
 
+		// Load 16 registers of data, starting at r10
+		LBBO r10, r0, 0, 16*4
 		MOV gpio0_zeros, 0
-#if 1
-		TEST_BIT(r8, gpio0, bit0)
-		TEST_BIT(r9, gpio0, bit1)
-		TEST_BIT(r10, gpio0, bit2)
-		TEST_BIT(r11, gpio0, bit3)
-		TEST_BIT(r12, gpio0, bit4)
-		TEST_BIT(r13, gpio0, bit5)
-		TEST_BIT(r14, gpio0, bit6)
-		TEST_BIT(r15, gpio0, bit7)
-		TEST_BIT(r16, gpio0, bit8)
-		TEST_BIT(r17, gpio0, bit9)
-		TEST_BIT(r18, gpio0, bit10)
-		TEST_BIT(r19, gpio0, bit11)
-		TEST_BIT(r20, gpio0, bit12)
-		TEST_BIT(r21, gpio0, bit13)
-		TEST_BIT(r22, gpio0, bit14)
-		TEST_BIT(r23, gpio0, bit15)
-#endif
+		TEST_BIT(r10, gpio0, bit0)
+		TEST_BIT(r11, gpio0, bit1)
+		TEST_BIT(r12, gpio0, bit2)
+		TEST_BIT(r13, gpio0, bit3)
+		TEST_BIT(r14, gpio0, bit4)
+		TEST_BIT(r15, gpio0, bit5)
+		TEST_BIT(r16, gpio0, bit6)
+		TEST_BIT(r17, gpio0, bit7)
+		TEST_BIT(r18, gpio0, bit8)
+		TEST_BIT(r19, gpio0, bit9)
+		TEST_BIT(r20, gpio0, bit10)
+		TEST_BIT(r21, gpio0, bit11)
+		TEST_BIT(r22, gpio0, bit12)
+		TEST_BIT(r23, gpio0, bit13)
+		TEST_BIT(r24, gpio0, bit14)
+		TEST_BIT(r25, gpio0, bit15)
+
+		// Load 10 registers of data, starting at r10
+		LBBO r10, r0, 64, 9*4
+		MOV gpio1_zeros, 0
+		TEST_BIT(r10, gpio1, bit0)
+		TEST_BIT(r11, gpio1, bit1)
+		TEST_BIT(r12, gpio1, bit2)
+		TEST_BIT(r13, gpio1, bit3)
+		TEST_BIT(r14, gpio1, bit4)
+		TEST_BIT(r15, gpio1, bit5)
+		TEST_BIT(r16, gpio1, bit6)
+		TEST_BIT(r17, gpio1, bit7)
+		TEST_BIT(r18, gpio1, bit8)
+		TEST_BIT(r19, gpio1, bit9)
+
+		// Load 5 registers of data, starting at r10
+		LBBO r10, r0, 100, 5*4
+		MOV gpio2_zeros, 0
+		TEST_BIT(r10, gpio2, bit0)
+		TEST_BIT(r11, gpio2, bit1)
+		TEST_BIT(r12, gpio2, bit2)
+		TEST_BIT(r13, gpio2, bit3)
+		TEST_BIT(r14, gpio2, bit4)
+
+		// Load 2 registers of data, starting at r10
+		LBBO r10, r0, 120, 2*4
+		MOV gpio3_zeros, 0
+		TEST_BIT(r10, gpio3, bit0)
+		TEST_BIT(r11, gpio3, bit1)
 
 		// Wait for 650 ns to have passed
 		MOV r8, 0x22000 // control register
@@ -235,23 +313,45 @@ WORD_LOOP:
 #endif
 
 		// Turn on all the start bits
-		MOV r8, GPIO0 | GPIO_SETDATAOUT
-		MOV r9, GPIO0_LED_MASK
-		SBBO r9, r8, 0, 4
+		MOV r10, GPIO0 | GPIO_SETDATAOUT
+		MOV r11, GPIO1 | GPIO_SETDATAOUT
+		MOV r12, GPIO2 | GPIO_SETDATAOUT
+		MOV r13, GPIO3 | GPIO_SETDATAOUT
+
+		MOV r20, GPIO0_LED_MASK
+		MOV r21, GPIO1_LED_MASK
+		MOV r22, GPIO2_LED_MASK
+		MOV r23, GPIO3_LED_MASK
+
+		// Send all the start bits
+		SBBO r20, r10, 0, 4
+		SBBO r21, r11, 0, 4
+		SBBO r23, r13, 0, 4
+		SBBO r22, r12, 0, 4
+
+		MOV r10, GPIO0 | GPIO_CLEARDATAOUT
+		MOV r11, GPIO1 | GPIO_CLEARDATAOUT
+		MOV r12, GPIO2 | GPIO_CLEARDATAOUT
+		MOV r13, GPIO3 | GPIO_CLEARDATAOUT
 
 		// wait for the length of the zero bits (250 ns)
 		SLEEPNS 250, 1, wait_zero_time
 
 		// turn off all the zero bits
-		MOV r8, GPIO0 | GPIO_CLEARDATAOUT
-		SBBO gpio0_zeros, r8, 0, 4
+		SBBO gpio0_zeros, r10, 0, 4
+		SBBO gpio1_zeros, r11, 0, 4
+		SBBO gpio2_zeros, r12, 0, 4
+		SBBO gpio3_zeros, r13, 0, 4
 
 		// Wait until the length of the one bits
 		// (600 ns - 250 already waited)
 		SLEEPNS 350, 1, wait_one_time
 
 		// Turn all the bits off
-		SBBO r9, r8, 0, 4
+		SBBO r20, r10, 0, 4
+		SBBO r21, r11, 0, 4
+		SBBO r23, r13, 0, 4
+		SBBO r22, r12, 0, 4
 
 		QBNE BIT_LOOP, bit_num, 0
 

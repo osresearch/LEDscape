@@ -198,8 +198,11 @@ int main (void)
     while (1)
     {
 	printf(" starting %d!\n", ++i);
-	uint8_t val = i >> 6;
-	fill_color(num_pixels, val, 0, 0);
+	uint8_t val = i >> 1;
+	fill_color(num_pixels, val, 0, val);
+	pixels[0].strip[0].r = 0xFF;
+	pixels[0].strip[1].g = 0xFF;
+	pixels[0].strip[2].b = 0xFF;
 	cmd->response = 0;
 	cmd->command = 1;
 	while (!cmd->response)
