@@ -166,7 +166,12 @@ WORD_LOOP:
 	MOV bit_num, 0
 
 	BIT_LOOP:
-		SLEEPNS 600, 1, idle_time
+		// The idle period is 625 ns, but this is where
+		// we do all of our work to read the RGB data and
+		// repack it into bit slices.  So we subtract out
+		// the approximate amount of time that these operations
+		// take us.
+		SLEEPNS (625 - 400), 1, idle_time
 		MOV gpio0_zeros, 0
 
 		// Load 16 registers of data, starting at r8
@@ -216,18 +221,16 @@ WORD_LOOP:
 		SBBO r9, r8, 0, 4
 
 		ADD bit_num, bit_num, 1
-		QBLT BIT_LOOP, bit_num, 24
+		QBNE BIT_LOOP, bit_num, 24
 
 	// The 32 RGB streams have been clocked out
 	// Move to the next pixel on each row
 	ADD data_addr, data_addr, 32 * 4
 	SUB data_len, data_len, 1
-	QBGT WORD_LOOP, data_len, #0
+	QBNE WORD_LOOP, data_len, #0
 
     // Delay at least 50 usec
     SLEEPNS 50000, 1, reset_time
-
-    SLEEPNS 2000000, 1, spin_wait
 
     // Write out that we are done!
     // Store a non-zero response in the buffer so that they know that we are done
