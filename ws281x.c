@@ -32,7 +32,7 @@
 typedef struct
 {
 	// in the DDR shared with the PRU
-	const uintptr_t pixels_dma;
+	uintptr_t pixels_dma;
 
 	// Length in pixels of the longest LED strip.
 	unsigned size;
