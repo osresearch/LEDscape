@@ -145,6 +145,19 @@ ws281_init(
 		pixel_size
 	);
 
+
+	return cmd;
+}
+
+
+static void
+fill_color(
+	int num_pixels,
+	uint8_t r,
+	uint8_t g,
+	uint8_t b
+)
+{
 	size_t i;
 	for(i=0 ; i < num_pixels ; i++)
 	{
@@ -152,14 +165,12 @@ ws281_init(
 		for(strip=0 ; strip < 32; strip++)
 		{
 			pixel_t * const p = &pixels[i].strip[strip];
-			p->r = strip;
-			p->g = 1;
-			p->b = 2;
+			p->r = r;
+			p->g = g;
+			p->b = b;
 			p->a = 0xFF;
 		}
 	}
-
-	return cmd;
 }
 
 
@@ -174,20 +185,22 @@ int main (void)
     tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
     prussdrv_pruintc_init(&pruss_intc_initdata);
 
-    ws281x_command_t * cmd = ws281_init(PRU_NUM, 256);
+    const int num_pixels = 256;
+    ws281x_command_t * cmd = ws281_init(PRU_NUM, num_pixels);
 
     prussdrv_exec_program (PRU_NUM, "./ws281x.bin");
 
-    int i;
-    for (i = 0 ; i < 16 ; i++)
+    unsigned i = 0;
+    while (1)
     {
-	printf("starting %d!\n", i);
+	printf("starting %d!\n", ++i);
+	fill_color(num_pixels, i, i, i);
 	cmd->response = 0;
 	cmd->command = 1;
 	while (!cmd->response)
 		;
 	const uint32_t * next = (uint32_t*)(cmd + 1);
-	printf("done! %08x %08x\n", cmd->response, *next);
+	//printf("done! %08x %08x\n", cmd->response, *next);
     }
 
     // Signal a halt command
