@@ -48,7 +48,7 @@
 .macro SLEEPNS
 .mparam ns,inst,lab
     //MOV r5, (ns/10)-1-inst
-    MOV r5, (ns*10000)-1-inst
+    MOV r5, (ns*100)-1-inst
 lab:
     SUB r5, r5, 1
     QBNE lab, r5, 0
