@@ -25,9 +25,6 @@
 #include "bitslice.h"
 #include "ledscape.h"
 
-static int port = 9999;
-static unsigned width = 16;
-static unsigned height = 256;
 
 static int
 udp_socket(
@@ -62,7 +59,7 @@ main(
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const unsigned width = 256;
-	const unsigned height = 16;
+	const unsigned height = 64;
 	const size_t image_size = width * height * 3;
 
 	// largest possible UDP packet
@@ -72,13 +69,14 @@ main(
 
 	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
 
-	ledscape_t * const leds = ledscape_init(width);
+	ledscape_t * const leds = ledscape_init(width, height);
 
 	const unsigned report_interval = 10;
 	unsigned last_report = 0;
 	unsigned long delta_sum = 0;
 	unsigned frames = 0;
 
+	uint32_t * const fb = calloc(width*128,4);
 
 	while (1)
 	{
@@ -119,9 +117,6 @@ main(
 		gettimeofday(&start_tv, NULL);
 
 		const unsigned frame_num = 0;
-		ledscape_frame_t * const frame
-			= ledscape_frame(leds, frame_num);
-		uint32_t * const fb = (void*) frame;
 
 		for (unsigned x = 0 ; x < width ; x++)
 		{
@@ -136,7 +131,7 @@ main(
 			}
 		}
 
-		ledscape_draw(leds, frame_num);
+		ledscape_draw(leds, fb);
 
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);
