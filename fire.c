@@ -76,10 +76,10 @@ hsv2rgb(
 
 
 static const int w = 256;
-static const int h = 20;
+static const int h = 64;
 
 // This will contain the pixels used to calculate the fire effect
-static uint8_t fire[256][32];
+static uint8_t fire[256][64];
 
   // Flame colors
 static uint32_t palette[255];
@@ -181,30 +181,25 @@ init_pallete(void)
 int
 main(void)
 {
-	const int num_pixels = 256;
-	ledscape_t * const leds = ledscape_init(num_pixels);
+	ledscape_t * const leds = ledscape_init(w,h);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
 
 	unsigned i = 0;
 	init_pallete();
+	uint32_t * const p = calloc(w*h,4);
 
 	while (1)
 	{
 		// Alternate frame buffers on each draw command
-		const unsigned frame_num = i++ % 2;
-		ledscape_frame_t * const frame
-			= ledscape_frame(leds, frame_num);
-
-		uint32_t * const p = (void*) frame;
 
 		time_t now = time(NULL);
 		const uint32_t delta = now - last_time;
 
 		fire_draw(p);
 		sparkles(p, delta);
-		ledscape_draw(leds, frame_num);
+		ledscape_draw(leds, p);
 		usleep(50000);
 
 		// wait for the previous frame to finish;
