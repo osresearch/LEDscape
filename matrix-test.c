@@ -28,7 +28,7 @@ ledscape_fill_color(
 
 int main (void)
 {
-	const int num_pixels = 512;
+	const int num_pixels = 256;
 	ledscape_t * const leds = ledscape_init(num_pixels);
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -44,21 +44,21 @@ int main (void)
 
 		uint32_t * const p = (void*) frame;
 
-		ledscape_draw(leds, frame_num);
 #if 1
-		for (unsigned x = 0 ; x < 512 ; x++)
+		for (unsigned x = 0 ; x < num_pixels ; x++)
 		{
 			for (unsigned y = 0 ; y < 16 ; y++)
 			{
-				uint8_t * const px = (void*) &p[x + 512 * y];
-				uint8_t j = (x + (i >> 8)) % 30;
-				const unsigned v = (i >> 4) % 0x80;
+				uint8_t * const px = (void*) &p[x + num_pixels * y];
+				uint8_t j = (x + y + (i >> 8)) % 30;
+				const unsigned v = y * 16;
 				px[0] = j <= 14 ? v : 0;
 				px[1] = 11 < j && j <= 26 ? v : 0;
 				px[2] = 17 < j && j <= 40 ? v : 0;
 			}
 		}
-		usleep(1000);
+		ledscape_draw(leds, frame_num);
+		usleep(100);
 #else
 		uint8_t val = i >> 1;
 		uint16_t r = ((i >>  0) & 0xFF);

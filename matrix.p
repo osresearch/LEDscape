@@ -34,12 +34,12 @@
 #define gpio0_b2 14
 #define gpio0_g2 31
 
-#define gpio0_r3 20
-#define gpio0_b3 7
+#define gpio0_r3 7
+#define gpio0_b3 20
 #define gpio0_g3 22
 
-#define gpio0_r4 23
-#define gpio0_b4 27
+#define gpio0_r4 27
+#define gpio0_b4 23
 #define gpio0_g4 26
 
 // Pins available in GPIO1
@@ -127,17 +127,27 @@ lab:
 .endm
 
 
-#define CLOCK(pin) \
-	SLEEPNS 50, 1, pin##_on ; \
+#define CLOCK_LO \
         SBBO clock_pin, gpio1_set, 0, 4; \
-	SLEEPNS 50, 1, pin##_off ; \
+
+#define CLOCK_HI \
         SBBO clock_pin, gpio1_clr, 0, 4; \
 
-#define LATCH \
-	SLEEPNS 50, 1, latch_on ; \
+#define LATCH_HI \
         SBBO latch_pin, gpio1_set, 0, 4; \
-	SLEEPNS 50, 1, latch_off ; \
+
+#define LATCH_LO \
         SBBO latch_pin, gpio1_clr, 0, 4; \
+
+#define DISPLAY_OFF \
+	MOV out1_set, 0; \
+	SET out1_set, gpio1_oe; \
+	SBBO out1_set, gpio1_set, 0, 4; \
+
+#define DISPLAY_ON \
+	MOV out1_set, 0; \
+	SET out1_set, gpio1_oe; \
+	SBBO out1_set, gpio1_clr, 0, 4; \
 
 
 START:
@@ -173,48 +183,8 @@ START:
     // start position.
 
 #define DISPLAY_WIDTH          128
-#define DISPLAYS               4
+#define DISPLAYS               2
 #define ROW_WIDTH              (DISPLAYS * DISPLAY_WIDTH)
-
-/*
-for bright in 0..MAX_BRIGHT:
-	for row in 0..7:
-		set_address row
-		offset = row * ROW_WIDTH
-		for pixel in 0..32:
-			for scan in 0..1:
-				r_clr = r_set = 0
-				g_clr = g_set = 0
-				b_clr = b_set = 0
-				for display in 0..DISPLAYS:
-					read rgb from 4*(pixel + display*DISPLAY_WIDTH + offset)
-					pin = display_pin(display)
-					if r < bright:
-						r_clr |= pin
-					if b < bright:
-						b_clr |= pin
-					if g < bright:
-						g_clr |= pin
-
-				# All bitmasks have been built, clock them out
-				clr_bits r_clr
-				set_bits r_set
-				clock
-				clr_bits g_clr
-				set_bits g_set
-				clock
-				clr_bits b_clr
-				set_bits b_set
-				clock
-
-				# read the paired row for the next pass
-				# on the second scan
-				offset += 8 * DISPLAY_WIDTH
-
-		# latch after both scan rows have been output
-		latch
-	# Check for new frame buffer now; this is a safe time to change it
-*/
 
         MOV bright, #0
 
@@ -250,6 +220,53 @@ PWM_LOOP:
         MOV row, 0
 
         ROW_LOOP:
+		// compute where we are in the image
+
+		MOV pixel, 0
+		ADD pix_ptr, data_addr, offset
+
+		PIXEL_LOOP:
+			MOV out0_set, 0
+			CLOCK_HI
+
+			// read a pixel worth of data
+#define OUTPUT_ROW(N, OFFSET) \
+	MOV p2, (OFFSET); \
+	LBBO pix, pix_ptr, p2, 4; \
+	QBGE skip_r##N, pix.b0, bright; \
+	SET out0_set, gpio0_r##N; \
+	skip_r##N:; \
+	QBGE skip_g##N, pix.b1, bright; \
+	SET out0_set, gpio0_g##N; \
+	skip_g##N:; \
+	QBGE skip_b##N, pix.b2, bright; \
+	SET out0_set, gpio0_b##N; \
+	skip_b##N:; \
+
+			OUTPUT_ROW(1, 0)
+			OUTPUT_ROW(2, 8*ROW_WIDTH*4)
+			OUTPUT_ROW(3, DISPLAY_WIDTH*4)
+			OUTPUT_ROW(4, 8*ROW_WIDTH*4 + DISPLAY_WIDTH*4)
+
+			// All bits are configured;
+			// the non-set ones will be cleared
+			SBBO out0_set, gpio0_set, 0, 4
+			XOR out0_set, out0_set, gpio0_led_mask
+			SBBO out0_set, gpio0_clr, 0, 4
+
+			// give it a few ns to settle
+			//SLEEPNS 50, 1, data_setup
+			CLOCK_LO
+
+			ADD pix_ptr, pix_ptr, 4
+			ADD pixel, pixel, 1
+			MOV p2, DISPLAY_WIDTH
+			QBNE PIXEL_LOOP, pixel, p2
+
+		// Disable output before we latch and set the address
+		DISPLAY_OFF
+		LATCH_HI
+
                 // set address; pins in gpio1
                 MOV out1_set, 0
                 QBBC sel0, row, 0
@@ -267,44 +284,11 @@ PWM_LOOP:
                 XOR out1_set, out1_set, gpio1_sel_mask
                 SBBO out1_set, gpio1_clr, 0, 4
         
-		// compute where we are in the image
-
-		MOV pixel, 0
-		ADD pix_ptr, data_addr, offset
-		PIXEL_LOOP:
-			MOV out0_set, 0
-
-			// This should be unrolled for every display
-			// read a pixel worth of data
-			LBBO pix, pix_ptr, 0*DISPLAY_WIDTH, 4
-			QBGE disp0_r, pix.b0, bright
-			SET out0_set, gpio0_r1
-
-			disp0_r:
-			QBGE disp0_g, pix.b1, bright
-			SET out0_set, gpio0_g1
-
-			disp0_g:
-			QBGE disp0_b, pix.b2, bright
-			SET out0_set, gpio0_b1
-			disp0_b:
-
-			// All bits are configured;
-			// the non-set ones will be cleared
-			SBBO out0_set, gpio0_set, 0, 4
-			XOR out0_set, out0_set, gpio0_led_mask
-			SBBO out0_set, gpio0_clr, 0, 4
-			CLOCK(PIX)
-
-			ADD pix_ptr, pix_ptr, 4
-			ADD pixel, pixel, 1
-			MOV p2, DISPLAY_WIDTH
-			QBNE PIXEL_LOOP, pixel, p2
-
                 // We have clocked out all of the pixels for
                 // this row and the one eigth rows later.
-                // Latch the data
-                LATCH
+		// Latch the display register and then turn the display on
+                LATCH_LO
+		DISPLAY_ON
 
                 ADD row, row, 1
 		MOV p2, ROW_WIDTH * 4
@@ -314,7 +298,7 @@ PWM_LOOP:
         // We have clocked out all of the panels.
         // Celebrate and go back to the PWM loop
         // Limit brightness to 0..MAX_BRIGHT
-        ADD bright, bright, 16
+        ADD bright, bright, 32
 	AND bright, bright, 0xFF
 
         QBA PWM_LOOP
