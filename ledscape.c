@@ -90,8 +90,9 @@ struct ledscape
 {
 	ws281x_command_t * ws281x;
 	pru_t * pru;
-	unsigned width;;
-	unsigned height;;
+	unsigned width;
+	unsigned height;
+	unsigned frame_size;
 	led_matrix_config_t * matrix;
 };
 
@@ -112,6 +113,15 @@ ledscape_frame(
 #endif
 
 
+static uint8_t
+bright_map(
+	uint8_t val
+)
+{
+	return val;
+}
+
+
 /** Translate the RGBA buffer to the correct output type and
  * initiate the transfer of a frame to the LED strips.
  *
@@ -123,9 +133,9 @@ ledscape_draw(
 	const void * const buffer
 )
 {
-	unsigned int frame = 0;
+	static unsigned frame = 0;
 	const uint32_t * const in = buffer;
-	uint8_t * const out = leds->pru->ddr; // + leds->frame_size * frame;
+	uint8_t * const out = leds->pru->ddr + leds->frame_size * frame;
 
 #if 1
 	// matrix packed is:
@@ -147,9 +157,9 @@ ledscape_draw(
 			{
 				const uint8_t * const rgb = (const void*) &in_row[x + m->x_offset];
 				uint8_t * const out_rgb = &out_row[(i + x * NUM_MATRIX)*3];
-				out_rgb[0] = rgb[0];
-				out_rgb[1] = rgb[1];
-				out_rgb[2] = rgb[2];
+				out_rgb[0] = bright_map(rgb[0]);
+				out_rgb[1] = bright_map(rgb[1]);
+				out_rgb[2] = bright_map(rgb[2]);
 			}
 		}
 	}
@@ -161,7 +171,8 @@ ledscape_draw(
 	out[6] = 0x00; out[7] = 0x00; out[8] = 0x80;
 #endif
 
-	leds->ws281x->pixels_dma = leds->pru->ddr_addr; // + leds->frame_size * frame;
+	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
+	frame = (frame + 1) & 1;
 #if 0
 	// Wait for any current command to have been acknowledged
 	while (leds->ws281x->command)
@@ -199,9 +210,9 @@ ledscape_init(
 )
 {
 	pru_t * const pru = pru_init(0);
-#if 0
-	const size_t frame_size = num_pixels * 16 * 3; //LEDSCAPE_NUM_STRIPS * 4;
+	const size_t frame_size = 16 * 8 * width * 3; //LEDSCAPE_NUM_STRIPS * 4;
 
+#if 0
 	if (2 *frame_size > pru->ddr_size)
 		die("Pixel data needs at least 2 * %zu, only %zu in DDR\n",
 			frame_size,
@@ -216,6 +227,7 @@ ledscape_init(
 		.width		= width,
 		.height		= height,
 		.ws281x		= pru->data_ram,
+		.frame_size	= frame_size,
 		.matrix		= calloc(sizeof(*leds->matrix), 1),
 	};
 
@@ -223,6 +235,7 @@ ledscape_init(
 		.matrix_width	= 128,
 		.matrix_height	= 8,
 		.matrix		= {
+#if 1
 			{ 0, 0 },
 			{ 0, 8 },
 			{ 0, 16 },
@@ -239,6 +252,24 @@ ledscape_init(
 			{ 128, 40 },
 			{ 128, 48 },
 			{ 128, 56 },
+#else
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 0 },
+			{ 0, 8 },
+#endif
 		},
 	};
 
