@@ -25,9 +25,10 @@
 	"P9.13", "P9.14",
 	"P9.15", "P9.16",
 	"P9.17", "P9.18",
+	"P9.19", "P9.20", // overrides the i2c bus
 	"P9.21", "P9.22",
 	"P9.23", "P9.24",
-	"P9.25", "P9.26",
+	         "P9.26",
 	"P9.27",
 	"P9.41", "P9.42",
 
@@ -37,13 +38,13 @@
     fragment@0 {
         target = <&am33xx_pinmux>;
         __overlay__ {
-            ws281x_pins: pinmux_ws281x_pins{
+            pinctrl_ws281x: ws281x_pins {
 		// Mode 7 is GPIO output
 		// GPIO0: 2 3 4 5 7 12 13 14 15 20 22 23 26 27 30 31
                 pinctrl-single,pins = <
-			//0x090 0x7 // P8.7 gpio2.2
-			//0x094 0x7 // P8.8 gpio2.3
-			//0x09c 0x7 // P8.9 gpio2.5
+			0x090 0x7 // P8.7 gpio2.2
+			0x094 0x7 // P8.8 gpio2.3
+			0x09c 0x7 // P8.9 gpio2.5
 			0x098 0x7 // P8.10 gpio 2.4
 			0x034 0x7 // P8.11 gpio1.13
 			0x030 0x7 // P8.12 gpio1.12
@@ -52,7 +53,7 @@
 			0x03c 0x7 // P8.15 gpio1.15
 			0x038 0x7 // P8.16 gpio1.14
 			0x02c 0x7 // P8.17 gpio0.27
-			//0x08c 0x7 // P8.18 gpio2.1
+			0x08c 0x7 // P8.18 gpio2.1
 			0x020 0x7 // P8.19 gpio0.22
 			0x07c 0x7 // P8.26 gpio1.29
 
@@ -64,6 +65,8 @@
 			0x04c 0x7 // P9.16 gpio1.19
 			0x15c 0x7 // P9.17 gpio0.5
 			0x158 0x7 // P9.18 gpio0.4
+			0x17e 0x7 // P9.19 gpio0.13, overrides i2c
+			0x178 0x7 // P9.20 gpio0.12, overrides i2c
 			0x154 0x7 // P9.21 gpio0.3
 			0x150 0x7 // P9.22 gpio0.2
 			0x044 0x7 // P9.23 gpio1.17
@@ -75,25 +78,25 @@
 			0x164 0x7 // P9.42 gpio0.7
                 >;
             };
-
         };
     };
 
-    fragment@1{
+ fragment@1 {
+    target = <&ocp>;
+    __overlay__ {
+      ws281x_pinmux_helper: helper {
+        compatible = "bone-pinmux-helper";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_ws281x>;
+        status = "okay";
+      };
+    };
+  };
+
+    fragment@2{
         target = <&pruss>;
         __overlay__{
             status = "okay";
-            pinctrl-names = "default";
-            pinctrl-0       = <&pinmux_ws281x_pins>;
-
-/*
-            quad_5{
-                pin-names     = "Servi:q5_a", "Servi:q5_b", "Servi:q5_i";
-                gpios         = <&gpio3 9 0x5
-                                &gpio3 6 0x5
-                                &gpio3 7 0x5>; 
-            };            
-*/
         };
     };
 };
