@@ -91,7 +91,7 @@ fire_draw(
 	uint32_t * const frame
 )
 {
-    memset(frame, 0, w*16*sizeof(*frame));
+    memset(frame, 0, w*h*sizeof(*frame));
 
     angle = angle + 0.05;
 
@@ -123,8 +123,7 @@ fire_draw(
         if (((c >> 0) & 0xFF) == 128)
           fire[x][y] = 128;
 
-	if (y > 1 && y < 2 + 16)
-		frame[counter++] = c;
+	frame[counter++] = c;
       }
     }
 }
