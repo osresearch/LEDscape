@@ -134,7 +134,11 @@ gradient(
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
 			uint8_t * const out = &pixels[x + y*width];
-			out[2] = 0x80 * (1 & (((x+cycle) >> 2) ^ ((y+cycle) >> 2)));
+			//out[0] = ((x+cycle) % 32) * 8;
+			//out[1] = ((y+cycle) % 16) * 16;
+			out[0] = ((x+y+cycle) % 32) * 8;
+			out[1] = ((x+y+cycle) % 32) * 8;
+			out[2] = ((x+y+cycle) % 32) * 8;
 		}
 	}
 }
@@ -163,8 +167,10 @@ main(void)
 
 	while (1)
 	{
-		rainbow(p, width, height, 10, i++);
-		//gradient(p, width, height, 10, i++);
+		if (1)
+			rainbow(p, width, height, 10, i++);
+		else
+			gradient(p, width, height, 10, i++);
 		ledscape_draw(leds, p);
 		usleep(20000);
 
