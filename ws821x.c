@@ -193,7 +193,8 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
         return -1;
     }	
 
-#define DDR_BASEADDR 0x80000000
+//#define DDR_BASEADDR 0x80000000
+#define DDR_BASEADDR 0x98580000
 #define OFFSET_DDR	 0x00001000 
 #define OFFSET_L3	 2048       //equivalent with 0x00002000
 
@@ -206,7 +207,7 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
     }
     
     ws281x_command = (void*) pruDataMem;
-    ws281x_command->pixels = (void*) PIXEL_DATA_ADDR;
+    ws281x_command->pixels = (void*) DDR_BASEADDR;
     ws281x_command->size = 256 * 32 * 3; // 256 pixels * 32 strips * 3 bytes/pixel
     ws281x_command->start = 0;
 
@@ -214,12 +215,12 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
     prussdrv_map_l3mem (&l3mem);	
     pixels = l3mem;
 #else
-    pixels = ddrMem + OFFSET_DDR;
+    pixels = ddrMem;
 #endif
 
     // Store values into source
     printf("data ram %p l3 ram %p: setting %zu bytes\n", ws281x_command, pixels,  ws281x_command->size);
-    //memset(pixels, 0, ws281x_command->size);
+    memset(pixels, 0, ws281x_command->size);
 
     return(0);
 }
