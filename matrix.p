@@ -34,12 +34,13 @@
 #define gpio0_g4 26
 
 // Pins available in GPIO1
-#define gpio1_sel0 12 /* 44, must be sequential with sel1 and sel2 */
-#define gpio1_sel1 13 /* 45 */
-#define gpio1_sel2 14 /* 46 */
-#define gpio1_latch 28 /* 60 */
-#define gpio1_oe 15 /* 47 */
-#define gpio1_clock 19 /* 51 */
+#define gpio1_sel0 12 /* must be sequential with sel1 and sel2 */
+#define gpio1_sel1 13
+#define gpio1_sel2 14
+#define gpio1_sel3 15
+#define gpio1_latch 28
+#define gpio1_oe 29
+#define gpio1_clock 19
 
 /** Generate a bitmask of which pins in GPIO0-3 are used.
  * 
@@ -64,6 +65,7 @@
 |(1<<gpio1_sel0)\
 |(1<<gpio1_sel1)\
 |(1<<gpio1_sel2)\
+|(1<<gpio1_sel3)\
 )
 
 .origin 0
