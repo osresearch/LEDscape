@@ -91,18 +91,19 @@ static uint32_t rainbowColors[180];
 static void
 rainbow(
 	uint32_t * const pixels,
-	unsigned num_leds,
+	unsigned width,
+	unsigned height,
 	unsigned phaseShift,
 	unsigned cycle
 )
 {
 	const unsigned color = cycle % 180;
 
-	for (unsigned x=0; x < num_leds; x++) {
-		for (unsigned y=0; y < 16; y++) {
+	for (unsigned x=0; x < width; x++) {
+		for (unsigned y=0; y < height; y++) {
 			const int index = (color + x + y*phaseShift/2) % 180;
                         const uint32_t in  = rainbowColors[index];
-			uint8_t * const out = &pixels[x + y*num_leds];
+			uint8_t * const out = &pixels[x + y*width];
 #if 1
                         out[0] = ((in >> 0) & 0xFF); // * y / 16;
                         out[1] = ((in >> 8) & 0xFF); // * y / 16;
@@ -123,8 +124,9 @@ rainbow(
 int
 main(void)
 {
-	const int num_pixels = 256;
-	ledscape_t * const leds = ledscape_init(num_pixels);
+	const int width = 256;
+	const int height = 64;
+	ledscape_t * const leds = ledscape_init(width, height);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
@@ -139,17 +141,12 @@ main(void)
 	}
 
 	unsigned i = 0;
+	uint32_t * const p = calloc(width*height,4);
+
 	while (1)
 	{
-		// Alternate frame buffers on each draw command
-		const unsigned frame_num = i++ % 2;
-		ledscape_frame_t * const frame
-			= ledscape_frame(leds, frame_num);
-
-		uint32_t * const p = (void*) frame;
-
-		rainbow(p, num_pixels, 10, i);
-		ledscape_draw(leds, frame_num);
+		rainbow(p, width, height, 10, i++);
+		ledscape_draw(leds, p);
 		usleep(20000);
 
 		// wait for the previous frame to finish;

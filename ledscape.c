@@ -69,16 +69,34 @@ typedef struct
 	volatile unsigned response;
 } __attribute__((__packed__)) ws281x_command_t;
 
+typedef struct
+{
+	uint32_t x_offset;
+	uint32_t y_offset;
+} led_matrix_t;
+
+#define NUM_MATRIX 16
+
+typedef struct
+{
+	uint32_t matrix_width; // of a full chain
+	uint32_t matrix_height; // number of rows per-output (8 or 16)
+	led_matrix_t matrix[NUM_MATRIX];
+} led_matrix_config_t;
+
+
 
 struct ledscape
 {
 	ws281x_command_t * ws281x;
 	pru_t * pru;
-	unsigned num_pixels;
-	size_t frame_size;
+	unsigned width;;
+	unsigned height;;
+	led_matrix_config_t * matrix;
 };
 
 
+#if 0
 /** Retrieve one of the two frame buffers. */
 ledscape_frame_t *
 ledscape_frame(
@@ -91,16 +109,59 @@ ledscape_frame(
 
 	return (ledscape_frame_t*)((uint8_t*) leds->pru->ddr + leds->frame_size * frame);
 }
-	
+#endif
 
-/** Initiate the transfer of a frame to the LED strips */
+
+/** Translate the RGBA buffer to the correct output type and
+ * initiate the transfer of a frame to the LED strips.
+ *
+ * Matrix drivers shuffle to have consecutive bits, ws281x do bit slicing.
+ */
 void
 ledscape_draw(
 	ledscape_t * const leds,
-	unsigned int frame
+	const void * const buffer
 )
 {
-	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
+	unsigned int frame = 0;
+	const uint32_t * const in = buffer;
+	uint8_t * const out = leds->pru->ddr; // + leds->frame_size * frame;
+
+#if 1
+	// matrix packed is:
+	// p(0,0)p(0,8)p(64,0)p(64,8)....
+	// this way the PRU can read all sixteen output pixels in
+	// one LBBO and clock them out.
+	// there is an array of NUM_MATRIX output coordinates (one for each of
+	// the sixteen drivers).
+	for (unsigned i = 0 ; i < NUM_MATRIX ; i++)
+	{
+		const led_matrix_t * const m = &leds->matrix->matrix[i];
+
+		for (uint32_t y = 0 ; y < leds->matrix->matrix_height ; y++)
+		{
+			const uint32_t * const in_row = &in[(y+m->y_offset) * leds->width];
+			uint8_t * const out_row = &out[y * leds->matrix->matrix_width * 3 * NUM_MATRIX];
+
+			for (uint32_t x = 0 ; x < leds->matrix->matrix_width ; x++)
+			{
+				const uint8_t * const rgb = (const void*) &in_row[x + m->x_offset];
+				uint8_t * const out_rgb = &out_row[(i + x * NUM_MATRIX)*3];
+				out_rgb[0] = rgb[0];
+				out_rgb[1] = rgb[1];
+				out_rgb[2] = rgb[2];
+			}
+		}
+	}
+#else
+	static int i = 0;
+	memset(out, i++, leds->width *leds->height * 3);
+	out[0] = 0x80; out[1] = 0x00; out[2] = 0x00;
+	out[3] = 0x00; out[4] = 0x80; out[5] = 0x00;
+	out[6] = 0x00; out[7] = 0x00; out[8] = 0x80;
+#endif
+
+	leds->ws281x->pixels_dma = leds->pru->ddr_addr; // + leds->frame_size * frame;
 #if 0
 	// Wait for any current command to have been acknowledged
 	while (leds->ws281x->command)
@@ -133,33 +194,63 @@ ledscape_wait(
 
 ledscape_t *
 ledscape_init(
-	unsigned num_pixels
+	unsigned width,
+	unsigned height
 )
 {
 	pru_t * const pru = pru_init(0);
-	const size_t frame_size = num_pixels * LEDSCAPE_NUM_STRIPS * 4;
+#if 0
+	const size_t frame_size = num_pixels * 16 * 3; //LEDSCAPE_NUM_STRIPS * 4;
 
 	if (2 *frame_size > pru->ddr_size)
 		die("Pixel data needs at least 2 * %zu, only %zu in DDR\n",
 			frame_size,
 			pru->ddr_size
 		);
+#endif
 
 	ledscape_t * const leds = calloc(1, sizeof(*leds));
 
 	*leds = (ledscape_t) {
 		.pru		= pru,
-		.num_pixels	= num_pixels,
-		.frame_size	= frame_size,
+		.width		= width,
+		.height		= height,
 		.ws281x		= pru->data_ram,
+		.matrix		= calloc(sizeof(*leds->matrix), 1),
+	};
+
+	*(leds->matrix) = (led_matrix_config_t) {
+		.matrix_width	= 128,
+		.matrix_height	= 8,
+		.matrix		= {
+			{ 0, 0 },
+			{ 0, 8 },
+			{ 0, 16 },
+			{ 0, 24 },
+			{ 0, 32 },
+			{ 0, 40 },
+			{ 0, 48 },
+			{ 0, 56 },
+			{ 128, 0 },
+			{ 128, 8 },
+			{ 128, 16 },
+			{ 128, 24 },
+			{ 128, 32 },
+			{ 128, 40 },
+			{ 128, 48 },
+			{ 128, 56 },
+		},
 	};
 
 	*(leds->ws281x) = (ws281x_command_t) {
 		.pixels_dma	= 0, // will be set in draw routine
+		.num_pixels	= (leds->matrix->matrix_width * 3) * 16,
 		.command	= 0,
 		.response	= 0,
-		.num_pixels	= leds->num_pixels,
 	};
+
+	printf("%d\n", leds->ws281x->num_pixels);
+
 
 	// Configure all of our output pins.
 	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios0) ; i++)
