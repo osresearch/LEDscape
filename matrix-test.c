@@ -153,7 +153,7 @@ int
 main(void)
 {
 	const int width = 64;
-	const int height = 32;
+	const int height = 48;
 	ledscape_t * const leds = ledscape_init(width, height);
 	printf("init done\n");
 	time_t last_time = time(NULL);

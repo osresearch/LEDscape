@@ -168,15 +168,19 @@ ledscape_draw(
 	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
 	frame = (frame + 1) & 1;
 #else
-	// Translate the RGBA frame into RGBA
-	// only 32 outputs currentl supported
-	for (unsigned y = 0 ; y < 32 ; y++)
+	// Translate the RGBA frame into G R B, sliced by color
+	// only 48 outputs currently supported
+	const unsigned height = 48;
+	for (unsigned y = 0 ; y < height ; y++)
 	{
 		const uint32_t * const row_in = &in[y*leds->width];
 		for (unsigned x = 0 ; x < leds->width ; x++)
 		{
-			uint32_t * const row_out = (uint32_t*) &out[x*32*4];
-			row_out[y] = in[x];
+			uint8_t * const row_out = &out[x*height*3 + y];
+			const uint32_t p = row_in[x];
+			row_out[0*height] = (p >>  8) & 0xFF; // green
+			row_out[1*height] = (p >>  0) & 0xFF; // red
+			row_out[2*height] = (p >> 16) & 0xFF; // blue
 		}
 	}
 	
