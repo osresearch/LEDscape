@@ -12,7 +12,7 @@
 #include "ledscape.h"
 #include "pru.h"
 
-#undef CONFIG_LED_MATRIX
+#define CONFIG_LED_MATRIX
 
 
 /** GPIO pins used by the LEDscape.
@@ -266,8 +266,11 @@ ledscape_init(
 )
 {
 	pru_t * const pru = pru_init(0);
-	//const size_t frame_size = 16 * 8 * width * 3; //LEDSCAPE_NUM_STRIPS * 4;
+#ifdef CONFIG_LED_MATRIX
+	const size_t frame_size = 16 * 8 * width * 3; //LEDSCAPE_NUM_STRIPS * 4;
+#else
 	const size_t frame_size = 48 * width * 8 * 3;
+#endif
 
 #if 0
 	if (2 *frame_size > pru->ddr_size)
