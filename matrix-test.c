@@ -101,7 +101,7 @@ rainbow(
 
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
-			const int index = (color + x + y*phaseShift/2) % 180;
+			const int index = (color + x + y*phaseShift/4) % 180;
                         const uint32_t in  = rainbowColors[index];
 			uint8_t * const out = &pixels[x + y*width];
 #if 1
@@ -134,11 +134,17 @@ gradient(
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
 			uint8_t * const out = &pixels[x + y*width];
+#if 0
 			//out[0] = ((x+cycle) % 32) * 8;
 			//out[1] = ((y+cycle) % 16) * 16;
-			out[0] = ((x+y+cycle) % 32) * 8;
-			out[1] = ((x+y+cycle) % 32) * 8;
-			out[2] = ((x+y+cycle) % 32) * 8;
+			uint8_t b = 0xFF;
+			out[1] = b * ((((x + y + cycle) >> 5) ) & 1);
+#else
+			uint8_t b = ((x+y+cycle) % 32) * 8;
+			out[0] = b * ((((x + y + cycle) >> 5) % 3) & 1);
+			out[1] = b * ((((x + y + cycle) >> 5) % 5) & 1);
+			out[2] = b * ((((x + y + cycle) >> 5) % 7) & 1);
+#endif
 		}
 	}
 }
