@@ -1,6 +1,8 @@
 #!/bin/sh
 DIRNAME="`dirname "$0"`"
-cd "$DIRNAME"
+cd "$DIRNAME/.."
 
-modprobe uio_pruss
-exec ./matrix-test
+echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr.8/slots
+sleep 4
+
+exec ./bin/matrix-test
