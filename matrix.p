@@ -419,10 +419,10 @@ PWM_LOOP:
 			// \todo: Test turning OE on and off every other,
 			// every fourth, every eigth, etc pixel based on
 			// the current brightness.
-#if 0
-			LSL out_sel, offset, 1
+#if 1
+			LSR out_set, offset, 2
 
-			QBLT no_blank, bright, p2
+			QBLT no_blank, bright, out_set
 			DISPLAY_OFF
 			no_blank:
 #endif

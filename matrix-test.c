@@ -121,6 +121,24 @@ rainbow(
 }
 
 
+static void
+gradient(
+	uint32_t * const pixels,
+	unsigned width,
+	unsigned height,
+	unsigned phaseShift,
+	unsigned cycle
+)
+{
+	cycle >>= 3;
+	for (unsigned x=0; x < width; x++) {
+		for (unsigned y=0; y < height; y++) {
+			uint8_t * const out = &pixels[x + y*width];
+			out[2] = 0x80 * (1 & (((x+cycle) >> 2) ^ ((y+cycle) >> 2)));
+		}
+	}
+}
+
 int
 main(void)
 {
@@ -146,6 +164,7 @@ main(void)
 	while (1)
 	{
 		rainbow(p, width, height, 10, i++);
+		//gradient(p, width, height, 10, i++);
 		ledscape_draw(leds, p);
 		usleep(20000);
 
