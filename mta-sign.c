@@ -104,13 +104,21 @@ main(
 
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height,4);
+	int scroll_x = 128;
 
 	while (1)
 	{
-		font_write(p, 0xFF0000, 0, 0, "1.!Nyc resistor");
-		font_write(p, 0x00FF00, 0, 16, argc > 1 ? argv[1] : "");
+		font_write(p, 0xFF0000, 0, 0, "1!NYCResistor");
+		font_write(p, 0x00FF00, 100, 0, "8min");
+			
+		int end_x = font_write(p, 0xFF4000, scroll_x, 16, argc > 1 ? argv[1] : "");
+		if (end_x <= 0)
+			scroll_x = 128;
+		else
+			scroll_x--;
+
 		ledscape_draw(leds, p);
-		usleep(20000);
+		usleep(30000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
