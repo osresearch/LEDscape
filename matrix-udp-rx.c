@@ -59,7 +59,7 @@ main(
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const unsigned width = 256;
-	const unsigned height = 64;
+	const unsigned height = 48;
 	const size_t image_size = width * height * 3;
 
 	// largest possible UDP packet
@@ -76,7 +76,7 @@ main(
 	unsigned long delta_sum = 0;
 	unsigned frames = 0;
 
-	uint32_t * const fb = calloc(width*128,4);
+	uint32_t * const fb = calloc(width*height,4);
 
 	while (1)
 	{
