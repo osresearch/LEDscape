@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+local $/;
+local $_ = <>;
+
+print <<"";
+/** \file
+ * Generated font from json file output by
+ * http://www.pentacom.jp/pentacom/bitfontmaker2/
+ */
+const uint16_t font[][16] = {
+
+while (m/"(\d+)":\[([\d,]+)\]/msgx)
+{
+	my $ord = $1;
+	my @bits = split /,/, $2;
+
+	my $c = chr($ord);
+	$c = '\\\\' if $c eq '\\';
+	printf "['%s'] = {\n", $c;
+
+	for (@bits)
+	{
+		printf "\t0x%04x,\n", $_;
+	}
+
+	print "},\n";
+}
+
+print <<"";
+};
+
+__END__
