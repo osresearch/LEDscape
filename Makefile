@@ -2,7 +2,6 @@
 
 LIBDIR_APP_LOADER?=../../app_loader/lib
 INCDIR_APP_LOADER?=../../app_loader/include
-BINDIR?=.
 
 CFLAGS += \
 	-std=c99 \
@@ -19,7 +18,7 @@ LDFLAGS += \
 	-lpthread \
 
 PASM := ../../utils/pasm_2
-TARGET := $(BINDIR)/ws281x
+TARGET := rgb-test
 
 _DEPS = 
 DEPS = $(patsubst %,$(INCDIR_APP_LOADER)/%,$(_DEPS))
