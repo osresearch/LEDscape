@@ -25,7 +25,8 @@ $(TARGET): $(OBJ)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 ws281x.bin: ws281x.p ws281x.hp
-	$(PASM) -V3 -b $<
+	$(CPP) - < $< | grep -v '^#' | sed 's/;/\n/g' > $<.i
+	$(PASM) -V3 -b $<.i
 	cp $@ ../bin/
 
 
