@@ -124,6 +124,45 @@ bright_map(
 }
 
 
+static uint8_t *
+ledscape_remap(
+	ledscape_t * const leds,
+	uint8_t * const frame,
+	unsigned x,
+	unsigned y
+)
+{
+#define CONFIG_ZIGZAG
+#ifdef CONFIG_ZIGZAG
+	(void) leds;
+
+	// each panel is 16x8
+	// vertical panel number is y % 8 (which output line)
+	// horizontal panel number is y % (16*8)
+	// if y % 2 == 1, map backwards
+	const unsigned panel_width = 16;
+	const unsigned panel_height = 8;
+	unsigned panel_num = x / panel_width;
+	unsigned output_line = y / panel_height;
+	unsigned panel_x = x % panel_width;
+	unsigned panel_y = y % panel_height;
+	unsigned panel_offset = panel_y * panel_width;
+
+	// the even lines are forwards, the odd lines go backwards
+	if (panel_y % 2 == 0)
+	{
+		panel_offset += panel_x;
+	} else {
+		panel_offset += panel_width - panel_x - 1;
+	}
+
+	return &frame[(panel_num*128 + panel_offset)*48*3 + output_line];
+#else
+	return &frame[x*48*3 + y];
+#endif
+}
+
+
 /** Translate the RGBA buffer to the correct output type and
  * initiate the transfer of a frame to the LED strips.
  *
@@ -141,7 +180,6 @@ ledscape_draw(
 
 #ifdef CONFIG_LED_MATRIX
 	// matrix packed is:
-	// p(0,0)p(0,8)p(64,0)p(64,8)....
 	// this way the PRU can read all sixteen output pixels in
 	// one LBBO and clock them out.
 	// there is an array of NUM_MATRIX output coordinates (one for each of
@@ -152,8 +190,10 @@ ledscape_draw(
 
 		for (uint32_t y = 0 ; y < leds->matrix->matrix_height ; y++)
 		{
-			const uint32_t * const in_row = &in[(y+m->y_offset) * leds->width];
-			uint8_t * const out_row = &out[y * leds->matrix->matrix_width * 3 * NUM_MATRIX];
+			const uint32_t * const in_row
+				= &in[(y+m->y_offset) * leds->width];
+			uint8_t * const out_row
+				= &out[y * leds->matrix->matrix_width * 3 * NUM_MATRIX];
 
 			for (uint32_t x = 0 ; x < leds->matrix->matrix_width ; x++)
 			{
@@ -170,17 +210,18 @@ ledscape_draw(
 #else
 	// Translate the RGBA frame into G R B, sliced by color
 	// only 48 outputs currently supported
-	const unsigned height = 48;
-	for (unsigned y = 0 ; y < height ; y++)
+	const unsigned pru_stride = 48;
+	for (unsigned y = 0 ; y < leds->height ; y++)
 	{
 		const uint32_t * const row_in = &in[y*leds->width];
 		for (unsigned x = 0 ; x < leds->width ; x++)
 		{
-			uint8_t * const row_out = &out[x*height*3 + y];
+			uint8_t * const row_out
+				= ledscape_remap(leds, out, x, y);
 			const uint32_t p = row_in[x];
-			row_out[0*height] = (p >>  8) & 0xFF; // green
-			row_out[1*height] = (p >>  0) & 0xFF; // red
-			row_out[2*height] = (p >> 16) & 0xFF; // blue
+			row_out[0*pru_stride] = (p >>  8) & 0xFF; // green
+			row_out[1*pru_stride] = (p >>  0) & 0xFF; // red
+			row_out[2*pru_stride] = (p >> 16) & 0xFF; // blue
 		}
 	}
 	
@@ -189,7 +230,8 @@ ledscape_draw(
 		;
 
 	// Update the pixel data and send the start
-	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
+	leds->ws281x->pixels_dma
+		= leds->pru->ddr_addr + leds->frame_size * frame;
 	frame = (frame + 1) & 1;
 
 	// Send the start command
@@ -224,7 +266,8 @@ ledscape_init(
 )
 {
 	pru_t * const pru = pru_init(0);
-	const size_t frame_size = 16 * 8 * width * 3; //LEDSCAPE_NUM_STRIPS * 4;
+	//const size_t frame_size = 16 * 8 * width * 3; //LEDSCAPE_NUM_STRIPS * 4;
+	const size_t frame_size = 48 * width * 8 * 3;
 
 #if 0
 	if (2 *frame_size > pru->ddr_size)
@@ -279,7 +322,7 @@ ledscape_init(
 	// LED strips, not matrix output
 	*(leds->ws281x) = (ws281x_command_t) {
 		.pixels_dma	= 0, // will be set in draw routine
-		.num_pixels	= width,
+		.num_pixels	= width * 8, // panel height
 		.command	= 0,
 		.response	= 0,
 	};
