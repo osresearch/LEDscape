@@ -86,7 +86,10 @@ static uint32_t palette[255];
 static float angle;
 static uint32_t calc1[256], calc2[256], calc3[256], calc4[256], calc5[256];
 
-static void draw(uint32_t * frame)
+static void
+fire_draw(
+	uint32_t * const frame
+)
 {
     memset(frame, 0, w*16*sizeof(*frame));
 
@@ -126,6 +129,16 @@ static void draw(uint32_t * frame)
     }
 }
 
+
+static void
+sparkles(
+	uint32_t * const frame,
+	int num_sparkles
+)
+{
+	for(int i = 0 ; i < num_sparkles ; i++)
+		frame[rand() % (16*256)] = 0xFFFFFF;
+}
 
 static int constrain(
 	int x,
@@ -186,18 +199,21 @@ main(void)
 
 		uint32_t * const p = (void*) frame;
 
-		draw(p);
+		time_t now = time(NULL);
+		const uint32_t delta = now - last_time;
+
+		fire_draw(p);
+		sparkles(p, delta);
 		ledscape_draw(leds, frame_num);
 		usleep(50000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
 		const uint32_t response = 0;
-		time_t now = time(NULL);
-		if (now > last_time + 10)
+		if (delta > 30)
 		{
 			printf("%d fps. starting %d previous %"PRIx32"\n",
-				i - last_i, i, response);
+				(i - last_i) / delta, i, response);
 			last_i = i;
 			last_time = now;
 			memset(fire, 0, sizeof(fire));
