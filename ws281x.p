@@ -169,6 +169,20 @@ lab:
 .endm
 
 
+.macro WAITNS
+.mparam ns,lab
+    MOV r8, 0x22000 // control register
+lab:
+	LBBO r9, r8, 0xC, 4 // read the cycle counter
+	SUB r9, r9, sleep_counter 
+#ifdef CONFIG_WS2812
+	QBGT lab, r9, 2*(lab)/5
+#else
+	QBGT lab, r9, (lab)/5
+#endif
+.endm
+
+
 START:
     // Enable OCP master port
     // clear the STANDBY_INIT bit in the SYSCFG register,
@@ -301,18 +315,9 @@ WORD_LOOP:
 		TEST_BIT(r10, gpio3, bit0)
 		TEST_BIT(r11, gpio3, bit1)
 
-		// Wait for 650 ns to have passed
-		MOV r8, 0x22000 // control register
-		wait_idle:
-			LBBO r9, r8, 0xC, 4 // read the cycle counter
-			SUB r9, r9, sleep_counter 
-#ifdef CONFIG_WS2812
-			QBGT wait_idle, r9, 2*650/5
-#else
-			QBGT wait_idle, r9, 650/5
-#endif
-
-		// Turn on all the start bits
+		// Now that we have read all of the data,
+		// we can reuse the registers for the set/clear addresses
+		// and the masks of which pins are mapped to which LEDs.
 		MOV r10, GPIO0 | GPIO_SETDATAOUT
 		MOV r11, GPIO1 | GPIO_SETDATAOUT
 		MOV r12, GPIO2 | GPIO_SETDATAOUT
@@ -322,6 +327,9 @@ WORD_LOOP:
 		MOV r21, GPIO1_LED_MASK
 		MOV r22, GPIO2_LED_MASK
 		MOV r23, GPIO3_LED_MASK
+
+		// Wait for 650 ns to have passed
+		WAITNS 650, wait_start_time
 
 		// Send all the start bits
 		SBBO r20, r10, 0, 4
@@ -335,7 +343,8 @@ WORD_LOOP:
 		MOV r13, GPIO3 | GPIO_CLEARDATAOUT
 
 		// wait for the length of the zero bits (250 ns)
-		SLEEPNS 250, 1, wait_zero_time
+		WAITNS 650+250, wait_zero_time
+		//SLEEPNS 250, 1, wait_zero_time
 
 		// turn off all the zero bits
 		SBBO gpio0_zeros, r10, 0, 4
@@ -345,7 +354,8 @@ WORD_LOOP:
 
 		// Wait until the length of the one bits
 		// (600 ns - 250 already waited)
-		SLEEPNS 350, 1, wait_one_time
+		WAITNS 650+600, wait_one_time
+		//SLEEPNS 350, 1, wait_one_time
 
 		// Turn all the bits off
 		SBBO r20, r10, 0, 4
