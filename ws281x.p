@@ -109,7 +109,8 @@
 // Sleep a given number of nanoseconds with 10 ns resolution
 .macro SLEEPNS
 .mparam ns,inst,lab
-    MOV sleep_counter, (ns/10)-1-inst
+    MOV sleep_counter, (ns/10)-1-inst // ws2811 -- high speed
+    //MOV sleep_counter, (ns/5)-1-inst // ws2812 -- low speed
 lab:
     SUB sleep_counter, sleep_counter, 1
     QBNE lab, sleep_counter, 0
