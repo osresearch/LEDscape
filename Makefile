@@ -4,8 +4,20 @@ LIBDIR_APP_LOADER?=../../app_loader/lib
 INCDIR_APP_LOADER?=../../app_loader/include
 BINDIR?=.
 
-CFLAGS+= -Wall -I$(INCDIR_APP_LOADER) -D__DEBUG -O2 -mtune=cortex-a8 -march=armv7-a
-LDFLAGS+=-L$(LIBDIR_APP_LOADER) -lprussdrv -lpthread
+CFLAGS += \
+	-std=c99 \
+	-Wall \
+	-I$(INCDIR_APP_LOADER) \
+	-D__DEBUG \
+	-O2 \
+	-mtune=cortex-a8 \
+	-march=armv7-a \
+
+LDFLAGS += \
+	-L$(LIBDIR_APP_LOADER) \
+	-lprussdrv \
+	-lpthread \
+
 PASM := ../../utils/pasm_2
 OBJDIR=obj
 TARGET=$(BINDIR)/ws281x
