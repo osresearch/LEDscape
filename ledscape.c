@@ -12,6 +12,8 @@
 #include "ledscape.h"
 #include "pru.h"
 
+#undef CONFIG_LED_MATRIX
+
 
 /** GPIO pins used by the LEDscape.
  *
@@ -137,7 +139,7 @@ ledscape_draw(
 	const uint32_t * const in = buffer;
 	uint8_t * const out = leds->pru->ddr + leds->frame_size * frame;
 
-#if 1
+#ifdef CONFIG_LED_MATRIX
 	// matrix packed is:
 	// p(0,0)p(0,8)p(64,0)p(64,8)....
 	// this way the PRU can read all sixteen output pixels in
@@ -163,20 +165,28 @@ ledscape_draw(
 			}
 		}
 	}
-#else
-	static int i = 0;
-	memset(out, i++, leds->width *leds->height * 3);
-	out[0] = 0x80; out[1] = 0x00; out[2] = 0x00;
-	out[3] = 0x00; out[4] = 0x80; out[5] = 0x00;
-	out[6] = 0x00; out[7] = 0x00; out[8] = 0x80;
-#endif
-
 	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
 	frame = (frame + 1) & 1;
-#if 0
+#else
+	// Translate the RGBA frame into RGBA
+	// only 32 outputs currentl supported
+	for (unsigned y = 0 ; y < 32 ; y++)
+	{
+		const uint32_t * const row_in = &in[y*leds->width];
+		for (unsigned x = 0 ; x < leds->width ; x++)
+		{
+			uint32_t * const row_out = (uint32_t*) &out[x*32*4];
+			row_out[y] = in[x];
+		}
+	}
+	
 	// Wait for any current command to have been acknowledged
 	while (leds->ws281x->command)
 		;
+
+	// Update the pixel data and send the start
+	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
+	frame = (frame + 1) & 1;
 
 	// Send the start command
 	leds->ws281x->command = 1;
@@ -231,11 +241,11 @@ ledscape_init(
 		.matrix		= calloc(sizeof(*leds->matrix), 1),
 	};
 
+#ifdef CONFIG_LED_MATRIX
 	*(leds->matrix) = (led_matrix_config_t) {
 		.matrix_width	= 128,
 		.matrix_height	= 8,
 		.matrix		= {
-#if 1
 			{ 0, 0 },
 			{ 0, 8 },
 			{ 0, 16 },
@@ -252,24 +262,6 @@ ledscape_init(
 			{ 128, 40 },
 			{ 128, 48 },
 			{ 128, 56 },
-#else
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-			{ 0, 0 },
-			{ 0, 8 },
-#endif
 		},
 	};
 
@@ -279,6 +271,15 @@ ledscape_init(
 		.command	= 0,
 		.response	= 0,
 	};
+#else
+	// LED strips, not matrix output
+	*(leds->ws281x) = (ws281x_command_t) {
+		.pixels_dma	= 0, // will be set in draw routine
+		.num_pixels	= width,
+		.command	= 0,
+		.response	= 0,
+	};
+#endif
 
 	printf("%d\n", leds->ws281x->num_pixels);
 
@@ -294,10 +295,11 @@ ledscape_init(
 		pru_gpio(3, gpios3[i], 1, 0);
 
 	// Initiate the PRU program
-	if (1)
-		pru_exec(pru, "./matrix.bin");
-	else
-		pru_exec(pru, "./ws281x.bin");
+#ifdef CONFIG_LED_MATRIX
+	pru_exec(pru, "./matrix.bin");
+#else
+	pru_exec(pru, "./ws281x.bin");
+#endif
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
