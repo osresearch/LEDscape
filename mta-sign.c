@@ -108,9 +108,10 @@ main(
 
 	while (1)
 	{
-		font_write(p, 0xFF0000, 0, 0, "1!NYCResistor");
+		font_write(p, 0x00FF00, 0, 0, "1!NYCResistor");
+		font_write(p, 0xFF0000, 7, 0, "!");
 		font_write(p, 0x00FF00, 100, 0, "8min");
-			
+		
 		int end_x = font_write(p, 0xFF4000, scroll_x, 16, argc > 1 ? argv[1] : "");
 		if (end_x <= 0)
 			scroll_x = 128;
