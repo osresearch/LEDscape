@@ -32,4 +32,4 @@ ws821x.bin: ws821x.p ws821x.hp
 .PHONY: clean
 
 clean:
-	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws821x.bin
+	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws821x.bin ws821x.bin
