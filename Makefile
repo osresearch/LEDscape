@@ -2,7 +2,7 @@
 
 LIBDIR_APP_LOADER?=../../app_loader/lib
 INCDIR_APP_LOADER?=../../app_loader/include
-BINDIR?=../bin
+BINDIR?=.
 
 CFLAGS+= -Wall -I$(INCDIR_APP_LOADER) -D__DEBUG -O2 -mtune=cortex-a8 -march=armv7-a
 LDFLAGS+=-L$(LIBDIR_APP_LOADER) -lprussdrv -lpthread
@@ -27,7 +27,6 @@ $(TARGET): $(OBJ)
 ws281x.bin: ws281x.p ws281x.hp
 	$(CPP) - < $< | grep -v '^#' | sed 's/;/\n/g' > $<.i
 	$(PASM) -V3 -b $<.i
-	cp $@ ../bin/
 
 
 .PHONY: clean
