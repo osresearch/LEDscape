@@ -175,10 +175,9 @@ START:
     // handles the exit case if an invalid value is written to the start
     // start position.
 
-#define DISPLAY_WIDTH          32
-#define DISPLAYS               16 /* Maximum! */
+#define DISPLAY_WIDTH          64
+#define DISPLAYS               8 /* Maximum! */
 #define ROW_WIDTH              (DISPLAYS * DISPLAY_WIDTH)
-#define MAX_BRIGHT             16
 
 /*
 for bright in 0..MAX_BRIGHT:
@@ -266,58 +265,43 @@ PWM_LOOP:
                 SET out1_set, gpio1_sel2
                 sel2:
 
-                // write bits to output
+                // write select bits to output
                 SBBO out1_set, gpio1_set, 0, 4
                 XOR out1_set, out1_set, gpio1_sel_mask
                 SBBO out1_set, gpio1_clr, 0, 4
         
+		// compute where we are in the image
 
-                MOV scan, 0
-                SCAN_LOOP:
-                        ADD pix_ptr, data_addr, offset
-                        ADD pix_ptr, pix_ptr, pixel
+		MOV pixel, 0
+		ADD pix_ptr, data_addr, offset
+		PIXEL_LOOP:
+			MOV out0_set, 0
 
-                        MOV pixel, 0
-                        PIXEL_LOOP:
-                                MOV out0_set, 0
+			// This should be unrolled for every display
+			// read a pixel worth of data
+			LBBO pix, pix_ptr, 0*DISPLAY_WIDTH, 4
+			QBGE disp0_r, pix.b0, bright
+			SET out0_set, gpio0_row1_r
 
-                                // This should be unrolled for every display
-                                // read a pixel worth of data
-                                LBBO pix, pix_ptr, 0*DISPLAY_WIDTH, 4
-                                QBGE disp0_r, pix.b0, bright
-                                SET out0_set, gpio0_row1_r
+			disp0_r:
+			QBGE disp0_g, pix.b1, bright
+			SET out0_set, gpio0_row1_g
 
-                                disp0_r:
-                                QBGE disp0_g, pix.b1, bright
-                                SET out0_set, gpio0_row1_g
+			disp0_g:
+			QBGE disp0_b, pix.b2, bright
+			SET out0_set, gpio0_row1_b
+			disp0_b:
 
-                                disp0_g:
-                                QBGE disp0_b, pix.b2, bright
-                                SET out0_set, gpio0_row1_b
-                                disp0_b:
+			// All bits are configured;
+			// the non-set ones will be cleared
+			SBBO out0_set, gpio0_set, 0, 4
+			XOR out0_set, out0_set, gpio0_led_mask
+			SBBO out0_set, gpio0_clr, 0, 4
+			CLOCK(PIX)
 
-                                // All bits are configured;
-                                // the non-set ones will be cleared
-                                SBBO out0_set, gpio0_set, 0, 4
-                                XOR out0_set, out0_set, gpio0_led_mask
-                                SBBO out0_set, gpio0_clr, 0, 4
-                                CLOCK(PIX)
-
-                                ADD pix_ptr, pix_ptr, 4
-                                ADD pixel, pixel, 1
-                                QBNE PIXEL_LOOP, pixel, DISPLAY_WIDTH
-
-#if 0
-// WRONG WRONG WRONG -- the second half is scanned simultaneousl
-                        // The panel scans rows 0 and 8 in the
-                        // same pass.  Adjust the pixel pointer
-                        // to the 8th row; pix_ptr is now pointing to
-                        // the end of the row that was scanned
-			MOV p2, (8-1) * ROW_WIDTH
-                        ADD pix_ptr, pix_ptr, p2
-                        ADD scan, scan, 1
-                        QBNE SCAN_LOOP, scan, 2
-#endif
+			ADD pix_ptr, pix_ptr, 4
+			ADD pixel, pixel, 1
+			QBNE PIXEL_LOOP, pixel, DISPLAY_WIDTH
 
                 // We have clocked out all of the pixels for
                 // this row and the one eigth rows later.
@@ -332,8 +316,8 @@ PWM_LOOP:
         // We have clocked out all of the panels.
         // Celebrate and go back to the PWM loop
         // Limit brightness to 0..MAX_BRIGHT
-        ADD bright, bright, 1
-        AND bright, bright, (MAX_BRIGHT-1)
+        ADD bright, bright, 16
+	AND bright, bright, 0xFF
 
         QBA PWM_LOOP
 	

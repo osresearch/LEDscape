@@ -43,7 +43,6 @@ int main (void)
 			= ledscape_frame(leds, frame_num);
 
 		uint32_t * const p = (void*) frame;
-		memset(p, 0, 4 * 32 * 512);
 
 		ledscape_draw(leds, frame_num);
 #if 1
@@ -52,13 +51,14 @@ int main (void)
 			for (unsigned y = 0 ; y < 16 ; y++)
 			{
 				uint8_t * const px = (void*) &p[x + 512 * y];
-				const unsigned v = (i >> 10) % 16;
-				px[0] = x <= 14 ? v : 0;
-				px[1] = 11 < x && x <= 26 ? v : 0;
-				px[2] = 17 < x && x <= 32 ? v : 0;
+				uint8_t j = x % 30;
+				const unsigned v = (i >> 10);
+				px[0] = j <= 14 ? v : 0;
+				px[1] = 11 < j && j <= 26 ? v : 0;
+				px[2] = 17 < j && j <= 40 ? v : 0;
 
-				if (x > 32)
-					p[0] = 4;
+				if (j > 32)
+					p[0] = 0x40;
 			}
 		}
 #else
