@@ -34,3 +34,13 @@ ws281x.bin: ws281x.p ws281x.hp
 
 clean:
 	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin
+
+SLOT_FILE=/sys/devices/bone_capemgr.8/slots
+dts: LEDscape.dts
+	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
+	if [ ! -z "$$SLOT" ]; then \
+		echo "Removing slot $$SLOT"; \
+		echo -$$SLOT > $(SLOT_FILE); \
+	fi
+	dtc -O dtb -o /lib/firmware/BB-LEDSCAPE-00A0.dtbo -b 0 -@ LEDscape.dts
+	echo BB-LEDSCAPE > $(SLOT_FILE)
