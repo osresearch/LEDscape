@@ -419,9 +419,6 @@ WORD_LOOP:
 		MOV r13, GPIO3 | GPIO_SETDATAOUT
 
 		// Wait for 650 ns to have passed
-		// \todo: Move some of the other work to the other
-		// cycles.  I think this might have already been exhausted
-		// with the addition of GPIO3 banked LEDs
 		WAITNS 650, wait_start_time
 
 		// Send all the start bits
