@@ -72,7 +72,6 @@ struct ledscape
 	pru_t * pru;
 	unsigned num_pixels;
 	size_t frame_size;
-	ledscape_frame_t * frames[2];
 };
 
 
@@ -86,7 +85,7 @@ ledscape_frame(
 	if (frame >= 2)
 		return NULL;
 
-	return (ledscape_frame_t*)((uint8_t*) leds->pru->ddr + leds->frame_size);
+	return (ledscape_frame_t*)((uint8_t*) leds->pru->ddr + leds->frame_size * frame);
 }
 	
 
@@ -97,7 +96,7 @@ ledscape_draw(
 	unsigned int frame
 )
 {
-	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size;
+	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
 
 	// Wait for any current command to have been acknowledged
 	while (leds->ws281x->command)
