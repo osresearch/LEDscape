@@ -79,7 +79,7 @@
  //*  ____
  //* |  | |______|
  //* 0  250 600  1250 offset
- //*    250 350   625 delta
+ //*    250 350   650 delta
  //* 
  //*/
 .origin 0
@@ -109,8 +109,11 @@
 // Sleep a given number of nanoseconds with 10 ns resolution
 .macro SLEEPNS
 .mparam ns,inst,lab
+#ifdef CONFIG_WS2812
+    MOV sleep_counter, (ns/5)-1-inst // ws2812 -- low speed
+#else
     MOV sleep_counter, (ns/10)-1-inst // ws2811 -- high speed
-    //MOV sleep_counter, (ns/5)-1-inst // ws2812 -- low speed
+#endif
 lab:
     SUB sleep_counter, sleep_counter, 1
     QBNE lab, sleep_counter, 0
@@ -167,13 +170,27 @@ WORD_LOOP:
 	MOV bit_num, 0
 
 	BIT_LOOP:
-		// The idle period is 625 ns, but this is where
+		// The idle period is 650 ns, but this is where
 		// we do all of our work to read the RGB data and
-		// repack it into bit slices.  So we subtract out
-		// the approximate amount of time that these operations
-		// take us.
-		SLEEPNS (625 - 400), 1, idle_time
-		MOV gpio0_zeros, 0
+		// repack it into bit slices.  Read the current counter
+		// and then wait until 650 ns have passed once we complete
+		// our work.
+		// Disable the counter and clear it, then re-enable it
+		MOV r8, 0x22000 // control register
+		LBBO r9, r8, 0, 4
+		CLR r9, r9, 3 // disable counter bit
+		SBBO r9, r8, 0, 4 // write it back
+
+		MOV r10, 0
+		SBBO r10, r8, 0xC, 4 // clear the timer
+
+		SET r9, r9, 3 // enable counter bit
+		SBBO r9, r8, 0, 4 // write it back
+
+		LBBO sleep_counter, r8, 0xC, 4
+
+		// Read the current counter value
+		LBBO sleep_counter, r8, 0xC, 4
 
 		// Load 16 registers of data, starting at r8
 		LBBO r8, r0, 0, 64
@@ -183,8 +200,10 @@ WORD_LOOP:
 #define TEST_BIT(regN,gpioN,bitN) \
 	QBBS gpioN##_##regN##_skip, regN, bit_num; \
 	SET gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
-	gpioN##_##regN##_skip: \
+	gpioN##_##regN##_skip: ; \
 
+		MOV gpio0_zeros, 0
+#if 1
 		TEST_BIT(r8, gpio0, bit0)
 		TEST_BIT(r9, gpio0, bit1)
 		TEST_BIT(r10, gpio0, bit2)
@@ -201,6 +220,18 @@ WORD_LOOP:
 		TEST_BIT(r21, gpio0, bit13)
 		TEST_BIT(r22, gpio0, bit14)
 		TEST_BIT(r23, gpio0, bit15)
+#endif
+
+		// Wait for 650 ns to have passed
+		MOV r8, 0x22000 // control register
+		wait_idle:
+			LBBO r9, r8, 0xC, 4 // read the cycle counter
+			SUB r9, r9, sleep_counter 
+#ifdef CONFIG_WS2812
+			QBGT wait_idle, r9, 2*650/5
+#else
+			QBGT wait_idle, r9, 650/5
+#endif
 
 		// Turn on all the start bits
 		MOV r8, GPIO0 | GPIO_SETDATAOUT
@@ -235,8 +266,9 @@ WORD_LOOP:
 
     // Write out that we are done!
     // Store a non-zero response in the buffer so that they know that we are done
-    // also write out a quick hack the last word we read
-    MOV r2, #1
+    // also write out a quick hack the counter
+	MOV r8, 0x22000 // control register
+	LBBO r2, r8, 0xC, 4
     SBCO r2, CONST_PRUDRAM, 12, 8
 
     // Go back to waiting for the next frame buffer
