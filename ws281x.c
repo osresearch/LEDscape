@@ -1,7 +1,6 @@
 /** \file
  * Userspace interface to the WS281x LED strip driver.
  *
- * The 
  * \todo Package this into a library, possible a Python module.
  */
 #include <stdio.h>
@@ -151,6 +150,22 @@ ws281_init(
 
 
 static void
+set_color(
+	uint8_t strip,
+	uint8_t pixel,
+	uint8_t r,
+	uint8_t g,
+	uint8_t b
+)
+{
+	pixel_t * const p = &pixels[pixel].strip[strip];
+	p->r = r;
+	p->g = g;
+	p->b = b;
+}
+
+
+static void
 fill_color(
 	int num_pixels,
 	uint8_t r,
@@ -164,11 +179,7 @@ fill_color(
 		int strip;
 		for(strip=0 ; strip < 32; strip++)
 		{
-			pixel_t * const p = &pixels[i].strip[strip];
-			p->r = r;
-			p->g = g;
-			p->b = b;
-			p->a = 0xFF;
+			set_color(strip, i, r, g, b);
 		}
 	}
 }
@@ -196,9 +207,16 @@ int main (void)
 	printf(" starting %d!\n", ++i);
 	uint8_t val = i >> 1;
 	fill_color(num_pixels, val, 0, val);
-	pixels[0].strip[0].r = 0xFF;
-	pixels[0].strip[1].g = 0xFF;
-	pixels[0].strip[2].b = 0xFF;
+	for (int strip = 0 ; strip < 32 ; strip++)
+	{
+		//uint8_t r = ((strip >> 2) & 0x3) * 64;
+		//uint8_t g = ((strip >> 0) & 0x3) * 64;
+		//uint8_t b = ((strip >> 4) & 0x3) * 64;
+		set_color(strip, 0, val, 0, 0);
+		set_color(strip, 1, 0, val + 120, 0);
+		set_color(strip, 2, 0, 0, val + 240);
+	}
+
 	cmd->response = 0;
 	cmd->command = 1;
 	while (!cmd->response)
