@@ -1,3 +1,10 @@
+/** \file
+ * Try to play nice with the Beagle Bone device tree.
+ *
+ * But it really sucks.  This is a waste of time; we can just use
+ * a shell script to poke the gpio export and config files since this
+ * is so borked.
+ */
 /dts-v1/;
 /plugin/;
 
