@@ -28,6 +28,10 @@
 		exit(EXIT_FAILURE); \
 	} while (0)
 
+/** Command structure shared with the PRU.
+ * This is mapped into the PRU data RAM and points to the
+ * frame buffer in the shared DDR segment.
+ */
 typedef struct
 {
 	// in the DDR shared with the PRU
@@ -42,10 +46,22 @@ typedef struct
 
 	// will have a non-zero response written when done
 	volatile unsigned response;
-} ws281x_command_t;
+} __attribute__((__packed__)) ws281x_command_t;
 
-//static ws281x_command_t * ws281x_command; // mapped to the PRU DRAM
-static uint8_t * pixels; // mapped to the L3 shared with the PRU
+// data is laid out with
+// 0RGB 1RGB 2RGB... 31RGB
+typedef struct {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
+} __attribute__((__packed__)) pixel_t;
+typedef struct {
+	pixel_t strip[32];
+} __attribute__((__packed__)) pixel_slice_t;
+
+// mapped to the L3 shared with the PRU
+static pixel_slice_t * pixels;
 
 static unsigned int
 proc_read(
@@ -119,7 +135,7 @@ ws281_init(
 	prussdrv_map_l3mem (&l3mem);	
 	pixels = l3mem;
 #else
-	pixels = ddr_mem + ddr_start;
+	pixels = (void*)(ddr_mem + ddr_start);
 #endif
 
 	// Store values into source
@@ -130,8 +146,18 @@ ws281_init(
 	);
 
 	size_t i;
-	for(i=0 ; i < pixel_size ; i++)
-		pixels[i] = ((i * 13) / 17) & 0xFF;
+	for(i=0 ; i < num_pixels ; i++)
+	{
+		int strip;
+		for(strip=0 ; strip < 32; strip++)
+		{
+			pixel_t * const p = &pixels[i].strip[strip];
+			p->r = strip;
+			p->g = 1;
+			p->b = 2;
+			p->a = 0xFF;
+		}
+	}
 
 	return cmd;
 }
