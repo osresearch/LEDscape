@@ -44,6 +44,34 @@
 #define b22_gpio 2
 #define b22_pin 24
 
+#define r31_gpio 0
+#define r31_pin 30
+#define g31_gpio 1
+#define g31_pin 18
+#define b31_gpio 0
+#define b31_pin 31
+
+#define r32_gpio 1
+#define r32_pin 16
+#define g32_gpio 0
+#define g32_pin 3
+#define b32_gpio 0 // not working?
+#define b32_pin 5
+
+#define r41_gpio 0
+#define r41_pin 2
+#define g41_gpio 0
+#define g41_pin 15
+#define b41_gpio 1
+#define b41_pin 17
+
+#define r42_gpio 3
+#define r42_pin 21
+#define g42_gpio 3
+#define g42_pin 19
+#define b42_gpio 0
+#define b42_pin 4
+
 #define CAT3(X,Y,Z) X##Y##Z
 
 // Control pins are all in GPIO1
@@ -90,19 +118,21 @@
 #define gpio0_base r2
 #define gpio1_base r3
 #define gpio2_base r4
+#define gpio3_base r9
 #define row r5
 #define offset r6
 #define scan r7
 #define display_width_bytes r8
-#define pixel r9
 #define out_clr r10 // must be one less than out_set
 #define out_set r11
 #define p2 r12
 #define bright r13
 #define gpio0_led_mask r14
+#define gpio1_led_mask r27
 #define gpio2_led_mask r15
+#define gpio3_led_mask r28
 #define gpio1_sel_mask r16
-#define pix r17
+#define pixel r17
 #define clock_pin r18
 #define latch_pin r19
 #define row11_ptr r20
@@ -110,7 +140,9 @@
 #define row21_ptr r22
 #define row22_ptr r23
 #define gpio0_set r24
-#define gpio2_set r25
+#define gpio1_set r25
+#define gpio2_set r26
+#define gpio3_set r29
 
 #define BRIGHT_STEP 32
 
@@ -178,11 +210,15 @@ START:
         MOV gpio0_base, GPIO0
         MOV gpio1_base, GPIO1
         MOV gpio2_base, GPIO2
+        MOV gpio3_base, GPIO3
 
         MOV gpio1_sel_mask, GPIO1_SEL_MASK
 
         MOV gpio0_led_mask, 0
+        MOV gpio1_led_mask, 0
         MOV gpio2_led_mask, 0
+        MOV gpio3_led_mask, 0
+
 #define GPIO_MASK(X) CAT3(gpio,X,_led_mask)
 	SET GPIO_MASK(r11_gpio), r11_pin
 	SET GPIO_MASK(g11_gpio), g11_pin
@@ -197,6 +233,20 @@ START:
 	SET GPIO_MASK(r22_gpio), r22_pin
 	SET GPIO_MASK(g22_gpio), g22_pin
 	SET GPIO_MASK(b22_gpio), b22_pin
+
+	SET GPIO_MASK(r31_gpio), r31_pin
+	SET GPIO_MASK(g31_gpio), g31_pin
+	SET GPIO_MASK(b31_gpio), b31_pin
+	SET GPIO_MASK(r32_gpio), r32_pin
+	SET GPIO_MASK(g32_gpio), g32_pin
+	SET GPIO_MASK(b32_gpio), b32_pin
+
+	SET GPIO_MASK(r41_gpio), r41_pin
+	SET GPIO_MASK(g41_gpio), g41_pin
+	SET GPIO_MASK(b41_gpio), b41_pin
+	SET GPIO_MASK(r42_gpio), r42_pin
+	SET GPIO_MASK(g42_gpio), g42_pin
+	SET GPIO_MASK(b42_gpio), b42_pin
 
 	MOV display_width_bytes, 4*DISPLAY_WIDTH
 	MOV row_skip_bytes, 4*8*ROW_WIDTH
@@ -237,17 +287,31 @@ PWM_LOOP:
 
 #define GPIO(R) CAT3(gpio,R,_set)
 	MOV gpio0_set, 0
+	MOV gpio1_set, 0
 	MOV gpio2_set, 0
+	MOV gpio3_set, 0
 
 #define OUTPUT_ROW(N) \
-	LBBO pix, row##N##_ptr, offset, 4; \
-	QBGE skip_r##N, pix.b0, bright; \
+	LBBO p2, row##N##_ptr, offset, 4; \
+	QBGE skip_r##N, p2.b0, bright; \
 	SET GPIO(r##N##_gpio), r##N##_pin; \
 	skip_r##N: \
-	QBGE skip_g##N, pix.b1, bright; \
+	QBGE skip_g##N, p2.b1, bright; \
 	SET GPIO(g##N##_gpio), g##N##_pin; \
 	skip_g##N: \
-	QBGE skip_b##N, pix.b2, bright; \
+	QBGE skip_b##N, p2.b2, bright; \
+	SET GPIO(b##N##_gpio), b##N##_pin; \
+	skip_b##N: \
+
+#define OUTPUT_ROW2(P,N) \
+	LBBO p2, row##P##_ptr, offset, 4; \
+	QBGE skip_r##N, p2.b0, bright; \
+	SET GPIO(r##N##_gpio), r##N##_pin; \
+	skip_r##N: \
+	QBGE skip_g##N, p2.b1, bright; \
+	SET GPIO(g##N##_gpio), g##N##_pin; \
+	skip_g##N: \
+	QBGE skip_b##N, p2.b2, bright; \
 	SET GPIO(b##N##_gpio), b##N##_pin; \
 	skip_b##N: \
 
@@ -255,6 +319,8 @@ PWM_LOOP:
 			OUTPUT_ROW(12)
 			OUTPUT_ROW(21)
 			OUTPUT_ROW(22)
+			OUTPUT_ROW2(11,41)
+			OUTPUT_ROW2(12,42)
 
 			// All bits are configured;
 			// the non-set ones will be cleared
@@ -265,9 +331,17 @@ PWM_LOOP:
 			XOR out_clr, out_set, gpio0_led_mask
 			SBBO out_clr, gpio0_base, GPIO_CLRDATAOUT, 8
 
+			AND out_set, gpio1_set, gpio1_led_mask
+			XOR out_clr, out_set, gpio1_led_mask
+			SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8
+
 			AND out_set, gpio2_set, gpio2_led_mask
 			XOR out_clr, out_set, gpio2_led_mask
 			SBBO out_clr, gpio2_base, GPIO_CLRDATAOUT, 8
+
+			AND out_set, gpio3_set, gpio3_led_mask
+			XOR out_clr, out_set, gpio3_led_mask
+			SBBO out_clr, gpio3_base, GPIO_CLRDATAOUT, 8
 
 			CLOCK_LO
 
