@@ -28,11 +28,23 @@
 #include "util.h"
 
 static int port = 9999;
-static unsigned width = 10;
-static unsigned height = 128;
+static unsigned width = 64;
+static unsigned height = 210;
+
+
+static const uint8_t *
+bitmap_pixel(
+	const uint8_t * const bitmap,
+	const unsigned x,
+	const unsigned y
+)
+{
+	return bitmap + (y * width + x) * 3;
+}
 
 
 /** Prepare one Teensy3 worth of image data.
+ *
  * Each Teensy handles 8 rows of data and needs the bits sliced into
  * each 8 rows.
  *
@@ -43,18 +55,14 @@ void
 bitslice(
 	uint8_t * const out,
 	const uint8_t * in,
-	const unsigned width,
-	const unsigned y_offset,
+	const unsigned x_offset,
 	const uint8_t * const bad_pixels
 )
 {
 	// Reorder from RGB in the input to GRB in the output
 	static const uint8_t channel_map[] = { 1, 0, 2 };
 
-	// Skip to the starting row that we're processing
-	in += y_offset * width * 3;
-
-	for(unsigned x=0 ; x < width ; x++)
+	for(unsigned y=0 ; y < height ; y++)
 	{
 		for (unsigned channel = 0 ; channel < 3 ; channel++)
 		{
@@ -66,18 +74,19 @@ bitslice(
 				uint8_t b = 0;
 				const uint8_t mask = 1 << (7 - bit_num);
 
-				for(unsigned y = 0 ; y < 8 ; y++)
+				for(unsigned x = 0 ; x < 8 ; x++)
 				{
-					const uint8_t bit_pos = 1 << y;
-					if (bad_pixels[x] & bit_pos)
+					const uint8_t bit_pos = 1 << x;
+					if (bad_pixels[y] & bit_pos)
 						continue;
-					const uint8_t v
-						= in[3*(x + y*width) + channel];
+					const uint8_t * const p
+						= bitmap_pixel(in, x + x_offset, y);
+					const uint8_t v = p[channel];
 					if (v & mask)
 						b |= bit_pos;
 				}
 
-				out[24*x + 8*mapped_channel + bit_num] = b;
+				out[24*y + 8*mapped_channel + bit_num] = b;
 			}
 		}
 	}
@@ -177,14 +186,7 @@ typedef struct
 } teensy_strip_t;
 
 // \todo read this from a file at run time
-static teensy_strip_t strips[MAX_STRIPS] = {
-#if 0
-	{ .id = 14401, .y_offset = 0, .bad = { [2] = 1, } },
-	{ .id = 14389, .y_offset = 8, .bad = { [3] = 1, [4] = 1, } },
-	{ .id = 8987, .y_offset = 16, .bad = { [0] = 0xFF, } },
-	{ .id = 8998, .y_offset = 24, .bad = { [1] = 0x80, } },
-#endif
-};
+static teensy_strip_t strips[MAX_STRIPS];
 static unsigned num_strips;
 
 
@@ -193,6 +195,10 @@ static teensy_dev_t teensy_devs[] = {
 	{ .dev = "/dev/ttyACM1", .fd = -1 },
 	{ .dev = "/dev/ttyACM2", .fd = -1 },
 	{ .dev = "/dev/ttyACM3", .fd = -1 },
+	{ .dev = "/dev/ttyACM4", .fd = -1 },
+	{ .dev = "/dev/ttyACM5", .fd = -1 },
+	{ .dev = "/dev/ttyACM6", .fd = -1 },
+	{ .dev = "/dev/ttyACM7", .fd = -1 },
 };
 
 
@@ -279,7 +285,7 @@ teensy_open(
 	dev->warned = 0;
 
 	// \todo: Read until a newline or a timeout
-	nanosleep(10000000);
+	usleep(10000);
 	char response[128];
 	rc = read(dev->fd, response, sizeof(response)-1);
 	if (rc < 0)
@@ -291,14 +297,14 @@ teensy_open(
 	response[rc] = '\0';
 	if (0) printf("read: '%s'\n", response);
 
-	unsigned this_width;
-	if (sscanf(response, "%d,%*d,%*d,%d", &this_width, &dev->id) != 2)
+	unsigned this_height;
+	if (sscanf(response, "%d,%*d,%*d,%d", &this_height, &dev->id) != 2)
 	{
 		warn("%s: Unable to parse response: '%s'\n", dev->dev, response);
 		goto fail;
 	}
 
-	printf("%s: ID %d width %d\n", dev->dev, dev->id, this_width);
+	printf("%s: ID %d height %d\n", dev->dev, dev->id, this_height);
 
 	if (dev->id == 0)
 	{
@@ -306,9 +312,9 @@ teensy_open(
 		goto fail;
 	}
 
-	if (this_width != width)
+	if (this_height != height)
 	{
-		warn("%s: width %d != expected %d\n", dev->dev, this_width, width);
+		warn("%s: height %d != expected %d\n", dev->dev, this_height, height);
 		goto fail;
 	}
 
@@ -352,8 +358,6 @@ reopen_thread(
 
 /** Config file format;
  *
- * $(WIDTH),$(PORT)
- * $(DEVID),$(YOFFSET),$(BAD_STRIP):$(BAD_PIXEL),....
  */
 static void
 read_config(
@@ -445,7 +449,7 @@ main(
 		die("pthread create failed: %s\n", strerror(errno));
 
 	const size_t image_size = width * height * 3;
-	const size_t slice_size = width * 8 * 3 + 3;
+	const size_t slice_size = height * 8 * 3 + 3;
 	uint8_t * const slice = calloc(1, slice_size);
 
 	uint8_t buf[65536];
@@ -504,7 +508,6 @@ main(
 			bitslice(
 				slice + 3,
 				buf + 1,
-				width,
 				strip->y_offset,
 				strip->bad
 			);
