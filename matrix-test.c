@@ -98,6 +98,7 @@ rainbow(
 )
 {
 	const unsigned color = cycle % 180;
+	const unsigned dim = 8;
 
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
@@ -105,9 +106,9 @@ rainbow(
                         const uint32_t in  = rainbowColors[index];
 			uint8_t * const out = &pixels[x + y*width];
 #if 1
-                        out[0] = ((in >> 0) & 0xFF); // * y / 16;
-                        out[1] = ((in >> 8) & 0xFF); // * y / 16;
-                        out[2] = ((in >> 16) & 0xFF); // * y / 16;
+                        out[0] = ((in >> 0) & 0xFF) * dim / 128; // * y / 16;
+                        out[1] = ((in >> 8) & 0xFF) * dim / 128; // * y / 16;
+                        out[2] = ((in >> 16) & 0xFF) * dim / 128; // * y / 16;
 #else
                         //out[0] = ((in >> 0) & 0xFF);
                         //out[1] = ((in >> 8) & 0xFF);
@@ -152,7 +153,7 @@ gradient(
 int
 main(void)
 {
-	const int width = 64;
+	const int width = 128;
 	const int height = 48;
 	ledscape_t * const leds = ledscape_init(width, height);
 	printf("init done\n");
