@@ -107,7 +107,8 @@ typedef struct
 {
 	const void * pixels;
 	unsigned size; // in bytes of the entire pixel array
-	volatile unsigned start; // write 1 to start, 0xFF to abort. will be cleared when done
+	volatile unsigned command; // write 1 to start, 0xFF to abort. will be cleared when started
+	volatile unsigned response; // will have a 1 written when done
 } ws281x_command_t;
 
 static ws281x_command_t * ws281x_command; // mapped to the PRU DRAM
@@ -150,14 +151,16 @@ int main (void)
     for (i = 0 ; i < 16 ; i++)
     {
 	printf("starting %d!\n", i);
-	ws281x_command->start = 1;
-	while (ws281x_command->start)
+	ws281x_command->response = 0;
+	ws281x_command->command = 1;
+	while (ws281x_command->response)
 		;
-	printf("done!\n");
+	const uint32_t * next = (uint32_t*)(ws281x_command + 1);
+	printf("done! %08x %08x\n", ws281x_command->response, *next);
     }
 
     // Signal a halt command
-    ws281x_command->start = 0xFF;
+    ws281x_command->command = 0xFF;
 
     printf("\tINFO: Waiting for HALT command.\r\n");
     prussdrv_pru_wait_event (PRU_EVTOUT_0);
@@ -194,7 +197,7 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
     }	
 
 //#define DDR_BASEADDR 0x80000000
-#define DDR_BASEADDR 0x98580000
+#define DDR_BASEADDR 0x97c80000
 #define OFFSET_DDR	 0x00001000 
 #define OFFSET_L3	 2048       //equivalent with 0x00002000
 
@@ -209,7 +212,8 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
     ws281x_command = (void*) pruDataMem;
     ws281x_command->pixels = (void*) DDR_BASEADDR;
     ws281x_command->size = 256 * 32 * 3; // 256 pixels * 32 strips * 3 bytes/pixel
-    ws281x_command->start = 0;
+    ws281x_command->command = 0;
+    ws281x_command->response = 0;
 
 #if 0
     prussdrv_map_l3mem (&l3mem);	

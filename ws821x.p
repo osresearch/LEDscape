@@ -47,7 +47,8 @@
 // Uses r5
 .macro SLEEPNS
 .mparam ns,inst,lab
-    MOV r5, (ns/10)-1-inst
+    //MOV r5, (ns/10)-1-inst
+    MOV r5, (ns*1000)-1-inst
 lab:
     SUB r5, r5, 1
     QBNE lab, r5, 0
@@ -97,6 +98,12 @@ _LOOP:
     // Wait for a non-zero command
     QBEQ _LOOP, r2, #0
 
+    // Zero out the start command so that they know we have received it
+    // This allows maximum speed frame drawing since they know that they
+    // can now swap the frame buffer pointer and write a new start command.
+    MOV r3, 0
+    SBCO r3, CONST_PRUDRAM, 8, 4
+
     // Command of 0xFF is the signal to exit
     QBEQ EXIT, r2, #0xFF
 
@@ -105,25 +112,22 @@ WORD_LOOP:
 	// Load 32-bits of data into r3
 	LBBO r3, r0, 0, 4
 
-// Only do the user LEDs right now
-#define LED_MASK 0xF << 21 // GPIO1:21-24
-
 	// Start bit: set all bits on
-	MOV r2, LED_MASK
+	MOV r2, 0
+	NOT r2, r2
 	SBBO r2, SET_REG, 0, 4
 
 	// wait for the length of the zero bits (250 ns)
 	SLEEPNS 250, 1, wait_zero_time
 
 	// For all the bits that are zero, turn them off now
-	NOT r2, r3
-	SBBO r2, CLR_REG, 0, 4
+	NOT r4, r3
+	SBBO r4, CLR_REG, 0, 4
 	
 	// Wait until the length of the one bits (600 ns - 250 already waited)
 	SLEEPNS 350, 1, wait_one_time
 
 	// Turn all the bits off
-	MOV r2, LED_MASK
 	SBBO r2, CLR_REG, 0, 4
 
 	// Wait until the length of the entire bit pulse (1.25 ns - 600 ns)
@@ -134,17 +138,22 @@ WORD_LOOP:
 	SUB r1, r1, #4
 	QBGT WORD_LOOP, r1, #0
 
+    // Delay at least 50 usec
+    SLEEPNS 50000, 1, reset_time
+
     // Write out that we are done!
-    // Store a zero in the start command so that they know that we are done
-    MOV r2, #0
-    SBCO r2, CONST_PRUDRAM, 8, 4
+    // Store a non-zero response in the buffer so that they know that we are done
+    // also write out a quick hack the last word we read
+    MOV r2, #1
+    SBCO r2, CONST_PRUDRAM, 12, 8
 
     // Go back to waiting for the next frame buffer
     QBA _LOOP
 
 EXIT:
-    MOV r2, #0
-    SBCO r2, CONST_PRUDRAM, 8, 4
+    // Write a 0xFF into the response field so that they know we're done
+    MOV r2, #0xFF
+    SBCO r2, CONST_PRUDRAM, 12, 4
 
 #ifdef AM33XX
     // Send notification to Host for program completion
