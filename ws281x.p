@@ -166,10 +166,11 @@ _LOOP:
     QBEQ EXIT, r2, #0xFF
 
 WORD_LOOP:
-	// for bit in 0 to 24:
-	MOV bit_num, 0
+	// for bit in 24 to 0
+	MOV bit_num, 24
 
 	BIT_LOOP:
+		SUB bit_num, bit_num, 1
 		// The idle period is 650 ns, but this is where
 		// we do all of our work to read the RGB data and
 		// repack it into bit slices.  Read the current counter
@@ -252,8 +253,7 @@ WORD_LOOP:
 		// Turn all the bits off
 		SBBO r9, r8, 0, 4
 
-		ADD bit_num, bit_num, 1
-		QBNE BIT_LOOP, bit_num, 24
+		QBNE BIT_LOOP, bit_num, 0
 
 	// The 32 RGB streams have been clocked out
 	// Move to the next pixel on each row

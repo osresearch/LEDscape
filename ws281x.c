@@ -48,14 +48,18 @@ typedef struct
 	volatile unsigned response;
 } __attribute__((__packed__)) ws281x_command_t;
 
-// data is laid out with
-// 0RGB 1RGB 2RGB... 31RGB
+// data is laid out with BRGA format, since that is how it will
+// be translated during the clock out from the PRU.
 typedef struct {
+	uint8_t b;
 	uint8_t r;
 	uint8_t g;
-	uint8_t b;
 	uint8_t a;
 } __attribute__((__packed__)) pixel_t;
+
+// All 32 strips worth of data for each pixel are stored adjacent
+// This makes it easier to clock out while reading from the DDR
+// in a burst mode..
 typedef struct {
 	pixel_t strip[32];
 } __attribute__((__packed__)) pixel_slice_t;
@@ -193,14 +197,16 @@ int main (void)
     unsigned i = 0;
     while (1)
     {
-	printf("starting %d!\n", ++i);
-	fill_color(num_pixels, i, i, i);
+	printf(" starting %d!\n", ++i);
+	uint8_t val = i >> 6;
+	fill_color(num_pixels, val, 0, 0);
 	cmd->response = 0;
 	cmd->command = 1;
 	while (!cmd->response)
 		;
 	const uint32_t * next = (uint32_t*)(cmd + 1);
-	//printf("done! %08x %08x\n", cmd->response, *next);
+	printf("done! %08x %08x", cmd->response, *next);
+	//if (cmd->response > 0x2900) break;
     }
 
     // Signal a halt command
