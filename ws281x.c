@@ -103,13 +103,15 @@ ws281_init(
     
     	ws281x_command_t * const cmd = (void*) pruDataMem;
 	cmd->pixels = (void*) ddr_addr;
-	cmd->size = num_leds * 32 * 3; // pixels * 32 strips * 3 bytes/pixel
+	cmd->size = num_leds;
 	cmd->command = 0;
 	cmd->response = 0;
 
-	if (cmd->size > ddr_size)
+	const size_t pixel_size = num_leds * 32 * 4;
+
+	if (pixel_size > ddr_size)
 		die("Pixel data needs at least %zu, only %zu in DDR\n",
-			(size_t) cmd->size,
+			pixel_size,
 			ddr_size
 		);
 
@@ -124,10 +126,12 @@ ws281_init(
 	printf("data ram %p l3 ram %p: setting %zu bytes\n",
 		cmd,
 		pixels,
-		cmd->size
+		pixel_size
 	);
 
-	memset(pixels, 0xAB, cmd->size);
+	size_t i;
+	for(i=0 ; i < pixel_size ; i++)
+		pixels[i] = ((i * 13) / 17) & 0xFF;
 
 	return cmd;
 }

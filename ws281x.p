@@ -13,21 +13,73 @@
  //*  0 is 0.25 usec high, 1 usec low
  //*  1 is 0.60 usec high, 0.65 usec low
  //*  Reset is 50 usec
+ //
+ // Pins are not contiguous.
+ // 16 pins on GPIO0: 2 3 4 5 7 12 13 14 15 20 22 23 26 27 30 31
+
+#define gpio0_bit0 2
+#define gpio0_bit1 3
+#define gpio0_bit2 4
+#define gpio0_bit3 5
+#define gpio0_bit4 7
+#define gpio0_bit5 12
+#define gpio0_bit6 13
+#define gpio0_bit7 14
+#define gpio0_bit8 15
+#define gpio0_bit9 20
+#define gpio0_bit10 22
+#define gpio0_bit11 23
+#define gpio0_bit12 26
+#define gpio0_bit13 27
+#define gpio0_bit14 30
+#define gpio0_bit15 31
+
+// wtf "parameter too long"?  Only 128 bytes allowed.
+#define GPIO0_LED_MASK (0\
+|(1<<gpio0_bit0)\
+|(1<<gpio0_bit1)\
+|(1<<gpio0_bit2)\
+|(1<<gpio0_bit3)\
+|(1<<gpio0_bit4)\
+|(1<<gpio0_bit5)\
+|(1<<gpio0_bit6)\
+|(1<<gpio0_bit7)\
+|(1<<gpio0_bit8)\
+|(1<<gpio0_bit9)\
+|(1<<gpio0_bit10)\
+|(1<<gpio0_bit11)\
+|(1<<gpio0_bit12)\
+|(1<<gpio0_bit13)\
+|(1<<gpio0_bit14)\
+|(1<<gpio0_bit15)\
+)
+
+ // 10 pins on GPIO1: 12 13 14 15 16 17 18 19 28 29
+ //  5 pins on GPIO2: 1 2 3 4 5
+ //  8 pins on GPIO3: 14 15 16 17 18 19 20 21
+ //
+ // each pixel is stored in 4 bytes in the order rgbX (4th byte is ignored)
+ //
+ // while len > 0:
+	 // for bit# = 0 to 24:
+		 // delay 600 ns
+		 // read 16 registers of data, build zero map for gpio0
+		 // read 10 registers of data, build zero map for gpio1
+		 // read  6 registers of data, build zero map for gpio3
+		 //
+		 // Send start pulse on all pins on gpio0, gpio1 and gpio3
+		 // delay 250 ns
+		 // bring zero pins low
+		 // delay 300 ns
+		 // bring all pins low
+	 // increment address by 32
+
  //*
  //* So to clock this out:
  //*  ____
  //* |  | |______|
  //* 0  250 600  1250 offset
  //*    250 350   625 delta
- //*
- //* It would be better to do:
- //*
- //* RRRR....
- //* GGGG....
- //* BBBB....
- //* RRRR....
- //* GGGG....
- //* BBBB....
  //* 
  //*/
 .origin 0
@@ -35,6 +87,7 @@
 
 #include "ws281x.hp"
 
+#define GPIO0 0x44E07000
 #define GPIO1 0x4804c000
 #define GPIO_CLEARDATAOUT 0x190
 #define GPIO_SETDATAOUT 0x194
@@ -43,15 +96,23 @@
 #define DMX_CHANNELS (0x101)
 #define DMX_PIN (0x102)
 
+#define data_addr r0
+#define data_len r1
+#define gpio0_zeros r2
+#define gpio1_zeros r3
+#define gpio3_zeros r4
+#define bit_num r5
+#define sleep_counter r6
+// r8 - r24 are used for temp storage and bitmap processing
+
+
 // Sleep a given number of nanoseconds with 10 ns resolution
-// Uses r5
 .macro SLEEPNS
 .mparam ns,inst,lab
-    //MOV r5, (ns/10)-1-inst
-    MOV r5, (ns*100)-1-inst
+    MOV sleep_counter, (ns/10)-1-inst
 lab:
-    SUB r5, r5, 1
-    QBNE lab, r5, 0
+    SUB sleep_counter, sleep_counter, 1
+    QBNE lab, sleep_counter, 0
 .endm
 
 
@@ -78,13 +139,6 @@ START:
     MOV		r1, CTPPR_1
     ST32	r0, r1
 
-#define SET_REG r6
-#define CLR_REG r7
-
-    // We will use these all the time
-    MOV SET_REG, GPIO1 | GPIO_SETDATAOUT
-    MOV CLR_REG, GPIO1 | GPIO_CLEARDATAOUT
-
     // Wait for the start condition from the main program to indicate
     // that we have a rendered frame ready to clock out.  This also
     // handles the exit case if an invalid value is written to the start
@@ -93,7 +147,7 @@ _LOOP:
     // Load the pointer to the buffer from PRU DRAM into r0 and the
     // length (in bytes-bit words) into r1.
     // start command into r2
-    LBCO      r0, CONST_PRUDRAM, 0, 12
+    LBCO      data_addr, CONST_PRUDRAM, 0, 12
 
     // Wait for a non-zero command
     QBEQ _LOOP, r2, #0
@@ -107,39 +161,73 @@ _LOOP:
     // Command of 0xFF is the signal to exit
     QBEQ EXIT, r2, #0xFF
 
-    // Clock out the bits!
 WORD_LOOP:
-	// Load 32-bits of data into r3
-	LBBO r3, r0, 0, 4
+	// for bit in 0 to 24:
+	MOV bit_num, 0
 
-	// Start bit: set all bits on
-	MOV r2, 0
-	NOT r2, r2
-	SBBO r2, SET_REG, 0, 4
+	BIT_LOOP:
+		SLEEPNS 600, 1, idle_time
+		MOV gpio0_zeros, 0
 
-	// wait for the length of the zero bits (250 ns)
-	SLEEPNS 250, 1, wait_zero_time
+		// Load 16 registers of data, starting at r8
+		LBBO r8, r0, 0, 64
 
-	// For all the bits that are zero, turn them off now
-	NOT r4, r3
-	SBBO r4, CLR_REG, 0, 4
-	
-	// Wait until the length of the one bits (600 ns - 250 already waited)
-	SLEEPNS 350, 1, wait_one_time
+		// For each of these 16 registers, set the
+		// corresponding bit in the gpio0_zeros register
+#define TEST_BIT(regN,gpioN,bitN) \
+	QBBS gpioN##_##regN##_skip, regN, bit_num; \
+	SET gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
+	gpioN##_##regN##_skip: \
 
-	// Turn all the bits off
-	SBBO r2, CLR_REG, 0, 4
+		TEST_BIT(r8, gpio0, bit0)
+		TEST_BIT(r9, gpio0, bit1)
+		TEST_BIT(r10, gpio0, bit2)
+		TEST_BIT(r11, gpio0, bit3)
+		TEST_BIT(r12, gpio0, bit4)
+		TEST_BIT(r13, gpio0, bit5)
+		TEST_BIT(r14, gpio0, bit6)
+		TEST_BIT(r15, gpio0, bit7)
+		TEST_BIT(r16, gpio0, bit8)
+		TEST_BIT(r17, gpio0, bit9)
+		TEST_BIT(r18, gpio0, bit10)
+		TEST_BIT(r19, gpio0, bit11)
+		TEST_BIT(r20, gpio0, bit12)
+		TEST_BIT(r21, gpio0, bit13)
+		TEST_BIT(r22, gpio0, bit14)
+		TEST_BIT(r23, gpio0, bit15)
 
-	// Wait until the length of the entire bit pulse (1.25 ns - 600 ns)
-	SLEEPNS 625, 1, wait_end_time
+		// Turn on all the start bits
+		MOV r8, GPIO0 | GPIO_SETDATAOUT
+		MOV r9, GPIO0_LED_MASK
+		SBBO r9, r8, 0, 4
 
-	// Increment our data pointer and decrement our length
-	ADD r0, r0, #4
-	SUB r1, r1, #4
-	QBGT WORD_LOOP, r1, #0
+		// wait for the length of the zero bits (250 ns)
+		SLEEPNS 250, 1, wait_zero_time
+
+		// turn off all the zero bits
+		MOV r8, GPIO0 | GPIO_CLEARDATAOUT
+		SBBO gpio0_zeros, r8, 0, 4
+
+		// Wait until the length of the one bits
+		// (600 ns - 250 already waited)
+		SLEEPNS 350, 1, wait_one_time
+
+		// Turn all the bits off
+		SBBO r9, r8, 0, 4
+
+		ADD bit_num, bit_num, 1
+		QBLT BIT_LOOP, bit_num, 24
+
+	// The 32 RGB streams have been clocked out
+	// Move to the next pixel on each row
+	ADD data_addr, data_addr, 32 * 4
+	SUB data_len, data_len, 1
+	QBGT WORD_LOOP, data_len, #0
 
     // Delay at least 50 usec
     SLEEPNS 50000, 1, reset_time
+
+    SLEEPNS 2000000, 1, spin_wait
 
     // Write out that we are done!
     // Store a non-zero response in the buffer so that they know that we are done
