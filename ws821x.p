@@ -77,9 +77,12 @@ START:
     MOV		r1, CTPPR_1
     ST32	r0, r1
 
+#define SET_REG r6
+#define CLR_REG r7
+
     // We will use these all the time
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    MOV r7, GPIO1 | GPIO_CLEARDATAOUT
+    MOV SET_REG, GPIO1 | GPIO_SETDATAOUT
+    MOV CLR_REG, GPIO1 | GPIO_CLEARDATAOUT
 
     // Wait for the start condition from the main program to indicate
     // that we have a rendered frame ready to clock out.  This also
@@ -91,73 +94,46 @@ _LOOP:
     // start command into r2
     LBCO      r0, CONST_PRUDRAM, 0, 12
 
-    // Wait for a non-zero length
+    // Wait for a non-zero command
     QBEQ _LOOP, r2, #0
 
-    // Length of 0xFF is the signal to exit
+    // Command of 0xFF is the signal to exit
     QBEQ EXIT, r2, #0xFF
-
-    MOV r2, 0xF << 21 // GPIO1:21-24
-    SBBO r2, r6, 0, 4
-    SLEEPNS 1000000, 1, busy_loop
-
-    SBBO r2, r7, 0, 4
-
-qba skip_loop
-
 
     // Clock out the bits!
 WORD_LOOP:
-	// Load 64-bits of data into r3 and r4
-	LBBO r3, r0, 0, 8
-	MOV r4, r3
+	// Load 32-bits of data into r3
+	LBBO r3, r0, 0, 4
 
-	// Set all start bits on
-	MOV r2, 0xF << 21 // GPIO1:21-24
-	
+// Only do the user LEDs right now
+#define LED_MASK 0xF << 21 // GPIO1:21-24
 
+	// Start bit: set all bits on
+	MOV r2, LED_MASK
+	SBBO r2, SET_REG, 0, 4
 
-BIT_START_LOOP:
-		// set all the bits high
-		SBBO r2, r6, 0, 4
-		ADD r2, r2, 1
-		QBLT BIT_START_LOOP, r2, #32
-
-	// wait for the zero time
+	// wait for the length of the zero bits (250 ns)
 	SLEEPNS 250, 1, wait_zero_time
 
 	// For all the bits that are zero, turn them off now
-	// This destroys the bits in r3
-	MOV r2, #0
-BIT_ZERO_LOOP:
-		QBBS non_zero_bit, r3, 1
-		SBBO r2, r7, 0, 4 // bring the output pin to 0
-		QBA next_zero_bit
-non_zero_bit:
-		SBBO r2, r6, 0, 4 // leave the output pin at 1
-		QBA next_zero_bit
-next_zero_bit:
-		LSR r3, r3, 1
-		ADD r2, r2, 1
-		QBLT BIT_ZERO_LOOP, r2, #32
+	NOT r2, r3
+	SBBO r2, CLR_REG, 0, 4
 	
+	// Wait until the length of the one bits (600 ns - 250 already waited)
 	SLEEPNS 350, 1, wait_one_time
 
 	// Turn all the bits off
-	MOV r2, #0
-BIT_ONE_LOOP:
-		SBBO r2, r7, 0, 4 // zero the bit
-		ADD r2, r2, 1
-		QBLT BIT_ONE_LOOP, r2, #32
+	MOV r2, LED_MASK
+	SBBO r2, CLR_REG, 0, 4
 
+	// Wait until the length of the entire bit pulse (1.25 ns - 600 ns)
 	SLEEPNS 625, 1, wait_end_time
 
 	// Increment our data pointer and decrement our length
 	ADD r0, r0, #4
-	SUB r1, r1, #1
+	SUB r1, r1, #4
 	QBGT WORD_LOOP, r1, #0
 
-skip_loop:
     // Write out that we are done!
     // Store a zero in the start command so that they know that we are done
     MOV r2, #0
