@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <inttypes.h>
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -46,6 +47,20 @@ typedef struct
 //static ws281x_command_t * ws281x_command; // mapped to the PRU DRAM
 static uint8_t * pixels; // mapped to the L3 shared with the PRU
 
+static unsigned int
+proc_read(
+	const char * const fname
+)
+{
+	FILE * const f = fopen(fname, "r");
+	if (!f)
+		die("%s: Unable to open: %s", fname, strerror(errno));
+	unsigned int x;
+	fscanf(f, "%x", &x);
+	fclose(f);
+	return x;
+}
+
 
 static ws281x_command_t *
 ws281_init(
@@ -63,29 +78,46 @@ ws281_init(
 	if (mem_fd < 0)
 		die("Failed to open /dev/mem: %s\n", strerror(errno));
 
+	const uintptr_t ddr_addr = proc_read("/sys/class/uio/uio0/maps/map1/addr");
+	const uintptr_t ddr_size = proc_read("/sys/class/uio/uio0/maps/map1/size");
+
+	const uintptr_t ddr_start = 0x10000000;
+	const uintptr_t ddr_offset = ddr_addr - ddr_start;
+	const size_t ddr_filelen = ddr_size + ddr_start;
+
 	/* map the memory */
-	uint8_t * ddrMem = mmap(
+	uint8_t * const ddr_mem = mmap(
 		0,
-		0x0FFFFFFF,
+		ddr_filelen,
 		PROT_WRITE | PROT_READ,
 		MAP_SHARED,
 		mem_fd,
-		DDR_BASEADDR - 0x10000000
+		ddr_offset
 	);
-	if (ddrMem == MAP_FAILED)
-		die("Failed to mmap: %s\n", strerror(errno));
+	if (ddr_mem == MAP_FAILED)
+		die("Failed to mmap offset %"PRIxPTR" @ %zu bytes: %s\n",
+			ddr_offset,
+			ddr_filelen,
+			strerror(errno)
+		);
     
     	ws281x_command_t * const cmd = (void*) pruDataMem;
-	cmd->pixels = (void*) DDR_BASEADDR;
+	cmd->pixels = (void*) ddr_addr;
 	cmd->size = num_leds * 32 * 3; // pixels * 32 strips * 3 bytes/pixel
 	cmd->command = 0;
 	cmd->response = 0;
+
+	if (cmd->size > ddr_size)
+		die("Pixel data needs at least %zu, only %zu in DDR\n",
+			(size_t) cmd->size,
+			ddr_size
+		);
 
 #if 0
 	prussdrv_map_l3mem (&l3mem);	
 	pixels = l3mem;
 #else
-	pixels = ddrMem + 0x10000000;
+	pixels = ddr_mem + ddr_start;
 #endif
 
 	// Store values into source
@@ -122,7 +154,7 @@ int main (void)
 	printf("starting %d!\n", i);
 	cmd->response = 0;
 	cmd->command = 1;
-	while (cmd->response)
+	while (!cmd->response)
 		;
 	const uint32_t * next = (uint32_t*)(cmd + 1);
 	printf("done! %08x %08x\n", cmd->response, *next);
