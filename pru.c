@@ -114,7 +114,8 @@ pru_exec(
 	const char * const program
 )
 {
-	if (!prussdrv_exec_program(pru->pru_num, program))
+	char * program_unconst = (char*)(uintptr_t) program;
+	if (prussdrv_exec_program(pru->pru_num, program_unconst) < 0)
 		die("%s failed", program);
 }
 
@@ -154,7 +155,7 @@ pru_gpio(
 
 	char value_name[64];
 	snprintf(value_name, sizeof(value_name),
-		"/sys/class/gpio%u/value",
+		"/sys/class/gpio/gpio%u/value",
 		pin_num
 	);
 
@@ -170,7 +171,7 @@ pru_gpio(
 
 	char dir_name[64];
 	snprintf(dir_name, sizeof(dir_name),
-		"/sys/class/gpio%u/direction",
+		"/sys/class/gpio/gpio%u/direction",
 		pin_num
 	);
 
