@@ -97,13 +97,14 @@ ledscape_draw(
 )
 {
 	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
-
+#if 0
 	// Wait for any current command to have been acknowledged
 	while (leds->ws281x->command)
 		;
 
 	// Send the start command
 	leds->ws281x->command = 1;
+#endif
 }
 
 
@@ -167,12 +168,17 @@ ledscape_init(
 		pru_gpio(3, gpios3[i], 1, 0);
 
 	// Initiate the PRU program
-	pru_exec(pru, "./ws281x.bin");
+	if (1)
+		pru_exec(pru, "./matrix.bin");
+	else
+		pru_exec(pru, "./ws281x.bin");
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
+	printf("waiting for response\n");
 	while (!leds->ws281x->response)
 		;
+	printf("got response\n");
 
 	return leds;
 }

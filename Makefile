@@ -4,12 +4,13 @@
 #
 TARGETS += teensy-udp-rx
 TARGETS += rgb-test
+TARGETS += matrix-test
 TARGETS += udp-rx
 
 LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
 LEDSCAPE_LIB := libledscape.a
 
-all: $(TARGETS) ws281x.bin
+all: $(TARGETS) ws281x.bin matrix.bin
 
 
 ifeq ($(shell uname -m),armv7l)
