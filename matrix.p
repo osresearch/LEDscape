@@ -451,8 +451,6 @@ NEW_ROW_LOOP:
 			XOR out_clr, out_set, gpio3_led_mask
 			SBBO out_clr, gpio3_base, GPIO_CLRDATAOUT, 8
 
-			CLOCK_LO
-
 #if 1
 			// If the brightness is less than the pixel, turn off
 			// but keep in mind that this is the brightness of
@@ -472,6 +470,8 @@ NEW_ROW_LOOP:
 			DISPLAY_OFF
 			no_blank:
 #endif
+
+			CLOCK_LO
 
 			ADD offset, offset, 3*16
 			QBNE PIXEL_LOOP, offset, width
