@@ -191,7 +191,7 @@
 #define gpio3_base r19
 #define pixel_data r20 // the next 12 registers, too
 
-#define BRIGHT_STEP 32
+#define BRIGHT_STEP 16
 
 #define CLOCK_LO \
         SBBO clock_pin, gpio1_base, GPIO_SETDATAOUT, 4; \
@@ -208,13 +208,11 @@
         SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 4; \
 
 #define DISPLAY_OFF \
-	MOV out_set, 0; \
-	SET out_set, gpio1_oe; \
+	MOV out_set, 1 << gpio1_oe; \
 	SBBO out_set, gpio1_base, GPIO_SETDATAOUT, 4; \
 
 #define DISPLAY_ON \
-	MOV out_set, 0; \
-	SET out_set, gpio1_oe; \
+	MOV out_set, 1 << gpio1_oe; \
 	SBBO out_set, gpio1_base, GPIO_CLRDATAOUT, 4; \
 
 
@@ -249,8 +247,6 @@ START:
     // that we have a rendered frame ready to clock out.  This also
     // handles the exit case if an invalid value is written to the start
     // start position.
-
-        MOV bright, #0
 
         MOV gpio0_base, GPIO0
         MOV gpio1_base, GPIO1
@@ -321,13 +317,13 @@ START:
 
         MOV clock_pin, 1 << gpio1_clock
 
-PWM_LOOP:
+READ_LOOP:
         // Load the pointer to the buffer from PRU DRAM into r0 and the
         // length (in pixels) into r1.
         LBCO      data_addr, CONST_PRUDRAM, 0, 8
 
         // Wait for a non-zero command
-        QBEQ PWM_LOOP, data_addr, #0
+        QBEQ READ_LOOP, data_addr, #0
 
         // Command of 0xFF is the signal to exit
         QBEQ EXIT, data_addr, #0xFF
@@ -342,17 +338,35 @@ PWM_LOOP:
 
         MOV row, 0
 
-        ROW_LOOP:
+NEW_ROW_LOOP:
+		// Disable output while we set the address
+		DISPLAY_OFF
+
+		// set address; select pins in gpio1 are sequential
+		// xor with the select bit mask to set which ones should
+		LSL out_set, row, gpio1_sel0
+		MOV out_clr, GPIO1_SEL_MASK
+		AND out_set, out_set, out_clr // ensure no extra bits
+		XOR out_clr, out_clr, out_set // complement the bits into clr
+		SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8 // set both
+
+		MOV bright, 0x100
+	ROW_LOOP:
+		// Re-start reading at the same row
 		MOV offset, 0
+
+		// Reset the latch pin; will be toggled at the end of the row
+		LATCH_LO
 
 		// compute where we are in the image
 		PIXEL_LOOP:
-			CLOCK_HI
-
 			// Load the sixteen RGB outputs into
 			// consecutive registers, starting at pixel_data.
 			// This takes about 250 ns
 			LBBO pixel_data, data_addr, offset, 3*16
+
+			CLOCK_HI
+
 			MOV gpio0_set, 0
 			MOV gpio1_set, 0
 			MOV gpio2_set, 0
@@ -413,16 +427,15 @@ PWM_LOOP:
 
 			CLOCK_LO
 
+#if 1
 			// If the brightness is less than the pixel, turn off
 			// but keep in mind that this is the brightness of
 			// the previous row, not this one.
-			// \todo: Test turning OE on and off every other,
-			// every fourth, every eigth, etc pixel based on
-			// the current brightness.
-#if 1
-			LSR out_set, offset, 1
+			LSR out_set, offset, 0
+			ADD out_clr, bright, 10
+			LSL out_clr, out_clr, 4
 
-			QBLT no_blank, bright, out_set
+			QBLT no_blank, out_clr, out_set
 			DISPLAY_OFF
 			no_blank:
 #endif
@@ -430,44 +443,24 @@ PWM_LOOP:
 			ADD offset, offset, 3*16
 			QBNE PIXEL_LOOP, offset, width
 
-		// Disable output before we latch and set the address
-		// Unless we've just done a full image, in which case
-		// we treat this as a dummy row and go back to the top
-		DISPLAY_OFF
-                QBEQ LAST_ROW, row, 8
+		// Full data has been clocked out; latch it
 		LATCH_HI
-
-                // set address; select pins in gpio1 are sequential
-		// xor with the select bit mask to set which ones should
-		LSL out_set, row, gpio1_sel0
-		MOV out_clr, GPIO1_SEL_MASK
-		AND out_set, out_set, out_clr // ensure no extra bits
-                XOR out_clr, out_clr, out_set // complement the bits into clr
-                SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8 // set both
-        
-                // We have clocked out all of the pixels for
-                // this row and the one eigth rows later.
-		// Latch the display register and then turn the display on
-                LATCH_LO
 		DISPLAY_ON
 
-                ADD row, row, 1
-                //QBEQ LAST_ROW, row, 8
+		// Update the brightness, and then give the row another scan
+		SUB bright, bright, BRIGHT_STEP
+		QBLT ROW_LOOP, bright, 0
 
-		// Before going to the next row, increment our data_offset
-		// to the next row and reset our offset
+		// We have just done all eight brightness levels for this
+		// row.  Time to move to the new row
+
+		// Increment our data_offset to point to the next row
 		ADD data_addr, data_addr, offset
-		MOV offset, 0
-		QBA ROW_LOOP
-    
-LAST_ROW:
-        // We have clocked out this row to all of the panels.
-        // Celebrate and go back to the PWM loop
-        // Limit brightness to 0..MAX_BRIGHT
-        ADD bright, bright, BRIGHT_STEP
-	AND bright, bright, 0xFF
 
-        QBA PWM_LOOP
+                ADD row, row, 1
+                QBEQ READ_LOOP, row, 8
+
+		QBA NEW_ROW_LOOP
 	
 EXIT:
 #ifdef AM33XX
