@@ -16,7 +16,6 @@
  * To pause the redraw loop, write a NULL to the buffer pointer.
  * To shut down the PRU, write -1 to the buffer pointer.
  */
-// Pins available in GPIO0
 #define r11_gpio 2
 #define r11_pin 2
 #define g11_gpio 2
@@ -31,6 +30,19 @@
 #define b12_gpio 0
 #define b12_pin 26
 
+#define r21_gpio 0
+#define r21_pin 27
+#define g21_gpio 2
+#define g21_pin 1
+#define b21_gpio 0
+#define b21_pin 22
+
+#define r22_gpio 2
+#define r22_pin 22
+#define g22_gpio 2
+#define g22_pin 23
+#define b22_gpio 2
+#define b22_pin 24
 
 #define CAT3(X,Y,Z) X##Y##Z
 
@@ -47,24 +59,6 @@
  * 
  * \todo wtf "parameter too long": only 128 chars allowed?
  */
-#define GPIO0_LED_MASK (0\
-|(r11_gpio==0)<<r11_pin\
-|(g11_gpio==0)<<g11_pin\
-|(b11_gpio==0)<<b11_pin\
-|(r12_gpio==0)<<r12_pin\
-|(g12_gpio==0)<<g12_pin\
-|(b12_gpio==0)<<b12_pin\
-)
-
-#define GPIO2_LED_MASK (0\
-|(r11_gpio==2)<<r11_pin\
-|(g11_gpio==2)<<g11_pin\
-|(b11_gpio==2)<<b11_pin\
-|(r12_gpio==2)<<r12_pin\
-|(g12_gpio==2)<<g12_pin\
-|(b12_gpio==2)<<b12_pin\
-)
-
 
 #define GPIO1_SEL_MASK (0\
 |(1<<gpio1_sel0)\
@@ -197,6 +191,13 @@ START:
 	SET GPIO_MASK(g12_gpio), g12_pin
 	SET GPIO_MASK(b12_gpio), b12_pin
 
+	SET GPIO_MASK(r21_gpio), r21_pin
+	SET GPIO_MASK(g21_gpio), g21_pin
+	SET GPIO_MASK(b21_gpio), b21_pin
+	SET GPIO_MASK(r22_gpio), r22_pin
+	SET GPIO_MASK(g22_gpio), g22_pin
+	SET GPIO_MASK(b22_gpio), b22_pin
+
 	MOV display_width_bytes, 4*DISPLAY_WIDTH
 	MOV row_skip_bytes, 4*8*ROW_WIDTH
 
@@ -238,27 +239,22 @@ PWM_LOOP:
 	MOV gpio0_set, 0
 	MOV gpio2_set, 0
 
-	LBBO pix, row11_ptr, offset, 4;
-	QBGE skip_r11, pix.b0, bright;
-	SET GPIO(r11_gpio), r11_pin;
-	skip_r11:
-	QBGE skip_g11, pix.b1, bright;
-	SET GPIO(g11_gpio), g11_pin;
-	skip_g11:
-	QBGE skip_b11, pix.b2, bright;
-	SET GPIO(b11_gpio), b11_pin;
-	skip_b11:
+#define OUTPUT_ROW(N) \
+	LBBO pix, row##N##_ptr, offset, 4; \
+	QBGE skip_r##N, pix.b0, bright; \
+	SET GPIO(r##N##_gpio), r##N##_pin; \
+	skip_r##N: \
+	QBGE skip_g##N, pix.b1, bright; \
+	SET GPIO(g##N##_gpio), g##N##_pin; \
+	skip_g##N: \
+	QBGE skip_b##N, pix.b2, bright; \
+	SET GPIO(b##N##_gpio), b##N##_pin; \
+	skip_b##N: \
 
-	LBBO pix, row12_ptr, offset, 4;
-	QBGE skip_r12, pix.b0, bright;
-	SET GPIO(r12_gpio), r12_pin;
-	skip_r12:
-	QBGE skip_g12, pix.b1, bright;
-	SET GPIO(g12_gpio), g12_pin;
-	skip_g12:
-	QBGE skip_b12, pix.b2, bright;
-	SET GPIO(b12_gpio), b12_pin;
-	skip_b12:
+			OUTPUT_ROW(11)
+			OUTPUT_ROW(12)
+			OUTPUT_ROW(21)
+			OUTPUT_ROW(22)
 
 			// All bits are configured;
 			// the non-set ones will be cleared
