@@ -175,8 +175,8 @@ START:
     // handles the exit case if an invalid value is written to the start
     // start position.
 
-#define DISPLAY_WIDTH          64
-#define DISPLAYS               8 /* Maximum! */
+#define DISPLAY_WIDTH          128
+#define DISPLAYS               4
 #define ROW_WIDTH              (DISPLAYS * DISPLAY_WIDTH)
 
 /*
@@ -301,7 +301,8 @@ PWM_LOOP:
 
 			ADD pix_ptr, pix_ptr, 4
 			ADD pixel, pixel, 1
-			QBNE PIXEL_LOOP, pixel, DISPLAY_WIDTH
+			MOV p2, DISPLAY_WIDTH
+			QBNE PIXEL_LOOP, pixel, p2
 
                 // We have clocked out all of the pixels for
                 // this row and the one eigth rows later.
