@@ -76,7 +76,10 @@ START:
     MOV		r0, 0x00100000
     MOV		r1, CTPPR_1
     ST32	r0, r1
-	
+
+    // We will use these all the time
+    MOV r6, GPIO1 | GPIO_SETDATAOUT
+    MOV r7, GPIO1 | GPIO_CLEARDATAOUT
 
     // Wait for the start condition from the main program to indicate
     // that we have a rendered frame ready to clock out.  This also
@@ -90,12 +93,18 @@ _LOOP:
 
     // Wait for a non-zero length
     QBEQ _LOOP, r2, #0
+
     // Length of 0xFF is the signal to exit
     QBEQ EXIT, r2, #0xFF
 
-	// We will use these all the time
-	MOV r6, GPIO1 | GPIO_SETDATAOUT
-	MOV r7, GPIO1 | GPIO_CLEARDATAOUT
+    MOV r2, 0xF << 21 // GPIO1:21-24
+    SBBO r2, r6, 0, 4
+    SLEEPNS 1000000, 1, busy_loop
+
+    SBBO r2, r7, 0, 4
+
+qba skip_loop
+
 
     // Clock out the bits!
 WORD_LOOP:
@@ -103,8 +112,11 @@ WORD_LOOP:
 	LBBO r3, r0, 0, 8
 	MOV r4, r3
 
-	// for i = 0 to 31
-	MOV r2, #0
+	// Set all start bits on
+	MOV r2, 0xF << 21 // GPIO1:21-24
+	
+
+
 BIT_START_LOOP:
 		// set all the bits high
 		SBBO r2, r6, 0, 4
@@ -145,15 +157,19 @@ BIT_ONE_LOOP:
 	SUB r1, r1, #1
 	QBGT WORD_LOOP, r1, #0
 
+skip_loop:
     // Write out that we are done!
     // Store a zero in the start command so that they know that we are done
     MOV r2, #0
-    SBCO r2, CONST_PRUDRAM, 4, 8
+    SBCO r2, CONST_PRUDRAM, 8, 4
 
     // Go back to waiting for the next frame buffer
     QBA _LOOP
 
 EXIT:
+    MOV r2, #0
+    SBCO r2, CONST_PRUDRAM, 8, 4
+
 #ifdef AM33XX
     // Send notification to Host for program completion
     MOV R31.b0, PRU0_ARM_INTERRUPT+16

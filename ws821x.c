@@ -193,7 +193,7 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
         return -1;
     }	
 
-#define DDR_BASEADDR 0xC0000000
+#define DDR_BASEADDR 0x80000000
 #define OFFSET_DDR	 0x00001000 
 #define OFFSET_L3	 2048       //equivalent with 0x00002000
 
@@ -219,7 +219,7 @@ static int LOCAL_exampleInit ( unsigned short pruNum )
 
     // Store values into source
     printf("data ram %p l3 ram %p: setting %zu bytes\n", ws281x_command, pixels,  ws281x_command->size);
-    memset(pixels, 0, ws281x_command->size);
+    //memset(pixels, 0, ws281x_command->size);
 
     return(0);
 }
