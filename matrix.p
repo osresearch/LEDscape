@@ -420,7 +420,7 @@ PWM_LOOP:
 			// every fourth, every eigth, etc pixel based on
 			// the current brightness.
 #if 1
-			LSR out_set, offset, 2
+			LSR out_set, offset, 1
 
 			QBLT no_blank, bright, out_set
 			DISPLAY_OFF
@@ -434,9 +434,7 @@ PWM_LOOP:
 		// Unless we've just done a full image, in which case
 		// we treat this as a dummy row and go back to the top
 		DISPLAY_OFF
-#ifdef fix_dim
-                QBEQ NEXT_ROW, row, 8
-#endif
+                QBEQ LAST_ROW, row, 8
 		LATCH_HI
 
                 // set address; select pins in gpio1 are sequential
@@ -454,7 +452,7 @@ PWM_LOOP:
 		DISPLAY_ON
 
                 ADD row, row, 1
-                QBEQ LAST_ROW, row, 8
+                //QBEQ LAST_ROW, row, 8
 
 		// Before going to the next row, increment our data_offset
 		// to the next row and reset our offset
