@@ -29,7 +29,7 @@
  * \todo: Find a way to unify this with the defines in the .p file
  */
 static const uint8_t gpios0[] = {
-	27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7
+	23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7
 };
 
 static const uint8_t gpios1[] = {

@@ -72,6 +72,62 @@
 #define b42_gpio 0
 #define b42_pin 4
 
+#define r51_gpio 2
+#define r51_pin 25
+#define g51_gpio 0
+#define g51_pin 11
+#define b51_gpio 0
+#define b51_pin 10
+
+#define r52_gpio 0
+#define r52_pin 9
+#define g52_gpio 0
+#define g52_pin 8
+#define b52_gpio 2
+#define b52_pin 17
+
+#define r61_gpio 2
+#define r61_pin 16
+#define g61_gpio 2
+#define g61_pin 15
+#define b61_gpio 2
+#define b61_pin 14
+
+#define r62_gpio 2
+#define r62_pin 13
+#define g62_gpio 2
+#define g62_pin 10
+#define b62_gpio 2
+#define b62_pin 12
+
+#define r71_gpio 2
+#define r71_pin 11
+#define g71_gpio 2
+#define g71_pin 9
+#define b71_gpio 2
+#define b71_pin 8
+
+#define r72_gpio 2
+#define r72_pin 6
+#define g72_gpio 0
+#define g72_pin 7
+#define b72_gpio 2
+#define b72_pin 7
+
+#define r81_gpio 3
+#define r81_pin 17
+#define g81_gpio 3
+#define g81_pin 16
+#define b81_gpio 3
+#define b81_pin 15
+
+#define r82_gpio 3
+#define r82_pin 14
+#define g82_gpio 0
+#define g82_pin 14
+#define b82_gpio 0
+#define b82_pin 20
+
 #define CAT3(X,Y,Z) X##Y##Z
 
 // Control pins are all in GPIO1
@@ -248,6 +304,34 @@ START:
 	SET GPIO_MASK(g42_gpio), g42_pin
 	SET GPIO_MASK(b42_gpio), b42_pin
 
+	SET GPIO_MASK(r51_gpio), r51_pin
+	SET GPIO_MASK(g51_gpio), g51_pin
+	SET GPIO_MASK(b51_gpio), b51_pin
+	SET GPIO_MASK(r52_gpio), r52_pin
+	SET GPIO_MASK(g52_gpio), g52_pin
+	SET GPIO_MASK(b52_gpio), b52_pin
+
+	SET GPIO_MASK(r61_gpio), r61_pin
+	SET GPIO_MASK(g61_gpio), g61_pin
+	SET GPIO_MASK(b61_gpio), b61_pin
+	SET GPIO_MASK(r62_gpio), r62_pin
+	SET GPIO_MASK(g62_gpio), g62_pin
+	SET GPIO_MASK(b62_gpio), b62_pin
+
+	SET GPIO_MASK(r71_gpio), r71_pin
+	SET GPIO_MASK(g71_gpio), g71_pin
+	SET GPIO_MASK(b71_gpio), b71_pin
+	SET GPIO_MASK(r72_gpio), r72_pin
+	SET GPIO_MASK(g72_gpio), g72_pin
+	SET GPIO_MASK(b72_gpio), b72_pin
+
+	SET GPIO_MASK(r81_gpio), r81_pin
+	SET GPIO_MASK(g81_gpio), g81_pin
+	SET GPIO_MASK(b81_gpio), b81_pin
+	SET GPIO_MASK(r82_gpio), r82_pin
+	SET GPIO_MASK(g82_gpio), g82_pin
+	SET GPIO_MASK(b82_gpio), b82_pin
+
 	MOV display_width_bytes, 4*DISPLAY_WIDTH
 	MOV row_skip_bytes, 4*8*ROW_WIDTH
 
@@ -319,8 +403,8 @@ PWM_LOOP:
 			OUTPUT_ROW(12)
 			OUTPUT_ROW(21)
 			OUTPUT_ROW(22)
-			OUTPUT_ROW2(11,41)
-			OUTPUT_ROW2(12,42)
+			OUTPUT_ROW2(11,81)
+			OUTPUT_ROW2(12,82)
 
 			// All bits are configured;
 			// the non-set ones will be cleared
