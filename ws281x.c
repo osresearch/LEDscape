@@ -17,10 +17,15 @@
 
 // Should get this from /sys/class/uio/uio0/maps/map1/addr
 //#define DDR_BASEADDR 0x80000000
-#define DDR_BASEADDR 0x97c80000
+#define DDR_BASEADDR 0x99400000
 #define OFFSET_DDR	 0x00001000 
 #define OFFSET_L3	 2048       //equivalent with 0x00002000
 
+#define die(fmt, ...) \
+	do { \
+		fprintf(stderr, fmt, ## __VA_ARGS__); \
+		exit(EXIT_FAILURE); \
+	} while (0)
 
 typedef struct
 {
@@ -90,9 +95,9 @@ ws281_init(
 		cmd->size
 	);
 
-	memset(pixels, 0xAB, ws281x_command->size);
+	memset(pixels, 0xAB, cmd->size);
 
-	return(0);
+	return cmd;
 }
 
 
