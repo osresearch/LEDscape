@@ -26,50 +26,47 @@
  * 16 GPIO0 IOs == 2 with 4 IO left over.
  */
 // Pins available in GPIO0
-#define gpio0_row1_r 2
-#define gpio0_row1_g 3
-#define gpio0_row1_b 7
-#define gpio0_row2_r 5
-#define gpio0_row2_b 4
-#define gpio0_row2_g 12
-#define gpio0_row3_r 13
-#define gpio0_row3_g 14
-#define gpio0_row3_b 15
-#define gpio0_row4_r 20
-#define gpio0_row4_g 22
-#define gpio0_row4_b 23
-#define gpio0_bit12 26
-#define gpio0_bit13 27
-#define gpio0_bit14 30
-#define gpio0_bit15 31
+#define gpio0_r1 3
+#define gpio0_g1 30
+#define gpio0_b1 15
 
-// could move clock and sel into gpio0
+#define gpio0_r2 2
+#define gpio0_b2 14
+#define gpio0_g2 31
+
+#define gpio0_r3 20
+#define gpio0_b3 7
+#define gpio0_g3 22
+
+#define gpio0_r4 23
+#define gpio0_b4 27
+#define gpio0_g4 26
 
 // Pins available in GPIO1
-#define gpio1_sel0 12
-#define gpio1_sel1 13
-#define gpio1_sel2 14
-#define gpio1_latch 28
-#define gpio1_oe 29
-#define gpio1_clock 19
+#define gpio1_sel0 12 /* 44 */
+#define gpio1_sel1 13 /* 45 */
+#define gpio1_sel2 14 /* 46 */
+#define gpio1_latch 28 /* 60 */
+#define gpio1_oe 15 /* 47 */
+#define gpio1_clock 19 /* 51 */
 
 /** Generate a bitmask of which pins in GPIO0-3 are used.
  * 
  * \todo wtf "parameter too long": only 128 chars allowed?
  */
 #define GPIO0_LED_MASK (0\
-|(1<<gpio0_row1_r)\
-|(1<<gpio0_row1_g)\
-|(1<<gpio0_row1_b)\
-|(1<<gpio0_row2_r)\
-|(1<<gpio0_row2_b)\
-|(1<<gpio0_row2_g)\
-|(1<<gpio0_row3_r)\
-|(1<<gpio0_row3_g)\
-|(1<<gpio0_row3_b)\
-|(1<<gpio0_row4_r)\
-|(1<<gpio0_row4_g)\
-|(1<<gpio0_row4_b)\
+|(1<<gpio0_r1)\
+|(1<<gpio0_g1)\
+|(1<<gpio0_b1)\
+|(1<<gpio0_r2)\
+|(1<<gpio0_g2)\
+|(1<<gpio0_b2)\
+|(1<<gpio0_r3)\
+|(1<<gpio0_g3)\
+|(1<<gpio0_b3)\
+|(1<<gpio0_r4)\
+|(1<<gpio0_g4)\
+|(1<<gpio0_b4)\
 )
 
 #define GPIO1_SEL_MASK (0\
@@ -281,15 +278,15 @@ PWM_LOOP:
 			// read a pixel worth of data
 			LBBO pix, pix_ptr, 0*DISPLAY_WIDTH, 4
 			QBGE disp0_r, pix.b0, bright
-			SET out0_set, gpio0_row1_r
+			SET out0_set, gpio0_r1
 
 			disp0_r:
 			QBGE disp0_g, pix.b1, bright
-			SET out0_set, gpio0_row1_g
+			SET out0_set, gpio0_g1
 
 			disp0_g:
 			QBGE disp0_b, pix.b2, bright
-			SET out0_set, gpio0_row1_b
+			SET out0_set, gpio0_b1
 			disp0_b:
 
 			// All bits are configured;
