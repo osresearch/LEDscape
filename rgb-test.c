@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <time.h>
 #include <inttypes.h>
 #include <errno.h>
 #include <unistd.h>
@@ -29,6 +30,8 @@ int main (void)
 {
 	const int num_pixels = 256;
 	ledscape_t * const leds = ledscape_init(num_pixels);
+	time_t last_time = time(NULL);
+	unsigned last_i = 0;
 
 	unsigned i = 0;
 	while (1)
@@ -39,7 +42,7 @@ int main (void)
 			= ledscape_frame(leds, frame_num);
 
 		uint8_t val = i >> 1;
-		ledscape_fill_color(frame, num_pixels, val, 0, val);
+		//ledscape_fill_color(frame, num_pixels, val, 0, val);
 
 		for (int strip = 0 ; strip < 32 ; strip++)
 		{
@@ -50,7 +53,14 @@ int main (void)
 
 		// wait for the previous frame to finish;
 		const uint32_t response = ledscape_wait(leds);
-		printf("starting %d previous %"PRIx32"\n", i, response);
+		time_t now = time(NULL);
+		if (now != last_time)
+		{
+			printf("%d fps. starting %d previous %"PRIx32"\n",
+				i - last_i, i, response);
+			last_i = i;
+			last_time = now;
+		}
 
 		ledscape_draw(leds, frame_num);
 	}
