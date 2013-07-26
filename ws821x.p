@@ -1,3 +1,35 @@
+// \file
+ //* WS821x LED strip driver for the BeagleBone Black.
+ //*
+ //* Drives up to 32 strips using the PRU hardware.  The ARM writes
+ //* rendered frames into shared DDR memory and sets a flag to indicate
+ //* how many pixels wide the image is.  The PRU then bit bangs the signal
+ //* out the 32 GPIO pins and sets a done flag.
+ //*
+ //* To stop, the ARM can write a 0xFFFFFFFF to the width, which will
+ //* cause the PRU code to exit.
+ //*
+ //* At 800 KHz:
+ //*  0 is 0.25 usec high, 1 usec low
+ //*  1 is 0.60 usec high, 0.65 usec low
+ //*  Reset is 50 usec
+ //*
+ //* So to clock this out:
+ //*  ____
+ //* |  | |______|
+ //* 0  250 600  1250 offset
+ //*    250 350   625 delta
+ //*
+ //* It would be better to do:
+ //*
+ //* RRRR....
+ //* GGGG....
+ //* BBBB....
+ //* RRRR....
+ //* GGGG....
+ //* BBBB....
+ //* 
+ //*/
 .origin 0
 .entrypoint START
 
@@ -7,13 +39,14 @@
 #define GPIO_CLEARDATAOUT 0x190
 #define GPIO_SETDATAOUT 0x194
 
-#define DMX_HALT (0x100)
+#define WS821X_ENABLE (0x100)
 #define DMX_CHANNELS (0x101)
 #define DMX_PIN (0x102)
 
-.macro SLEEPUS
-.mparam us,inst,lab
-    MOV r7, (us*100)-1-inst
+// Sleep a given number of nanoseconds with 10 ns resolution
+.macro SLEEPNS
+.mparam ns,inst,lab
+    MOV r7, (ns/10)-1-inst
 lab:
     SUB r7, r7, 1
     QBNE lab, r7, 0
@@ -30,93 +63,103 @@ lab:
 .endm
 
 START:
-    // clear that bit
-    LBCO r0, C4, 4, 4
-    CLR r0, r0, 4
-    SBCO r0, C4, 4, 4
+    // Enable OCP master port
+    // clear the STANDBY_INIT bit in the SYSCFG register,
+    // otherwise the PRU will not be able to write outside the
+    // PRU memory space and to the BeagleBon's pins.
+    LBCO	r0, C4, 4, 4
+    CLR		r0, r0, 4
+    SBCO	r0, C4, 4, 4
 
-   MOV r6, GPIO1 | GPIO_CLEARDATAOUT
-   MOV r8, 7<<22
-   SBBO r8, r6, 0, 4
+    // Configure the programmable pointer register for PRU0 by setting
+    // c28_pointer[15:0] field to 0x0120.  This will make C28 point to
+    // 0x00012000 (PRU shared RAM).
+    MOV		r0, 0x00000120
+    MOV		r1, CTPPR_0
+    ST32	r0, r1
 
+    // Configure the programmable pointer register for PRU0 by setting
+    // c31_pointer[15:0] field to 0x0010.  This will make C31 point to
+    // 0x80001000 (DDR memory).
+    MOV		r0, 0x00100000
+    MOV		r1, CTPPR_1
+    ST32	r0, r1
+	
+
+    // Wait for the start condition from the main program to indicate
+    // that we have a rendered frame ready to clock out.  This also
+    // handles the exit case if an invalid value is written to the start
+    // start positoin.
 _LOOP:
-    // Exit if the halt flag is set
-    MOV r6, DMX_HALT
-    LBCO r2, CONST_PRUDRAM, r6, 1
-    QBNE EXIT, r2.b0, 0
+    // Load the pointer to the buffer from PRU DRAM into r0 and the
+    // length (in 32-bit words) into r1.
+    LBCO      r0, CONST_PRUDRAM, 0, 8
 
-    // Make DMX pin mask
-    MOV r6, DMX_PIN
-    LBCO r2, CONST_PRUDRAM, r6, 1
-    MOV r4, 1
-    LSL r4, r4, r2.b0
+    // Wait for a non-zero length
+    QBEQ _LOOP, r1, #0
+    // Length of 0xFFFF is the signal to exit
+    QBEQ EXIT, r1, #0xFF
 
-    // 1. Bring low for 92 us
-    MOV r6, GPIO1 | GPIO_CLEARDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS 92, 1, START_LOW_SLEEP
+    // Store a zero in the length so that they know that we have started
+    MOV r2, #0
+    SBCO r2, CONST_PRUDRAM, 4, 4
 
-    // 2. Bring high for 12 us
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS 12, 1, START_HIGH_SLEEP
+	// We will use these all the time
+	MOV r6, GPIO1 | GPIO_SETDATAOUT
+	MOV r7, GPIO1 | GPIO_CLEARDATAOUT
 
-    // 3. Send a DMX data frame of 0 to start the sequence
-    MOV r6, GPIO1 | GPIO_CLEARDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS (9*4), 0, ZERO_START_SLEEP
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS (2*4), 8, ZERO_STOP_SLEEP
+    // Clock out the bits!
+WORD_LOOP:
+	// Load 64-bits of data into r3 and r4
+	LBBO r3, r0, 0, 8
+	MOV r4, r3
 
-    // 4. Send a DMX data frame for each channel
-    MOV r3, 0
-    MOV r6, DMX_CHANNELS
-    LBCO r5, CONST_PRUDRAM, r6, 1
+	// for i = 0 to 31
+	MOV r2, #0
+BIT_START_LOOP:
+		// set all the bits high
+		SBBO r2, r6, 0, 4
+		ADD r2, r2, 1
+		QBLT BIT_START_LOOP, r2, #32
 
-DMX_LOOP:
-//    QBEQ LOOP, r3.b0, 4
-    QBEQ _LOOP, r3.b0, r5.b0
-    LBCO r2, CONST_PRUDRAM, r3, 1
-    MOV r1, 8
+	// wait for the zero time
+	SLEEPNS 250, 1, wait_zero_time
 
-    QBNE OK, r3.b0, 3
-    QBNE OK, r2, 128
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    MOV r8, 7<<22
-    SBBO r8, r6, 0, 4
-OK:
-    
-    // bring low to start
-    MOV r6, GPIO1 | GPIO_CLEARDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS 4, 2, DMX_FRAME_START_SLEEP
+	// For all the bits that are zero, turn them off now
+	// This destroys the bits in r3
+	MOV r2, #0
+BIT_ZERO_LOOP:
+		QBBS non_zero_bit, r3, 1
+		SBBO r2, r7, 0, 4 // bring the output pin to 0
+		QBA next_zero_bit
+non_zero_bit:
+		SBBO r2, r6, 0, 4 // leave the output pin at 1
+		QBA next_zero_bit
+next_zero_bit:
+		LSR r3, r3, 1
+		ADD r2, r2, 1
+		QBLT BIT_ZERO_LOOP, r2, #32
+	
+	SLEEPNS 350, 1, wait_one_time
 
-DMX_FRAME:
-    QBBC DMX_FRAME_BIT_LOW, r2, 0
+	// Turn all the bits off
+	MOV r2, #0
+BIT_ONE_LOOP:
+		SBBO r2, r7, 0, 4 // zero the bit
+		ADD r2, r2, 1
+		QBLT BIT_ONE_LOOP, r2, #32
 
-DMX_FRAME_BIT_HIGH:
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS 4, 5, DMX_FRAME_BIT_SLEEP_1
-    QBA DMX_FRAME_BIT_FINISH
+	SLEEPNS 625, 1, wait_end_time
 
-DMX_FRAME_BIT_LOW:
-    MOV r6, GPIO1 | GPIO_CLEARDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS 4, 4, DMX_FRAME_BIT_SLEEP_2
+	// Increment our data pointer and decrement our length
+	ADD r0, r0, #4
+	SUB r1, r1, #1
+	QBGT WORD_LOOP, r1, #0
 
-DMX_FRAME_BIT_FINISH:
-    SUB r1, r1, 1
-    LSR r2, r2, 1
-    QBNE DMX_FRAME, r1, 0
+    // Write out that we are done!
 
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    SBBO r4, r6, 0, 4
-    SLEEPUS (2*4), 6, DMX_FRAME_END_SLEEP
-
-    ADD r3, r3, 1
-    QBA DMX_LOOP
+    // Go back to waiting for the next frame buffer
+    QBA _LOOP
 
 EXIT:
 #ifdef AM33XX
