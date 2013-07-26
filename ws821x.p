@@ -44,23 +44,15 @@
 #define DMX_PIN (0x102)
 
 // Sleep a given number of nanoseconds with 10 ns resolution
+// Uses r5
 .macro SLEEPNS
 .mparam ns,inst,lab
-    MOV r7, (ns/10)-1-inst
+    MOV r5, (ns/10)-1-inst
 lab:
-    SUB r7, r7, 1
-    QBNE lab, r7, 0
+    SUB r5, r5, 1
+    QBNE lab, r5, 0
 .endm
 
-.macro BRING_LOW
-    MOV r6, GPIO1 | GPIO_CLEARDATAOUT
-    SBBO r4, r6, 0, 4
-.endm
-
-.macro BRING_HIGH
-    MOV r6, GPIO1 | GPIO_SETDATAOUT
-    SBBO r4, r6, 0, 4
-.endm
 
 START:
     // Enable OCP master port
@@ -89,20 +81,17 @@ START:
     // Wait for the start condition from the main program to indicate
     // that we have a rendered frame ready to clock out.  This also
     // handles the exit case if an invalid value is written to the start
-    // start positoin.
+    // start position.
 _LOOP:
     // Load the pointer to the buffer from PRU DRAM into r0 and the
-    // length (in 32-bit words) into r1.
-    LBCO      r0, CONST_PRUDRAM, 0, 8
+    // length (in bytes-bit words) into r1.
+    // start command into r2
+    LBCO      r0, CONST_PRUDRAM, 0, 12
 
     // Wait for a non-zero length
-    QBEQ _LOOP, r1, #0
-    // Length of 0xFFFF is the signal to exit
-    QBEQ EXIT, r1, #0xFF
-
-    // Store a zero in the length so that they know that we have started
-    MOV r2, #0
-    SBCO r2, CONST_PRUDRAM, 4, 4
+    QBEQ _LOOP, r2, #0
+    // Length of 0xFF is the signal to exit
+    QBEQ EXIT, r2, #0xFF
 
 	// We will use these all the time
 	MOV r6, GPIO1 | GPIO_SETDATAOUT
@@ -157,6 +146,9 @@ BIT_ONE_LOOP:
 	QBGT WORD_LOOP, r1, #0
 
     // Write out that we are done!
+    // Store a zero in the start command so that they know that we are done
+    MOV r2, #0
+    SBCO r2, CONST_PRUDRAM, 4, 8
 
     // Go back to waiting for the next frame buffer
     QBA _LOOP
