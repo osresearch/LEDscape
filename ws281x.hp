@@ -1,5 +1,5 @@
-#ifndef _dmx_HP_
-#define _dmx_HP_
+#ifndef _ws281x_HP_
+#define _ws281x_HP_
 
 
 #define AM33XX
@@ -118,4 +118,4 @@
 // ***************************************
 
 
-#endif //_dmx_HP_
+#endif //_ws281x_HP_

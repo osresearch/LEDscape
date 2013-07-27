@@ -8,23 +8,23 @@ CFLAGS+= -Wall -I$(INCDIR_APP_LOADER) -D__DEBUG -O2 -mtune=cortex-a8 -march=armv
 LDFLAGS+=-L$(LIBDIR_APP_LOADER) -lprussdrv -lpthread
 PASM := ../../utils/pasm_2
 OBJDIR=obj
-TARGET=$(BINDIR)/ws821x
+TARGET=$(BINDIR)/ws281x
 
 _DEPS = 
 DEPS = $(patsubst %,$(INCDIR_APP_LOADER)/%,$(_DEPS))
 
-_OBJ = ws821x.o
+_OBJ = ws281x.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 $(OBJDIR)/%.o: %.c $(DEPS)
 	@mkdir -p obj
 	$(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
 
-all: $(TARGET) ws821x.bin
+all: $(TARGET) ws281x.bin
 $(TARGET): $(OBJ)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-ws821x.bin: ws821x.p ws821x.hp
+ws281x.bin: ws281x.p ws281x.hp
 	$(PASM) -V3 -b $<
 	cp $@ ../bin/
 
@@ -32,4 +32,4 @@ ws821x.bin: ws821x.p ws821x.hp
 .PHONY: clean
 
 clean:
-	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws821x.bin ws821x.bin
+	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin

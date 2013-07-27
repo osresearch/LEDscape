@@ -1,12 +1,12 @@
 // \file
- //* WS821x LED strip driver for the BeagleBone Black.
+ //* WS281x LED strip driver for the BeagleBone Black.
  //*
  //* Drives up to 32 strips using the PRU hardware.  The ARM writes
  //* rendered frames into shared DDR memory and sets a flag to indicate
  //* how many pixels wide the image is.  The PRU then bit bangs the signal
  //* out the 32 GPIO pins and sets a done flag.
  //*
- //* To stop, the ARM can write a 0xFFFFFFFF to the width, which will
+ //* To stop, the ARM can write a 0xFF to the command, which will
  //* cause the PRU code to exit.
  //*
  //* At 800 KHz:
@@ -33,7 +33,7 @@
 .origin 0
 .entrypoint START
 
-#include "ws821x.hp"
+#include "ws281x.hp"
 
 #define GPIO1 0x4804c000
 #define GPIO_CLEARDATAOUT 0x190
