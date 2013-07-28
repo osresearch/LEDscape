@@ -16,7 +16,36 @@
  //
  // Pins are not contiguous.
  // 16 pins on GPIO0: 2 3 4 5 7 12 13 14 15 20 22 23 26 27 30 31
+ // 10 pins on GPIO1: 12 13 14 15 16 17 18 19 28 29
+ //  5 pins on GPIO2: 1 2 3 4 5
+ //  8 pins on GPIO3: 14 15 16 17 18 19 20 21
+ //
+ // each pixel is stored in 4 bytes in the order GRBA (4th byte is ignored)
+ //
+ // while len > 0:
+	 // for bit# = 24 down to 0:
+		 // delay 600 ns
+		 // read 16 registers of data, build zero map for gpio0
+		 // read 10 registers of data, build zero map for gpio1
+		 // read  5 registers of data, build zero map for gpio3
+		 //
+		 // Send start pulse on all pins on gpio0, gpio1 and gpio3
+		 // delay 250 ns
+		 // bring zero pins low
+		 // delay 300 ns
+		 // bring all pins low
+	 // increment address by 32
 
+ //*
+ //* So to clock this out:
+ //*  ____
+ //* |  | |______|
+ //* 0  250 600  1250 offset
+ //*    250 350   650 delta
+ //* 
+ //*/
+
+// Pins available in GPIO0
 #define gpio0_bit0 2
 #define gpio0_bit1 3
 #define gpio0_bit2 4
@@ -34,6 +63,7 @@
 #define gpio0_bit14 30
 #define gpio0_bit15 31
 
+// Pins available in GPIO1
 #define gpio1_bit0 12
 #define gpio1_bit1 13
 #define gpio1_bit2 14
@@ -45,16 +75,24 @@
 #define gpio1_bit8 28
 #define gpio1_bit9 29
 
+// Pins in GPIO2
 #define gpio2_bit0 1
 #define gpio2_bit1 2
 #define gpio2_bit2 3
 #define gpio2_bit3 4
 #define gpio2_bit4 5
 
+// And the paltry pins in GPIO3 to give us 32
 #define gpio3_bit0 16
 #define gpio3_bit1 19
 
-// wtf "parameter too long"?  Only 128 bytes allowed.
+/** Generate a bitmask of which pins in GPIO0-3 are used.
+ * 
+ * This is used to bring all the pins up for the start of
+ * the bit, and then back down at the end of the 1 bits.
+ * 
+ * \todo wtf "parameter too long": only 128 chars allowed?
+ */
 #define GPIO0_LED_MASK (0\
 |(1<<gpio0_bit0)\
 |(1<<gpio0_bit1)\
@@ -100,50 +138,22 @@
 |(1<<gpio3_bit1)\
 )
 
- // 10 pins on GPIO1: 12 13 14 15 16 17 18 19 28 29
- //  5 pins on GPIO2: 1 2 3 4 5
- //  8 pins on GPIO3: 14 15 16 17 18 19 20 21
- //
- // each pixel is stored in 4 bytes in the order rgbX (4th byte is ignored)
- //
- // while len > 0:
-	 // for bit# = 0 to 24:
-		 // delay 600 ns
-		 // read 16 registers of data, build zero map for gpio0
-		 // read 10 registers of data, build zero map for gpio1
-		 // read  6 registers of data, build zero map for gpio3
-		 //
-		 // Send start pulse on all pins on gpio0, gpio1 and gpio3
-		 // delay 250 ns
-		 // bring zero pins low
-		 // delay 300 ns
-		 // bring all pins low
-	 // increment address by 32
-
- //*
- //* So to clock this out:
- //*  ____
- //* |  | |______|
- //* 0  250 600  1250 offset
- //*    250 350   650 delta
- //* 
- //*/
 .origin 0
 .entrypoint START
 
 #include "ws281x.hp"
 
+/** Mappings of the GPIO devices */
 #define GPIO0 0x44E07000
 #define GPIO1 0x4804c000
 #define GPIO2 0x481AC000
 #define GPIO3 0x481AE000
+
+/** Offsets for the clear and set registers in the devices */
 #define GPIO_CLEARDATAOUT 0x190
 #define GPIO_SETDATAOUT 0x194
 
-#define WS821X_ENABLE (0x100)
-#define DMX_CHANNELS (0x101)
-#define DMX_PIN (0x102)
-
+/** Register map */
 #define data_addr r0
 #define data_len r1
 #define gpio0_zeros r2
@@ -152,10 +162,14 @@
 #define gpio3_zeros r5
 #define bit_num r6
 #define sleep_counter r7
-// r8 - r24 are used for temp storage and bitmap processing
+// r10 - r26 are used for temp storage and bitmap processing
 
 
-// Sleep a given number of nanoseconds with 10 ns resolution
+/** Sleep a given number of nanoseconds with 10 ns resolution.
+ *
+ * This busy waits for a given number of cycles.  Not for use
+ * with things that must happen on a tight schedule.
+ */
 .macro SLEEPNS
 .mparam ns,inst,lab
 #ifdef CONFIG_WS2812
@@ -169,6 +183,7 @@ lab:
 .endm
 
 
+/** Wait for the cycle counter to reach a given value */
 .macro WAITNS
 .mparam ns,lab
     MOV r8, 0x22000 // control register
@@ -251,16 +266,15 @@ WORD_LOOP:
 		SET r9, r9, 3 // enable counter bit
 		SBBO r9, r8, 0, 4 // write it back
 
-		LBBO sleep_counter, r8, 0xC, 4
-
 		// Read the current counter value
+		// Should be zero.
 		LBBO sleep_counter, r8, 0xC, 4
 
-		// Load 16 registers of data, starting at r8
-		LBBO r10, r0, 0, 64
-
-		// For each of these 16 registers, set the
-		// corresponding bit in the gpio0_zeros register
+/** Macro to generate the mask of which bits are zero.
+ * For each of these registers, set the
+ * corresponding bit in the gpio0_zeros register if
+ * the current bit is set in the strided register.
+ */
 #define TEST_BIT(regN,gpioN,bitN) \
 	QBBS gpioN##_##regN##_skip, regN, bit_num; \
 	SET gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
@@ -340,6 +354,7 @@ WORD_LOOP:
 		SBBO r23, r13, 0, 4
 		SBBO r22, r12, 0, 4
 
+		// Reconfigure r10-13 for clearing the bits
 		MOV r10, GPIO0 | GPIO_CLEARDATAOUT
 		MOV r11, GPIO1 | GPIO_CLEARDATAOUT
 		MOV r12, GPIO2 | GPIO_CLEARDATAOUT
@@ -356,7 +371,6 @@ WORD_LOOP:
 		SBBO gpio3_zeros, r13, 0, 4
 
 		// Wait until the length of the one bits
-		// (600 ns - 250 already waited)
 		WAITNS 650+600, wait_one_time
 		//SLEEPNS 350, 1, wait_one_time
 
@@ -374,14 +388,16 @@ WORD_LOOP:
 	SUB data_len, data_len, 1
 	QBNE WORD_LOOP, data_len, #0
 
-    // Delay at least 50 usec
+    // Delay at least 50 usec; this is the required reset
+    // time for the LED strip to update with the new pixels.
     SLEEPNS 50000, 1, reset_time
 
     // Write out that we are done!
     // Store a non-zero response in the buffer so that they know that we are done
-    // also write out a quick hack the counter
-	MOV r8, 0x22000 // control register
-	LBBO r2, r8, 0xC, 4
+    // aso a quick hack, we write the counter so that we know how
+    // long it took to write out.
+    MOV r8, 0x22000 // control register
+    LBBO r2, r8, 0xC, 4
     SBCO r2, CONST_PRUDRAM, 12, 8
 
     // Go back to waiting for the next frame buffer

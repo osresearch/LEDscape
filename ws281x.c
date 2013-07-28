@@ -1,6 +1,8 @@
 /** \file
  * Userspace interface to the WS281x LED strip driver.
  *
+ * The 
+ * \todo Package this into a library, possible a Python module.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,12 +18,6 @@
 
 #define PRU_NUM  (0)
 
-// Should get this from /sys/class/uio/uio0/maps/map1/addr
-//#define DDR_BASEADDR 0x80000000
-#define DDR_BASEADDR 0x99400000
-#define OFFSET_DDR	 0x00001000 
-#define OFFSET_L3	 2048       //equivalent with 0x00002000
-
 #define die(fmt, ...) \
 	do { \
 		fprintf(stderr, fmt, ## __VA_ARGS__); \
@@ -29,16 +25,16 @@
 	} while (0)
 
 /** Command structure shared with the PRU.
+ *
  * This is mapped into the PRU data RAM and points to the
  * frame buffer in the shared DDR segment.
  */
 typedef struct
 {
 	// in the DDR shared with the PRU
-	const void * pixels;
+	const uintptr_t pixels_dma;
 
-	// in bytes of the entire pixel array.
-	// Should be Num pixels * Num strips * 3
+	// Length in pixels of the longest LED strip.
 	unsigned size;
 
 	// write 1 to start, 0xFF to abort. will be cleared when started
@@ -122,7 +118,7 @@ ws281_init(
 		);
     
     	ws281x_command_t * const cmd = (void*) pruDataMem;
-	cmd->pixels = (void*) ddr_addr;
+	cmd->pixels_dma = ddr_addr;
 	cmd->size = num_pixels;
 	cmd->command = 0;
 	cmd->response = 0;
