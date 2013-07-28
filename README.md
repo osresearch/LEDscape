@@ -1,3 +1,5 @@
+![Testing LEDscape](http://farm4.staticflickr.com/3834/9378678019_b706c55635_z.jpg)
+
 DANGER!
 =======
 
@@ -26,13 +28,11 @@ The frames are stored in memory as a series of 4-byte pixels in the
 order GRBA, packed in strip-major order.  This means that it looks
 like this in RAM:
 
-S0P0 S1P0 S2P0 ... S31P0
-S0P1 S1P1 S2P1 ... S31P1
-S0P2 S1P2 S2P2 ... S31P2
+	S0P0 S1P0 S2P0 ... S31P0 S0P1 S1P1 ... S31P1 S0P2 S1P2 ... S31P2
 
 This way length of the strip can be variable, although the memory used
 will depend on the length of the longest strip.  4 * 32 * longest strip
-bytes are required per frame buffer..
+bytes are required per frame buffer.
 
 
 API
