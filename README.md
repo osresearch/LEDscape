@@ -5,6 +5,9 @@ DANGER!
 
 This code works with the PRU units on the Beagle Bone and can easily
 cause *hard crashes*.  It is still being debugged and developed.
+Be careful hot-plugging things into the headers -- it is possible to
+damage the pin drivers and cause problems in the ARM, especially if
+there are +5V signals involved.
 
 
 Overview
@@ -17,8 +20,8 @@ between bits.  Since this doesn't map to normal SPI hardware and requires
 an 800 KHz bit clock, it is typically handled with a dedicated microcontroller
 or DMA hardware on something like the Teensy 3.
 
-However, the TI OMAP in the BeagleBone Black has two programmable
-"microcontrollers" built into the CPU that can handle real time
+However, the TI AM335x ARM Cortex-A8 in the BeagleBone Black has two
+programmable "microcontrollers" built into the CPU that can handle realtime
 tasks and also access the ARM's memory.  This allows things that
 might have been delegated to external devices to be handled without
 any additional hardware, and without the overhead of clocking data out
@@ -32,7 +35,8 @@ like this in RAM:
 
 This way length of the strip can be variable, although the memory used
 will depend on the length of the longest strip.  4 * 32 * longest strip
-bytes are required per frame buffer.
+bytes are required per frame buffer.  The maximum frame rate also depends
+on the length of th elongest strip.
 
 
 API
