@@ -213,8 +213,8 @@ int main (void)
 		//uint8_t g = ((strip >> 0) & 0x3) * 64;
 		//uint8_t b = ((strip >> 4) & 0x3) * 64;
 		set_color(strip, 0, val, 0, 0);
-		set_color(strip, 1, 0, val + 120, 0);
-		set_color(strip, 2, 0, 0, val + 240);
+		set_color(strip, 1, 0, val + 80, 0);
+		set_color(strip, 2, 0, 0, val + 160);
 	}
 
 	cmd->response = 0;
