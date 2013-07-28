@@ -4,6 +4,7 @@ DANGER!
 This code works with the PRU units on the Beagle Bone and can easily
 cause *hard crashes*.  It is still being debugged and developed.
 
+
 Overview
 ========
 
@@ -21,95 +22,81 @@ might have been delegated to external devices to be handled without
 any additional hardware, and without the overhead of clocking data out
 the USB port.
 
-Pins used:
+The frames are stored in memory as a series of 4-byte pixels in the
+order GRBA, packed in strip-major order.  This means that it looks
+like this in RAM:
 
-according to spreadsheet:
-P8 pins:
-2.2
-2.3
-2.5
-2.4
-1.13
-1.12
-0.23
-0.26
-1.15
-1.14
-0.27
-2.1
-0.22
-1.29
+S0P0 S1P0 S2P0 ... S31P0
+S0P1 S1P1 S2P1 ... S31P1
+S0P2 S1P2 S2P2 ... S31P2
 
-P9 pins:
-0.30
-1.28
-0.31
-1.18
-1.16
-1.19
-0.5
-0.4
-0.13
-0.12
-0.3
-0.2
-1.17
-0.15
-3.21
-0.14
-3.19
-3.17
-3.15
-3.16
-3.14
-0.20
-3.20
-0.7
-3.18
+This way length of the strip can be variable, although the memory used
+will depend on the length of the longest strip.  4 * 32 * longest strip
+bytes are required per frame buffer..
 
-------
 
-Sorted by GPIO bank:
+API
+===
 
-0.2
-0.3
-0.4
-0.5
-0.7
-0.12
-0.13
-0.14
-0.15
-0.20
-0.22
-0.23
-0.26
-0.27
-0.30
-0.31
+There is a command structure shared in PRU DRAM that holds a pointer
+to the current frame buffer, the length in pixels, a command byte and
+a response byte.
 
-1.12
-1.13
-1.14
-1.15
-1.16
-1.17
-1.18
-1.19
-1.28
-1.29
+	typedef struct
+	{
+		// in the DDR shared with the PRU
+		const uintptr_t pixels_dma;
 
-2.1
-2.2
-2.3
-2.4
-2.5
+		// Length in pixels of the longest LED strip.
+		unsigned size;
 
-3.14
-3.15
-3.16
-3.17
-3.18
-3.19
-3.20
-3.21
+		// write 1 to start, 0xFF to abort. will be cleared when started
+		volatile unsigned command;
+
+		// will have a non-zero response written when done
+		volatile unsigned response;
+	} __attribute__((__packed__)) ws281x_command_t;
+
+Once the PRU has cleared the command byte you are free to re-write the
+dma address or number of pixels.  You can double buffer like this:
+
+	unsigned frame_id = 0;
+	pixel_slice_t * frames[2];
+	uintptr_t frames_dma[2];
+
+	while (1)
+	{
+		render(frames[frame_id]);
+		cmd->pixels_dma = frames_dma[frame_id];
+
+		// wait for the previous frame to finish display
+		while(!cmd->reponse)
+			;
+
+		// Send the start command and wait for the ack
+		cmd->command = 1;
+		while(cmd->command)
+			;
+
+		frame_id = (frame_id+1) % 2;
+	}
+
+The 24-bit RGB data to be displayed is laid out with BRGA format,
+since that is how it will be translated during the clock out from the PRU.
+
+	typedef struct {
+		uint8_t b;
+		uint8_t r;
+		uint8_t g;
+		uint8_t a;
+	} __attribute__((__packed__)) pixel_t;
+
+	typedef struct {
+		pixel_t strip[32];
+	} __attribute__((__packed__)) pixel_slice_t;
+
+LED Strips
+==========
+
+* http://www.adafruit.com/products/1138
+* http://www.adafruit.com/datasheets/WS2811.pdf
