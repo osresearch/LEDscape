@@ -49,7 +49,7 @@ pru_init(
 	void * pru_data_mem;
 	prussdrv_map_prumem(
 		pru_num == 0 ? PRUSS0_PRU0_DATARAM :PRUSS0_PRU1_DATARAM,
-		&pru_data_mem;
+		&pru_data_mem
 	);
 
 	const int mem_fd = open("/dev/mem", O_RDWR);
@@ -83,15 +83,15 @@ pru_init(
 
 	pru_t * const pru = calloc(1, sizeof(*pru));
 	if (!pru)
-		die("calloc failed", strerror(errno));
+		die("calloc failed: %s", strerror(errno));
 
 	*pru = (pru_t) {
 		.pru_num	= pru_num,
 		.data_ram	= pru_data_mem,
 		.data_ram_size	= 8192, // how to determine?
-		.dma_addr	= ddr_addr,
-		.dma		= (void*)(ddr_mem + ddr_start),
-		.dma_size	= ddr_size,
+		.ddr_addr	= ddr_addr,
+		.ddr		= (void*)(ddr_mem + ddr_start),
+		.ddr_size	= ddr_size,
 	};
     
 	printf("%s: PRU %d: data %p @ %zu bytes,  DMA %p / %"PRIxPTR" @ %zu bytes\n",
@@ -99,9 +99,9 @@ pru_init(
 		pru_num,
 		pru->data_ram,
 		pru->data_ram_size,
-		pru->dma,
-		pru->dma_addr,
-		pru->dma_size
+		pru->ddr,
+		pru->ddr_addr,
+		pru->ddr_size
 	);
 
 	return pru;
