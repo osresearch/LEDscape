@@ -19,7 +19,6 @@ LDFLAGS += \
 	-lpthread \
 
 PASM := ../../utils/pasm_2
-OBJDIR := obj
 TARGET := $(BINDIR)/ws281x
 
 _DEPS = 
@@ -42,7 +41,7 @@ ws281x.bin: ws281x.p ws281x.hp
 .PHONY: clean
 
 clean:
-	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin
+	rm -rf *.o *.i  *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin
 
 SLOT_FILE=/sys/devices/bone_capemgr.8/slots
 dts: LEDscape.dts
