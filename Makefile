@@ -19,21 +19,19 @@ LDFLAGS += \
 	-lpthread \
 
 PASM := ../../utils/pasm_2
-OBJDIR=obj
-TARGET=$(BINDIR)/ws281x
+OBJDIR := obj
+TARGET := $(BINDIR)/ws281x
 
 _DEPS = 
 DEPS = $(patsubst %,$(INCDIR_APP_LOADER)/%,$(_DEPS))
 
-_OBJ = ws281x.o
-OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
+OBJS = ledscape.o pru.o rgb-test.o
 
-$(OBJDIR)/%.o: %.c $(DEPS)
-	@mkdir -p obj
+%.o: %.c $(DEPS)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
 
 all: $(TARGET) ws281x.bin
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJS)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 ws281x.bin: ws281x.p ws281x.hp

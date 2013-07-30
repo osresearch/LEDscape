@@ -221,6 +221,10 @@ START:
     MOV		r1, CTPPR_1
     ST32	r0, r1
 
+    // Write a 0x1 into the response field so that they know we have started
+    MOV r2, #0x1
+    SBCO r2, CONST_PRUDRAM, 12, 4
+
     // Wait for the start condition from the main program to indicate
     // that we have a rendered frame ready to clock out.  This also
     // handles the exit case if an invalid value is written to the start
@@ -398,7 +402,7 @@ WORD_LOOP:
     // long it took to write out.
     MOV r8, 0x22000 // control register
     LBBO r2, r8, 0xC, 4
-    SBCO r2, CONST_PRUDRAM, 12, 8
+    SBCO r2, CONST_PRUDRAM, 12, 4
 
     // Go back to waiting for the next frame buffer
     QBA _LOOP
