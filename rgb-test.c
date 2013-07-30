@@ -10,6 +10,20 @@
 #include <unistd.h>
 #include "ledscape.h"
 
+static void
+ledscape_fill_color(
+	ledscape_frame_t * const frame,
+	const unsigned num_pixels,
+	const uint8_t r,
+	const uint8_t g,
+	const uint8_t b
+)
+{
+	for (unsigned i = 0 ; i < num_pixels ; i++)
+		for (unsigned strip = 0 ; strip < LEDSCAPE_NUM_STRIPS ; strip++)
+			ledscape_set_color(frame, strip, i, r, g, b);
+}
+
 
 int main (void)
 {
@@ -25,16 +39,13 @@ int main (void)
 			= ledscape_frame(leds, frame_num);
 
 		uint8_t val = i >> 1;
-		fill_color(frame, num_pixels, val, 0, val);
+		ledscape_fill_color(frame, num_pixels, val, 0, val);
 
 		for (int strip = 0 ; strip < 32 ; strip++)
 		{
-			//uint8_t r = ((strip >> 2) & 0x3) * 64;
-			//uint8_t g = ((strip >> 0) & 0x3) * 64;
-			//uint8_t b = ((strip >> 4) & 0x3) * 64;
-			ledscale_set_color(frame, strip, 0, val, 0, 0);
-			ledscale_set_color(frame, strip, 1, 0, val + 80, 0);
-			ledscale_set_color(frame, strip, 2, 0, 0, val + 160);
+			ledscape_set_color(frame, strip, 0, val, 0, 0);
+			ledscape_set_color(frame, strip, 1, 0, val + 80, 0);
+			ledscape_set_color(frame, strip, 2, 0, 0, val + 160);
 		}
 
 		// wait for the previous frame to finish;
