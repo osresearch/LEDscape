@@ -53,5 +53,21 @@ pru_close(
 	} while (0)
 
 
+/** Configure a GPIO pin.
+ *
+ * Since the device tree won't do it for us, we need to do it via
+ * /sys/class/gpio to set the direction and initial value for
+ * all of the pins that we use.
+ *
+ * Direction 0 == in, 1 == out.
+ */
+extern int
+pru_gpio(
+	unsigned gpio,
+	unsigned pin,
+	unsigned direction,
+	const unsigned initial_value
+);
+
 
 #endif

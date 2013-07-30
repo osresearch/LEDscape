@@ -130,3 +130,59 @@ pru_close(
 	prussdrv_pru_disable(pru->pru_num); 
 	prussdrv_exit();
 }
+
+
+int
+pru_gpio(
+	const unsigned gpio,
+	const unsigned pin,
+	const unsigned direction,
+	const unsigned initial_value
+)
+{
+	const unsigned pin_num = gpio * 32 + pin;
+	const char * export_name = "/sys/class/gpio/export";
+	FILE * const export = fopen(export_name, "w");
+	if (!export)
+		die("%s: Unable to open? %s\n",
+			export_name,
+			strerror(errno)
+		);
+
+	fprintf(export, "%d\n", pin_num);
+	fclose(export);
+
+	char value_name[64];
+	snprintf(value_name, sizeof(value_name),
+		"/sys/class/gpio%u/value",
+		pin_num
+	);
+
+	FILE * const value = fopen(value_name, "w");
+	if (!value)
+		die("%s: Unable to open? %s\n",
+			value_name,
+			strerror(errno)
+		);
+
+	fprintf(value, "%d\n", initial_value);
+	fclose(value);
+
+	char dir_name[64];
+	snprintf(dir_name, sizeof(dir_name),
+		"/sys/class/gpio%u/direction",
+		pin_num
+	);
+
+	FILE * const dir = fopen(dir_name, "w");
+	if (!dir)
+		die("%s: Unable to open? %s\n",
+			dir_name,
+			strerror(errno)
+		);
+
+	fprintf(dir, "%s\n", direction ? "out" : "in");
+	fclose(dir);
+
+	return 0;
+}
