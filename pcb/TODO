@@ -1,0 +1,11 @@
+x-Add bypass caps for MAX3041 chips
+x-Add shield holes to back of 8x2 RJ45 header
+x-Flip board so the BBB is upside down (rather than the rest of the  board)
+x-Verify RJ45 pinout
+x-Add ground connections
+-Fix case positions on RJ45 shield
+-Finish routing RJ45 section
+-Finish routing digital section
+-Add HRC logo
+-gpio on p8 pin 42(?)
+-Add extra pads for GPIO like the HDMI on p9
