@@ -2,7 +2,6 @@
 
 LIBDIR_APP_LOADER?=../../app_loader/lib
 INCDIR_APP_LOADER?=../../app_loader/include
-BINDIR?=.
 
 CFLAGS += \
 	-std=c99 \
@@ -19,21 +18,18 @@ LDFLAGS += \
 	-lpthread \
 
 PASM := ../../utils/pasm_2
-OBJDIR=obj
-TARGET=$(BINDIR)/ws281x
+TARGET := rgb-test
 
 _DEPS = 
 DEPS = $(patsubst %,$(INCDIR_APP_LOADER)/%,$(_DEPS))
 
-_OBJ = ws281x.o
-OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
+OBJS = ledscape.o pru.o rgb-test.o
 
-$(OBJDIR)/%.o: %.c $(DEPS)
-	@mkdir -p obj
+%.o: %.c $(DEPS)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
 
 all: $(TARGET) ws281x.bin
-$(TARGET): $(OBJ)
+$(TARGET): $(OBJS)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 ws281x.bin: ws281x.p ws281x.hp
@@ -44,7 +40,7 @@ ws281x.bin: ws281x.p ws281x.hp
 .PHONY: clean
 
 clean:
-	rm -rf $(OBJDIR)/ *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin
+	rm -rf *.o *.i  *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin
 
 SLOT_FILE=/sys/devices/bone_capemgr.8/slots
 dts: LEDscape.dts

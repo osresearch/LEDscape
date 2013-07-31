@@ -42,9 +42,60 @@ on the length of th elongest strip.
 API
 ===
 
-There is a command structure shared in PRU DRAM that holds a pointer
-to the current frame buffer, the length in pixels, a command byte and
-a response byte.
+<ledscape.h> defines the API.  The sample rgb-test program pulses
+the first three LEDs in red, green and blue.  The key components are:
+
+	ledscape_t * ledscape_init(unsigned num_pixels)
+	ledscape_frame_t * ledscape_frame(ledscape_t*, unsigned frame_num);
+	ledscape_draw(ledscape_t*, unsigned frame_num);
+	unsigned ledscape_wait(ledscape_t*)
+
+You can double buffer like this:
+
+	const int num_pixels = 256;
+	ledscape_t * const leds = ledscape_init(num_pixels);
+
+	unsigned i = 0;
+	while (1)
+	{
+		// Alternate frame buffers on each draw command
+		const unsigned frame_num = i++ % 2;
+		ledscape_frame_t * const frame
+			= ledscape_frame(leds, frame_num);
+
+		render(frame);
+
+		// wait for the previous frame to finish;
+		ledscape_wait(leds);
+		ledscape_draw(leds, frame_num);
+	}
+
+	ledscape_close(leds);
+
+The 24-bit RGB data to be displayed is laid out with BRGA format,
+since that is how it will be translated during the clock out from the PRU.
+The frame buffer is stored as a "strip-major" array of pixels.
+
+	typedef struct {
+		uint8_t b;
+		uint8_t r;
+		uint8_t g;
+		uint8_t a;
+	} __attribute__((__packed__)) ledscape_pixel_t;
+
+	typedef struct {
+		ledscape_pixel_t strip[32];
+	} __attribute__((__packed__)) ledscape_frame_t;
+
+
+Low level API
+=============
+
+If you want to poke at the PRU directly, there is a command structure
+shared in PRU DRAM that holds a pointer to the current frame buffer,
+the length in pixels, a command byte and a response byte.
+Once the PRU has cleared the command byte you are free to re-write the
+dma address or number of pixels.
 
 	typedef struct
 	{
@@ -52,7 +103,7 @@ a response byte.
 		const uintptr_t pixels_dma;
 
 		// Length in pixels of the longest LED strip.
-		unsigned size;
+		unsigned num_pixels;
 
 		// write 1 to start, 0xFF to abort. will be cleared when started
 		volatile unsigned command;
@@ -60,44 +111,6 @@ a response byte.
 		// will have a non-zero response written when done
 		volatile unsigned response;
 	} __attribute__((__packed__)) ws281x_command_t;
-
-Once the PRU has cleared the command byte you are free to re-write the
-dma address or number of pixels.  You can double buffer like this:
-
-	unsigned frame_id = 0;
-	pixel_slice_t * frames[2];
-	uintptr_t frames_dma[2];
-
-	while (1)
-	{
-		render(frames[frame_id]);
-		cmd->pixels_dma = frames_dma[frame_id];
-
-		// wait for the previous frame to finish display
-		while(!cmd->reponse)
-			;
-
-		// Send the start command and wait for the ack
-		cmd->command = 1;
-		while(cmd->command)
-			;
-
-		frame_id = (frame_id+1) % 2;
-	}
-
-The 24-bit RGB data to be displayed is laid out with BRGA format,
-since that is how it will be translated during the clock out from the PRU.
-
-	typedef struct {
-		uint8_t b;
-		uint8_t r;
-		uint8_t g;
-		uint8_t a;
-	} __attribute__((__packed__)) pixel_t;
-
-	typedef struct {
-		pixel_t strip[32];
-	} __attribute__((__packed__)) pixel_slice_t;
 
 LED Strips
 ==========
