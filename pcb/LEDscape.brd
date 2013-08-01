@@ -159,7 +159,7 @@
 <text x="1.905" y="63.5" size="2.1844" layer="25">-</text>
 <text x="1.905" y="58.42" size="2.1844" layer="25">-</text>
 <text x="5.715" y="29.845" size="3.81" layer="25" rot="R45">LEDscape LED Controller</text>
-<text x="12.7" y="31.75" size="2.1844" layer="25" rot="R45">By Matt Mets and Trammel Hudson</text>
+<text x="12.7" y="31.75" size="2.1844" layer="25" rot="R45">By Matt Mets and Trammell Hudson</text>
 <text x="34.29" y="37.465" size="1.27" layer="25" align="bottom-center">Rev A 2013-08-01</text>
 </plain>
 <libraries>
