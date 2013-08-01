@@ -34,8 +34,8 @@
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="26" name="bNames" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="27" name="tValues" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="28" name="bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="27" name="tValues" color="7" fill="1" visible="no" active="yes"/>
+<layer number="28" name="bValues" color="7" fill="1" visible="no" active="yes"/>
 <layer number="29" name="tStop" color="7" fill="3" visible="no" active="yes"/>
 <layer number="30" name="bStop" color="7" fill="6" visible="no" active="yes"/>
 <layer number="31" name="tCream" color="7" fill="4" visible="no" active="yes"/>
@@ -58,8 +58,8 @@
 <layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
-<layer number="52" name="bDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
@@ -158,10 +158,9 @@
 <text x="1.905" y="66.675" size="2.1844" layer="25">-</text>
 <text x="1.905" y="57.785" size="2.1844" layer="25">-</text>
 <text x="1.905" y="52.705" size="2.1844" layer="25">-</text>
-<text x="5.08" y="35.56" size="3.81" layer="25" rot="R45">LEDscape LED Controller</text>
-<text x="11.43" y="36.83" size="2.1844" layer="25" rot="R45">By Matt Mets and Trammel Hudson</text>
-<text x="26.67" y="37.465" size="1.27" layer="25" align="bottom-center">Rev A 2013-08-01</text>
-<wire x1="26.67" y1="23.495" x2="26.67" y2="13.335" width="0.254" layer="25"/>
+<text x="5.715" y="29.845" size="3.81" layer="25" rot="R45">LEDscape LED Controller</text>
+<text x="12.065" y="31.75" size="2.1844" layer="25" rot="R45">By Matt Mets and Trammel Hudson</text>
+<text x="34.29" y="37.465" size="1.27" layer="25" align="bottom-center">Rev A 2013-08-01</text>
 </plain>
 <libraries>
 <library name="maxim">
@@ -223,35 +222,35 @@ http://www.maxim-ic.com .. MAX3223-MAX3243.pdf</description>
 <package name="RJ45_8X2_BASE">
 <hole x="-54.61" y="0" drill="3.2"/>
 <hole x="54.61" y="0" drill="3.2"/>
-<wire x1="-57.45" y1="-10.85" x2="57.45" y2="-10.85" width="0.127" layer="21"/>
-<wire x1="57.45" y1="-10.85" x2="57.45" y2="6.35" width="0.127" layer="21"/>
-<wire x1="57.45" y1="6.35" x2="57.45" y2="17.35" width="0.127" layer="21"/>
-<wire x1="57.45" y1="17.35" x2="-57.45" y2="17.35" width="0.127" layer="21"/>
-<wire x1="-57.45" y1="17.35" x2="-57.45" y2="6.35" width="0.127" layer="21"/>
+<wire x1="-57.45" y1="-10.85" x2="57.45" y2="-10.85" width="0.127" layer="51"/>
+<wire x1="57.45" y1="-10.85" x2="57.45" y2="6.35" width="0.127" layer="51"/>
+<wire x1="57.45" y1="6.35" x2="57.45" y2="17.35" width="0.127" layer="51"/>
+<wire x1="57.45" y1="17.35" x2="-57.45" y2="17.35" width="0.127" layer="51"/>
+<wire x1="-57.45" y1="17.35" x2="-57.45" y2="6.35" width="0.127" layer="51"/>
 <pad name="P$1" x="-57.4" y="15.5" drill="1.6"/>
 <pad name="P$2" x="-56.73" y="9.15" drill="1.6"/>
 <pad name="P$3" x="-57.4" y="-4.57" drill="1.6"/>
 <pad name="P$4" x="57.4" y="12.5" drill="1.6"/>
 <pad name="P$5" x="56.73" y="7.22" drill="1.6"/>
 <pad name="P$6" x="57.4" y="-4.57" drill="1.6"/>
-<wire x1="-57.45" y1="6.35" x2="-57.45" y2="-10.85" width="0.127" layer="21"/>
-<wire x1="-57.45" y1="6.35" x2="-48.895" y2="6.35" width="0.127" layer="21"/>
-<wire x1="-48.895" y1="6.35" x2="-34.925" y2="6.35" width="0.127" layer="21"/>
-<wire x1="-34.925" y1="6.35" x2="-20.955" y2="6.35" width="0.127" layer="21"/>
-<wire x1="-20.955" y1="6.35" x2="-6.985" y2="6.35" width="0.127" layer="21"/>
-<wire x1="-6.985" y1="6.35" x2="6.985" y2="6.35" width="0.127" layer="21"/>
-<wire x1="6.985" y1="6.35" x2="20.955" y2="6.35" width="0.127" layer="21"/>
-<wire x1="20.955" y1="6.35" x2="34.925" y2="6.35" width="0.127" layer="21"/>
-<wire x1="34.925" y1="6.35" x2="48.895" y2="6.35" width="0.127" layer="21"/>
-<wire x1="48.895" y1="6.35" x2="57.45" y2="6.35" width="0.127" layer="21"/>
-<wire x1="6.985" y1="6.35" x2="6.985" y2="10" width="0.127" layer="21"/>
-<wire x1="20.955" y1="6.35" x2="20.955" y2="10" width="0.127" layer="21"/>
-<wire x1="34.925" y1="6.35" x2="34.925" y2="10" width="0.127" layer="21"/>
-<wire x1="48.895" y1="6.35" x2="48.895" y2="10" width="0.127" layer="21"/>
-<wire x1="-6.985" y1="6.35" x2="-6.985" y2="10" width="0.127" layer="21"/>
-<wire x1="-20.955" y1="6.35" x2="-20.955" y2="10" width="0.127" layer="21"/>
-<wire x1="-34.925" y1="6.35" x2="-34.925" y2="10" width="0.127" layer="21"/>
-<wire x1="-48.895" y1="6.35" x2="-48.895" y2="10" width="0.127" layer="21"/>
+<wire x1="-57.45" y1="6.35" x2="-57.45" y2="-10.85" width="0.127" layer="51"/>
+<wire x1="-57.45" y1="6.35" x2="-48.895" y2="6.35" width="0.127" layer="51"/>
+<wire x1="-48.895" y1="6.35" x2="-34.925" y2="6.35" width="0.127" layer="51"/>
+<wire x1="-34.925" y1="6.35" x2="-20.955" y2="6.35" width="0.127" layer="51"/>
+<wire x1="-20.955" y1="6.35" x2="-6.985" y2="6.35" width="0.127" layer="51"/>
+<wire x1="-6.985" y1="6.35" x2="6.985" y2="6.35" width="0.127" layer="51"/>
+<wire x1="6.985" y1="6.35" x2="20.955" y2="6.35" width="0.127" layer="51"/>
+<wire x1="20.955" y1="6.35" x2="34.925" y2="6.35" width="0.127" layer="51"/>
+<wire x1="34.925" y1="6.35" x2="48.895" y2="6.35" width="0.127" layer="51"/>
+<wire x1="48.895" y1="6.35" x2="57.45" y2="6.35" width="0.127" layer="51"/>
+<wire x1="6.985" y1="6.35" x2="6.985" y2="10" width="0.127" layer="51"/>
+<wire x1="20.955" y1="6.35" x2="20.955" y2="10" width="0.127" layer="51"/>
+<wire x1="34.925" y1="6.35" x2="34.925" y2="10" width="0.127" layer="51"/>
+<wire x1="48.895" y1="6.35" x2="48.895" y2="10" width="0.127" layer="51"/>
+<wire x1="-6.985" y1="6.35" x2="-6.985" y2="10" width="0.127" layer="51"/>
+<wire x1="-20.955" y1="6.35" x2="-20.955" y2="10" width="0.127" layer="51"/>
+<wire x1="-34.925" y1="6.35" x2="-34.925" y2="10" width="0.127" layer="51"/>
+<wire x1="-48.895" y1="6.35" x2="-48.895" y2="10" width="0.127" layer="51"/>
 <pad name="P$7" x="13.97" y="17.35" drill="1.6"/>
 <pad name="P$8" x="41.91" y="17.35" drill="1.6"/>
 <pad name="P$9" x="-41.91" y="17.35" drill="1.6"/>
@@ -1212,53 +1211,61 @@ Please make sure your boards conform to these design rules.</description>
 </autorouter>
 <elements>
 <element name="U$1" library="LEDscape" package="BEAGLEBONE_SHIELD_NO_OUTLINE" value="BEAGLEBONE_NO_OUTLINE" x="132.715" y="86.995" rot="MR270"/>
-<element name="IC1" library="maxim" package="TSSOP16" value="MAX3041CUE" x="48.895" y="27.94" rot="R90">
+<element name="IC1" library="maxim" package="TSSOP16" value="MAX3041CUE" x="48.895" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="48.895" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="48.895" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="48.895" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="48.895" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="50.9778" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC2" library="maxim" package="TSSOP16" value="MAX3041CUE" x="34.925" y="27.94" rot="R90">
+<element name="IC2" library="maxim" package="TSSOP16" value="MAX3041CUE" x="34.925" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="9.525" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="9.525" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="9.525" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="9.525" y="27.94" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="37.0078" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC3" library="maxim" package="TSSOP16" value="MAX3041CUE" x="20.955" y="27.94" rot="R90">
+<element name="IC3" library="maxim" package="TSSOP16" value="MAX3041CUE" x="20.955" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="-4.445" y="8.89" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="-4.445" y="8.89" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="-4.445" y="8.89" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="-4.445" y="8.89" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="23.0378" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC4" library="maxim" package="TSSOP16" value="MAX3041CUE" x="118.745" y="27.94" rot="R90">
+<element name="IC4" library="maxim" package="TSSOP16" value="MAX3041CUE" x="118.745" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="90.805" y="-7.62" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="90.805" y="-7.62" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="90.805" y="-7.62" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="90.805" y="-7.62" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="120.8278" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC5" library="maxim" package="TSSOP16" value="MAX3041CUE" x="104.775" y="27.94" rot="R90">
+<element name="IC5" library="maxim" package="TSSOP16" value="MAX3041CUE" x="104.775" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="66.675" y="17.78" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="66.675" y="17.78" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="66.675" y="17.78" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="66.675" y="17.78" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="106.8578" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC6" library="maxim" package="TSSOP16" value="MAX3041CUE" x="90.805" y="27.94" rot="R90">
+<element name="IC6" library="maxim" package="TSSOP16" value="MAX3041CUE" x="90.805" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="62.865" y="-34.29" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="62.865" y="-34.29" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="62.865" y="-34.29" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="62.865" y="-34.29" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="92.8878" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC7" library="maxim" package="TSSOP16" value="MAX3041CUE" x="76.835" y="27.94" rot="R90">
+<element name="IC7" library="maxim" package="TSSOP16" value="MAX3041CUE" x="76.835" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="46.355" y="-43.18" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="46.355" y="-43.18" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="46.355" y="-43.18" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="46.355" y="-43.18" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="78.9178" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
-<element name="IC8" library="maxim" package="TSSOP16" value="MAX3041CUE" x="62.865" y="27.94" rot="R90">
+<element name="IC8" library="maxim" package="TSSOP16" value="MAX3041CUE" x="62.865" y="27.94" smashed="yes" rot="R90">
 <attribute name="OC_NEWARK" value="73K8525" x="42.545" y="-95.25" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="MAX3041CUE+" x="42.545" y="-95.25" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="MF" value="" x="42.545" y="-95.25" size="1.27" layer="27" rot="R90" display="off"/>
 <attribute name="OC_FARNELL" value="unknown" x="42.545" y="-95.25" size="1.27" layer="27" rot="R90" display="off"/>
+<attribute name="VALUE" x="64.9478" y="31.8262" size="1.016" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="U$2" library="LEDscape" package="RJ45_8X2_BASE" value="RJ45_8X2_BASE" x="67.945" y="6.985"/>
 <element name="U$3" library="LEDscape" package="RJ45_8X2_JACK" value="RJ45_8X2_JACK" x="46.99" y="13.335"/>
@@ -1269,18 +1276,34 @@ Please make sure your boards conform to these design rules.</description>
 <element name="U$8" library="LEDscape" package="RJ45_8X2_JACK" value="RJ45_8X2_JACK" x="74.93" y="13.335"/>
 <element name="U$9" library="LEDscape" package="RJ45_8X2_JACK" value="RJ45_8X2_JACK" x="116.84" y="13.335"/>
 <element name="U$10" library="LEDscape" package="RJ45_8X2_JACK" value="RJ45_8X2_JACK" x="60.96" y="13.335"/>
-<element name="C1" library="adafruit" package="C0603" value=".1uF" x="15.24" y="26.035" rot="R180"/>
-<element name="C2" library="adafruit" package="C0603" value=".1uF" x="29.21" y="26.035" rot="R180"/>
-<element name="C3" library="adafruit" package="C0603" value=".1uF" x="43.18" y="26.035" rot="R180"/>
-<element name="C4" library="adafruit" package="C0603" value=".1uF" x="57.15" y="26.035" rot="R180"/>
-<element name="C5" library="adafruit" package="C0603" value=".1uF" x="71.12" y="26.035" rot="R180"/>
-<element name="C6" library="adafruit" package="C0603" value=".1uF" x="85.09" y="26.035" rot="R180"/>
-<element name="C7" library="adafruit" package="C0603" value=".1uF" x="99.06" y="26.035" rot="R180"/>
-<element name="C8" library="adafruit" package="C0603" value=".1uF" x="114.3" y="26.035" rot="R90"/>
+<element name="C1" library="adafruit" package="C0603" value=".1uF" x="15.24" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="16.129" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C2" library="adafruit" package="C0603" value=".1uF" x="29.21" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="30.099" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C3" library="adafruit" package="C0603" value=".1uF" x="43.18" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="44.069" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C4" library="adafruit" package="C0603" value=".1uF" x="57.15" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="58.039" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C5" library="adafruit" package="C0603" value=".1uF" x="71.12" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="72.009" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C6" library="adafruit" package="C0603" value=".1uF" x="85.09" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="85.979" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C7" library="adafruit" package="C0603" value=".1uF" x="99.06" y="26.035" smashed="yes" rot="R180">
+<attribute name="VALUE" x="99.949" y="28.067" size="1.27" layer="27" rot="R180"/>
+</element>
+<element name="C8" library="adafruit" package="C0603" value=".1uF" x="114.3" y="26.035" smashed="yes" rot="R90">
+<attribute name="VALUE" x="116.332" y="25.146" size="1.27" layer="27" rot="R90"/>
+</element>
 <element name="JP1" library="SparkFun-Connectors" package="SCREWTERMINAL-5MM-2" value="" x="6.985" y="71.755" rot="R270"/>
 <element name="JP3" library="SparkFun-Connectors" package="SCREWTERMINAL-5MM-2" value="" x="6.985" y="58.42" rot="R270"/>
 <element name="JP4" library="SparkFun-Connectors" package="SCREWTERMINAL-5MM-2" value="" x="19.685" y="81.28" rot="R180"/>
-<element name="U$11" library="blinkiverse" package="OSHW-LOGO-L" value="" x="26.67" y="42.545"/>
+<element name="U$11" library="blinkiverse" package="OSHW-LOGO-L" value="" x="34.925" y="42.545"/>
 <element name="JP2" library="SparkFun-Connectors" package="1X03" value="" x="8.255" y="6.35" rot="R90"/>
 <element name="U$12" library="SparkFun-Connectors" package="2X8" value="M08X2" x="27.305" y="82.55"/>
 </elements>
