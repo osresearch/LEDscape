@@ -1,4 +1,17 @@
-CROSS_COMPILE?=arm-linux-gnueabi-
+ifeq ($(shell uname -m),armv7l)
+# We are on the BeagleBone Black itself;
+# do not cross compile.
+export CROSS_COMPILE:=
+else
+# We are not on the BeagleBone and might be cross compiling.
+# If the environment does not set CROSS_COMPILE, set our
+# own.  Install a cross compiler with something like:
+#
+# sudo apt-get install gcc-arm-linux-gnueabi
+#
+export CROSS_COMPILE?=arm-linux-gnueabi-
+#export CROSS_COMPILE
+endif
 
 LIBDIR_APP_LOADER?=./am335x/app_loader/lib
 INCDIR_APP_LOADER?=./am335x/app_loader/include
@@ -56,4 +69,4 @@ dts: LEDscape.dts
 # Libraries and compiler
 depend:
 	$(MAKE) -C am335x/app_loader/interface
-	cd ./am335x/pasm ; ./linuxbuild
+	$(MAKE) -C am335x/pasm
