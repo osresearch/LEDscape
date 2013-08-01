@@ -6753,11 +6753,10 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <approved hash="104,1,175.26,25.4,IC6,VCC,+5V,,,"/>
 <approved hash="104,1,256.54,25.4,IC7,VCC,+5V,,,"/>
 <approved hash="104,1,337.82,25.4,IC8,VCC,+5V,,,"/>
-<approved hash="106,1,81.28,-20.32,EXTRA1,,,,,"/>
 <approved hash="115,1,10.8373,131.885,JP1,,,,,"/>
 <approved hash="115,1,10.8373,147.125,JP3,,,,,"/>
 <approved hash="115,1,38.7773,147.125,JP4,,,,,"/>
-<approved hash="115,1,41.3173,115.375,JP2,,,,,"/>
+<approved hash="115,1,41.3173,114.105,JP5,,,,,"/>
 </errors>
 </schematic>
 </drawing>
