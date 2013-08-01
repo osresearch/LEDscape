@@ -143,8 +143,8 @@
 <pad name="P$1" x="-57.4" y="15.5" drill="1.6"/>
 <pad name="P$2" x="-56.73" y="9.15" drill="1.6"/>
 <pad name="P$3" x="-57.4" y="-4.57" drill="1.6"/>
-<pad name="P$4" x="57.4" y="15.5" drill="1.6"/>
-<pad name="P$5" x="56.73" y="9.15" drill="1.6"/>
+<pad name="P$4" x="57.4" y="12.5" drill="1.6"/>
+<pad name="P$5" x="56.73" y="7.22" drill="1.6"/>
 <pad name="P$6" x="57.4" y="-4.57" drill="1.6"/>
 <wire x1="-57.45" y1="6.35" x2="-57.45" y2="-10.85" width="0.127" layer="21"/>
 <wire x1="-57.45" y1="6.35" x2="-48.895" y2="6.35" width="0.127" layer="21"/>
