@@ -4,3 +4,7 @@
 *.o
 *.a
 *.bin
+pcb/*.b[^r][^d]
+pcb/*.p[^c][^b]
+rgb-test
+am335x/pasm/pasm
