@@ -36,13 +36,16 @@ TARGET := rgb-test
 _DEPS = 
 DEPS = $(patsubst %,$(INCDIR_APP_LOADER)/%,$(_DEPS))
 
-OBJS = ledscape.o pru.o rgb-test.o
+OBJS = ledscape.o pru.o
 
 %.o: %.c $(DEPS)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
 
-all: $(TARGET) ws281x.bin
-$(TARGET): $(OBJS)
+all: rgb-test udp-rx ws281x.bin
+rgb-test: rgb-test.o $(OBJS)
+	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+udp-rx: udp-rx.o $(OBJS)
 	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 ws281x.bin: ws281x.p ws281x.hp
