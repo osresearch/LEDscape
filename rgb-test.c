@@ -28,7 +28,7 @@ ledscape_fill_color(
 
 int main (void)
 {
-	const int num_pixels = 256;
+	const int num_pixels = 128;
 	ledscape_t * const leds = ledscape_init(num_pixels);
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
@@ -42,13 +42,32 @@ int main (void)
 			= ledscape_frame(leds, frame_num);
 
 		uint8_t val = i >> 1;
-		//ledscape_fill_color(frame, num_pixels, val, 0, val);
+		uint16_t r = ((i >>  0) & 0xFF);
+		uint16_t g = ((i >>  8) & 0xFF);
+		uint16_t b = ((i >> 16) & 0xFF);
+		ledscape_fill_color(frame, num_pixels, val, val, val);
 
-		for (int strip = 0 ; strip < 32 ; strip++)
+		for (unsigned strip = 0 ; strip < 32 ; strip++)
 		{
-			ledscape_set_color(frame, strip, 0, val, 0, 0);
-			ledscape_set_color(frame, strip, 1, 0, val + 80, 0);
-			ledscape_set_color(frame, strip, 2, 0, 0, val + 160);
+			for (unsigned p = 0 ; p < 64 ; p++)
+			{
+				ledscape_set_color(
+					frame,
+					strip,
+					p,
+#if 1
+					((strip % 3) == 0) ? (i) : 0,
+					((strip % 3) == 1) ? (i) : 0,
+					((strip % 3) == 2) ? (i) : 0
+#else
+					((strip % 3) == 0) ? 100 : 0,
+					((strip % 3) == 1) ? 100 : 0,
+					((strip % 3) == 2) ? 100 : 0
+#endif
+				);
+				//ledscape_set_color(frame, strip, 3*p+1, 0, p+val + 80, 0);
+				//ledscape_set_color(frame, strip, 3*p+2, 0, 0, p+val + 160);
+			}
 		}
 
 		// wait for the previous frame to finish;
