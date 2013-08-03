@@ -1,0 +1,10 @@
+#!/bin/sh
+# Locate the serial ports and their serial numbers.
+# This can then be used to map devices to positions in the matrix.
+
+for dev in `find /sys/devices/ -name '*ACM*' `;do
+	DIR=`dirname $dev`
+	TTY=`basename $dev`
+	SERIAL=`cat $DIR/../../serial`
+	echo "/dev/$TTY: $SERIAL"
+done
