@@ -8,16 +8,17 @@ my $width = 10;
 my $height = 32;
 
 my $s = '1';
+my $bright = 0x10;
 
 for(my $y = 0 ; $y < $height ; $y++)
 {
 	for(my $x =0 ; $x < $width ; $x++)
 	{
-		my $r = $x * 0x30 / $width;
-		#my $r = ($width - $x - 1) * 0x30 / $width;
-		#my $g = ($width - $x - 1) * 0x30 / $width;
+		my $r = $x * $bright / $width;
+		#my $r = ($width - $x - 1) * $bright / $width;
+		#my $g = ($width - $x - 1) * $bright / $width;
 		my $g = 0;
-		my $b = ($height - $y - 1) * 0x30 / $height;
+		my $b = ($height - $y - 1) * $bright / $height;
 
 		$s .= chr($r);
 		$s .= chr($g);
