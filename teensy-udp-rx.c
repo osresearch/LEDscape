@@ -34,7 +34,7 @@ bitslice(
 	static const uint8_t channel_map[] = { 1, 0, 2 };
 
 	// Skip to the starting row that we're processing
-	in += y_offset * width;
+	in += y_offset * width * 3;
 
 	for(unsigned x=0 ; x < width ; x++)
 	{
@@ -51,12 +51,12 @@ bitslice(
 				for(unsigned y = 0 ; y < 8 ; y++)
 				{
 					const uint8_t v
-						= in[x + y*width + channel];
+						= in[3*(x + y*width) + channel];
 					if (v & mask)
 						b |= 1 << y;
 				}
 
-				out[x + 3*mapped_channel + bit_num] = b;
+				out[24*x + 8*mapped_channel + bit_num] = b;
 			}
 		}
 	}
@@ -108,7 +108,7 @@ main(
 
 		// Header for the frame to the teensy indicating that it
 		// is to be drawn immediately.
-		slice[0] = '%';
+		slice[0] = '$';
 		slice[1] = 0;
 		slice[2] = 0;
 
