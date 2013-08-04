@@ -9,8 +9,11 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <ctype.h>
 #include <sys/types.h>
-#include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
 #include <inttypes.h>
 #include <errno.h>
@@ -63,6 +66,47 @@ bitslice(
 }
 
 
+static int
+udp_socket(
+	const int port
+)
+{
+	const int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	struct sockaddr_in addr = {
+		.sin_family = AF_INET,
+		.sin_port = htons(port),
+		.sin_addr.s_addr = INADDR_ANY,
+	};
+
+	if (sock < 0)
+		return -1;
+	if (bind(sock, (const struct sockaddr*) &addr, sizeof(addr)) < 0)
+		return -1;
+
+	return sock;
+}
+
+
+static int
+serial_open(
+	const char * const dev
+)
+{
+	const int fd = open(dev, O_RDWR | O_NONBLOCK | O_NOCTTY, 0666);
+	if (fd < 0)
+		return -1;
+
+	// Disable modem control signals
+	struct termios attr;
+	tcgetattr(fd, &attr);
+	attr.c_cflag |= CLOCAL | CREAD;
+	tcsetattr(fd, TCSANOW, &attr);
+
+	return fd;
+}
+
+
+
 int
 main(
 	int argc,
@@ -73,17 +117,37 @@ main(
 	unsigned width = 10;
 	unsigned height = 8;
 
-	const int sock = socket(AF_INET, SOCK_DGRAM, 0);
-	struct sockaddr_in addr = {
-		.sin_family = AF_INET,
-		.sin_port = htons(port),
-		.sin_addr.s_addr = INADDR_ANY,
-	};
+	const unsigned num_fds = argc - 1;
+	if (argc <= 1)
+		die("At least one serial port must be specified\n");
 
+	int fds[num_fds];
+	const char * dev_names[num_fds];
+
+	for (int i = 1 ; i < argc ; i++)
+	{
+		const char * const dev = argv[i];
+		const int fd = serial_open(dev);
+		if (fd < 0)
+			die("%s: Unable to open serial port: %s\n",
+				dev,
+				strerror(errno)
+			);
+		fds[i-1] = fd;
+		dev_names[i-1] = dev;
+	}
+
+	printf("%d serial ports\n", num_fds);
+	if (num_fds * 8 != height)
+		fprintf(stderr, "WARNING: %d ports == %d rows != image height %d\n",
+			num_fds,
+			num_fds * 8,
+			height
+		);
+
+	const int sock = udp_socket(port);
 	if (sock < 0)
-		die("socket failed: %s\n", strerror(errno));
-	if (bind(sock, (const struct sockaddr*) &addr, sizeof(addr)) < 0)
-		die("bind port %d failed: %s\n", port, strerror(errno));
+		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const size_t image_size = width * height * 3;
 	const size_t slice_size = width * 8 * 3 + 3;
@@ -133,10 +197,24 @@ main(
 
 		// Translate the image from packed RGB into sliced 24-bit
 		// for each teensy.
-		for (unsigned y_offset = 0 ; y_offset < height ; y_offset += 8)
+		for (unsigned i = 0 ; i < num_fds ; i++)
 		{
+			const unsigned y_offset = i * 8;
 			bitslice(slice+3, buf+1, width, y_offset);
-			write(1, slice, slice_size);
+
+			ssize_t rc = write(fds[i], slice, slice_size);
+			if (rc < 0)
+				die("%s: write failed: %s\n",
+					dev_names[i],
+					strerror(errno)
+				);
+			if ((size_t) rc != slice_size)
+				die("%s: short write %zu != %zu: %s\n",
+					dev_names[i],
+					rc,
+					slice_size,
+					strerror(errno)
+				);
 		}
 	}
 
