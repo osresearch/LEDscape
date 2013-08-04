@@ -118,16 +118,17 @@ typedef struct
 {
 	unsigned id;
 	unsigned fd;
+	unsigned y_offset;
 	const char * dev;
 	uint8_t bad[256]; // which pixels are to be masked out
 } teensy_strip_t;
 
 // \todo read this from a file at run time
 static teensy_strip_t strips[] = {
-	{ .id = 14401, .bad = { [2] = 1, } },
-	{ .id = 14389, .bad = { [3] = 1, [4] = 1, } },
-	{ .id = 8987, .bad = { [0] = 0xFF, } },
-	{ .id = 8998, .bad = { [1] = 0x80, } },
+	{ .id = 14401, .y_offset = 0, .bad = { [2] = 1, } },
+	{ .id = 14389, .y_offset = 8, .bad = { [3] = 1, [4] = 1, } },
+	{ .id = 8987, .y_offset = 16, .bad = { [0] = 0xFF, } },
+	{ .id = 8998, .y_offset = 24, .bad = { [1] = 0x80, } },
 };
 
 static const unsigned num_strips = sizeof(strips) / sizeof(*strips);
@@ -201,7 +202,7 @@ main(
 {
 	int port = 9999;
 	unsigned width = 10;
-	unsigned height = 32;
+	unsigned height = 128;
 
 	const unsigned num_devs = argc - 1;
 	if (num_devs != num_strips)
@@ -213,21 +214,34 @@ main(
 		const char * const dev = argv[i];
 		const int fd = serial_open(dev);
 		if (fd < 0)
-			die("%s: Unable to open serial port: %s\n",
+		{
+			warn("%s: Unable to open serial port: %s\n",
 				dev,
 				strerror(errno)
 			);
+			failed++;
+			continue;
+		}
+
 		// Find out the serial number of this teensy
 		ssize_t rc;
 		rc = write(fd, "?", 1);
 		if (rc < 0)
-			die("%s: write failed: %s\n", dev, strerror(errno));
+		{
+			warn("%s: write failed: %s\n", dev, strerror(errno));
+			failed++;
+			continue;
+		}
 
 		usleep(100000);
 		char response[128];
 		rc = read(fd, response, sizeof(response)-1);
 		if (rc < 0)
-			die("%s: read failed: %s\n", dev, strerror(errno));
+		{
+			warn("%s: read failed: %s\n", dev, strerror(errno));
+			failed++;
+			continue;
+		}
 
 		response[rc] = '\0';
 		if (0) printf("read: '%s'\n", response);
@@ -235,10 +249,19 @@ main(
 		unsigned this_width;
 		unsigned this_id;
 		if (sscanf(response, "%d,%*d,%*d,%d", &this_width, &this_id) != 2)
-			die("%s: Unable to parse response: '%s'\n", dev, response);
+		{
+			warn("%s: Unable to parse response: '%s'\n", dev, response);
+			failed++;
+			continue;
+		}
+
 		printf("%s: ID %d width %d\n", dev, this_id, this_width);
 		if (this_width != width)
-			die("%s: width %d != expected %d\n", dev, this_width, width);
+		{
+			warn("%s: width %d != expected %d\n", dev, this_width, width);
+			failed++;
+			continue;
+		}
 
 		teensy_strip_t * const leds = strip_find(dev, fd, this_id);
 		if (!leds)
@@ -246,15 +269,9 @@ main(
 	}
 
 	if (failed)
-		die("FATAL configuration error\n");
+		die("FATAL CONFIGURATION ERROR\n");
 
 	printf("%d serial ports\n", num_devs);
-	if (num_devs * 8 != height)
-		fprintf(stderr, "WARNING: %d ports == %d rows != image height %d\n",
-			num_devs,
-			num_devs * 8,
-			height
-		);
 
 	const int sock = udp_socket(port);
 	if (sock < 0)
@@ -285,18 +302,18 @@ main(
 		if (buf[0] != '1')
 		{
 			// What is it?
-			fprintf(stderr, "Unknown image type '%c' (%02x)\n",
+			warn_once("Unknown image type '%c' (%02x)\n",
 				buf[0],
 				buf[0]
 			);
 			continue;
 		}
 
-		if ((size_t) rlen != width * height * 3 + 1)
+		if ((size_t) rlen != image_size + 1)
 		{
-			fprintf(stderr, "WARNING: Received packet %zu bytes, expected %zu\n",
+			warn_once("WARNING: Received packet %zu bytes, expected %zu\n",
 				rlen,
-				image_size
+				image_size + 1
 			);
 		}
 
@@ -310,16 +327,25 @@ main(
 		// for each teensy.
 		for (unsigned i = 0 ; i < num_strips ; i++)
 		{
-			teensy_strip_t * const strip = &strips[i];
-			const unsigned y_offset = i * 8;
-			bitslice(slice+3, buf+1, width, y_offset, strip->bad);
+			const teensy_strip_t * const strip = &strips[i];
 
-			ssize_t rc = write_all(strip->fd, slice, slice_size);
+			bitslice(
+				slice + 3,
+				buf + 1,
+				width,
+				strip->y_offset,
+				strip->bad
+			);
+
+			const ssize_t rc
+				= write_all(strip->fd, slice, slice_size);
+
 			if (rc < 0)
 				die("%s: write failed: %s\n",
 					strip->dev,
 					strerror(errno)
 				);
+
 			if ((size_t) rc != slice_size)
 				die("%s: short write %zu != %zu: %s\n",
 					strip->dev,
