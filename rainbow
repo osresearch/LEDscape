@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+# Make a smooth gradient pattern
+
+my $width = 10;
+my $height = 8;
+
+my $s = '1';
+
+for(my $y = 0 ; $y < $height ; $y++)
+{
+	for(my $x =0 ; $x < $width ; $x++)
+	{
+		my $r = $x * 0xFF / $width;
+		#my $g = ($width - $x - 1) * 0xFF / $width;
+		my $g = 0;
+		my $b = ($height - $y - 1) * 0xFF / $height;
+
+		$s .= chr($r);
+		$s .= chr($g);
+		$s .= chr($b);
+	}
+}
+
+print $s;
