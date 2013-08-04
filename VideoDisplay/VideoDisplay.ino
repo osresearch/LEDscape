@@ -2,6 +2,10 @@
     http://www.pjrc.com/teensy/td_libs_OctoWS2811.html
     Copyright (c) 2013 Paul Stoffregen, PJRC.COM, LLC
 
+    Updated by Trammell Hudson <hudson@trmm.net>
+    - Teport unique Teensy serial number in response to ? command.
+    - Receive a data frame and wait for a ! command to display it.
+
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
     in the Software without restriction, including without limitation the rights
@@ -57,6 +61,7 @@
 */
 
 #include <OctoWS2811.h>
+#include "mac.h"
 
 // The actual arrangement of the LEDs connected to this Teensy 3.0 board.
 // LED_HEIGHT *must* be a multiple of 8.  When 16, 24, 32 are used, each
@@ -64,8 +69,12 @@
 // are arranged.  If 0, each strip begins on the left for its first row,
 // then goes right to left for its second row, then left to right,
 // zig-zagging for each successive row.
+//
+// Since the receiving program on the host is slicing the image,
+// only the width matters.  The height is always 8.
+//
 #define LED_WIDTH      60   // number of LEDs horizontally
-#define LED_HEIGHT     16   // number of LEDs vertically (must be multiple of 8)
+#define LED_HEIGHT     8    // number of LEDs vertically (must be 8)
 #define LED_LAYOUT     0    // 0 = even rows left->right, 1 = even rows right->left
 
 // The portion of the video image to show on this set of LEDs.  All 4 numbers
@@ -140,6 +149,8 @@ void loop() {
 //   
 //   '?' = Query LED and Video parameters.  Teensy 3.0 responds
 //         with a comma delimited list of information.
+//
+//   '!' = Display the frame now.
 //
   int startChar = Serial.read();
 
@@ -220,7 +231,9 @@ void loop() {
     Serial.write(',');
     Serial.print(LED_LAYOUT);
     Serial.write(',');
-    Serial.print(0);
+    read_mac();
+    const uint16_t id = mac[4] << 8 | mac[5];
+    Serial.print(id);
     Serial.write(',');
     Serial.print(0);
     Serial.write(',');
