@@ -25,13 +25,17 @@
 /** Prepare one Teensy3 worth of image data.
  * Each Teensy handles 8 rows of data and needs the bits sliced into
  * each 8 rows.
+ *
+ * Since some of the pixels might have bad single channels,
+ * allow them to be masked out entirely.
  */
 void
 bitslice(
 	uint8_t * const out,
 	const uint8_t * in,
 	const unsigned width,
-	const unsigned y_offset
+	const unsigned y_offset,
+	const uint8_t * const bad_pixels
 )
 {
 	// Reorder from RGB in the input to GRB in the output
@@ -54,10 +58,13 @@ bitslice(
 
 				for(unsigned y = 0 ; y < 8 ; y++)
 				{
+					const uint8_t bit_pos = 1 << y;
+					if (bad_pixels[x] & bit_pos)
+						continue;
 					const uint8_t v
 						= in[3*(x + y*width) + channel];
 					if (v & mask)
-						b |= 1 << y;
+						b |= bit_pos;
 				}
 
 				out[24*x + 8*mapped_channel + bit_num] = b;
@@ -119,8 +126,8 @@ typedef struct
 static teensy_strip_t strips[] = {
 	{ .id = 14401, .bad = { [2] = 1, } },
 	{ .id = 14389, .bad = { [3] = 1, [4] = 1, } },
-	{ .id = 8987, .bad = { } },
-	{ .id = 8998, .bad = { } },
+	{ .id = 8987, .bad = { [0] = 0xFF, } },
+	{ .id = 8998, .bad = { [1] = 0x80, } },
 };
 
 static const unsigned num_strips = sizeof(strips) / sizeof(*strips);
@@ -305,7 +312,7 @@ main(
 		{
 			teensy_strip_t * const strip = &strips[i];
 			const unsigned y_offset = i * 8;
-			bitslice(slice+3, buf+1, width, y_offset);
+			bitslice(slice+3, buf+1, width, y_offset, strip->bad);
 
 			ssize_t rc = write_all(strip->fd, slice, slice_size);
 			if (rc < 0)
