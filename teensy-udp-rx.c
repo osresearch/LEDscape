@@ -9,6 +9,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <ctype.h>
@@ -106,6 +107,84 @@ serial_open(
 }
 
 
+typedef struct
+{
+	unsigned id;
+	unsigned fd;
+	const char * dev;
+	uint8_t bad[256]; // which pixels are to be masked out
+} teensy_strip_t;
+
+// \todo read this from a file at run time
+static teensy_strip_t strips[] = {
+	{ .id = 14401, .bad = { [2] = 1, } },
+	{ .id = 14389, .bad = { [3] = 1, [4] = 1, } },
+	{ .id = 8987, .bad = { } },
+	{ .id = 8998, .bad = { } },
+};
+
+static const unsigned num_strips = sizeof(strips) / sizeof(*strips);
+	
+
+static teensy_strip_t * strip_find(
+	const char * const dev,
+	const int fd,
+	const unsigned id
+)
+{
+	// Look through our table to find where this one goes
+	for (unsigned j = 0 ; j < num_strips ; j++)
+	{
+		teensy_strip_t * const leds = &strips[j];
+		if (leds->id != id)
+			continue;
+
+		if (leds->dev != NULL)
+		{
+			fprintf(stderr, "FATAL: %s: Duplicate ID %u (%s)\n",
+				dev, id, leds->dev);
+			return NULL;
+		}
+
+		leds->dev = dev;
+		leds->fd = fd;
+		return leds;
+	}
+
+	fprintf(stderr, "FATAL: %s: Unknown ID %u\n", dev, id);
+	return NULL;
+}
+
+
+static ssize_t
+write_all(
+	const int fd,
+	const void * const buf_ptr,
+	const size_t len
+)
+{
+	const uint8_t * const buf = buf_ptr;
+	size_t offset = 0;
+
+	while (offset < len)
+	{
+		const ssize_t rc = write(fd, buf + offset, len - offset);
+		if (rc < 0)
+		{
+			if (errno == EAGAIN)
+				continue;
+			return -1;
+		}
+
+		if (rc == 0)
+			return -1;
+
+		offset += rc;
+	}
+
+	return len;
+}
+		
 
 int
 main(
@@ -117,13 +196,11 @@ main(
 	unsigned width = 10;
 	unsigned height = 32;
 
-	const unsigned num_fds = argc - 1;
-	if (argc <= 1)
-		die("At least one serial port must be specified\n");
+	const unsigned num_devs = argc - 1;
+	if (num_devs != num_strips)
+		die("Must specify %u serial devices\n", num_strips);
 
-	int fds[num_fds];
-	const char * dev_names[num_fds];
-
+	int failed = 0;
 	for (int i = 1 ; i < argc ; i++)
 	{
 		const char * const dev = argv[i];
@@ -133,15 +210,42 @@ main(
 				dev,
 				strerror(errno)
 			);
-		fds[i-1] = fd;
-		dev_names[i-1] = dev;
+		// Find out the serial number of this teensy
+		ssize_t rc;
+		rc = write(fd, "?", 1);
+		if (rc < 0)
+			die("%s: write failed: %s\n", dev, strerror(errno));
+
+		usleep(100000);
+		char response[128];
+		rc = read(fd, response, sizeof(response)-1);
+		if (rc < 0)
+			die("%s: read failed: %s\n", dev, strerror(errno));
+
+		response[rc] = '\0';
+		if (0) printf("read: '%s'\n", response);
+
+		unsigned this_width;
+		unsigned this_id;
+		if (sscanf(response, "%d,%*d,%*d,%d", &this_width, &this_id) != 2)
+			die("%s: Unable to parse response: '%s'\n", dev, response);
+		printf("%s: ID %d width %d\n", dev, this_id, this_width);
+		if (this_width != width)
+			die("%s: width %d != expected %d\n", dev, this_width, width);
+
+		teensy_strip_t * const leds = strip_find(dev, fd, this_id);
+		if (!leds)
+			failed++;
 	}
 
-	printf("%d serial ports\n", num_fds);
-	if (num_fds * 8 != height)
+	if (failed)
+		die("FATAL configuration error\n");
+
+	printf("%d serial ports\n", num_devs);
+	if (num_devs * 8 != height)
 		fprintf(stderr, "WARNING: %d ports == %d rows != image height %d\n",
-			num_fds,
-			num_fds * 8,
+			num_devs,
+			num_devs * 8,
 			height
 		);
 
@@ -197,20 +301,21 @@ main(
 
 		// Translate the image from packed RGB into sliced 24-bit
 		// for each teensy.
-		for (unsigned i = 0 ; i < num_fds ; i++)
+		for (unsigned i = 0 ; i < num_strips ; i++)
 		{
+			teensy_strip_t * const strip = &strips[i];
 			const unsigned y_offset = i * 8;
 			bitslice(slice+3, buf+1, width, y_offset);
 
-			ssize_t rc = write(fds[i], slice, slice_size);
+			ssize_t rc = write_all(strip->fd, slice, slice_size);
 			if (rc < 0)
 				die("%s: write failed: %s\n",
-					dev_names[i],
+					strip->dev,
 					strerror(errno)
 				);
 			if ((size_t) rc != slice_size)
 				die("%s: short write %zu != %zu: %s\n",
-					dev_names[i],
+					strip->dev,
 					rc,
 					slice_size,
 					strerror(errno)
