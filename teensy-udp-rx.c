@@ -85,25 +85,44 @@ main(
 	if (bind(sock, (const struct sockaddr*) &addr, sizeof(addr)) < 0)
 		die("bind port %d failed: %s\n", port, strerror(errno));
 
-	const size_t slice_size = width * height * 3 + 3;
+	const size_t image_size = width * height * 3;
+	const size_t slice_size = width * 8 * 3 + 3;
 	uint8_t * const slice = calloc(1, slice_size);
 
 	uint8_t buf[65536];
 
 	while (1)
 	{
-		const ssize_t rc = recv(sock, buf, sizeof(buf), 0);
-		if (rc < 0)
+		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
+		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
 
 		if (buf[0] == '2')
 		{
 			// image type
 			printf("image type: %.*s\n",
-				(int) rc - 1,
+				(int) rlen - 1,
 				&buf[1]
 			);
 			continue;
+		}
+
+		if (buf[0] != '1')
+		{
+			// What is it?
+			fprintf(stderr, "Unknown image type '%c' (%02x)\n",
+				buf[0],
+				buf[0]
+			);
+			continue;
+		}
+
+		if ((size_t) rlen != width * height * 3 + 1)
+		{
+			fprintf(stderr, "WARNING: Received packet %zu bytes, expected %zu\n",
+				rlen,
+				image_size
+			);
 		}
 
 		// Header for the frame to the teensy indicating that it

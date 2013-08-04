@@ -13,7 +13,8 @@ for(my $y = 0 ; $y < $height ; $y++)
 {
 	for(my $x =0 ; $x < $width ; $x++)
 	{
-		my $r = $x * 0xFF / $width;
+		#my $r = $x * 0xFF / $width;
+		my $r = ($width - $x - 1) * 0xFF / $width;
 		#my $g = ($width - $x - 1) * 0xFF / $width;
 		my $g = 0;
 		my $b = ($height - $y - 1) * 0xFF / $height;
