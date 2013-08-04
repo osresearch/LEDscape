@@ -5,7 +5,7 @@ use strict;
 # Make a smooth gradient pattern
 
 my $width = 10;
-my $height = 8;
+my $height = 32;
 
 my $s = '1';
 
@@ -15,8 +15,8 @@ for(my $y = 0 ; $y < $height ; $y++)
 	{
 		my $r = $x * 0x30 / $width;
 		#my $r = ($width - $x - 1) * 0x30 / $width;
-		my $g = ($width - $x - 1) * 0x30 / $width;
-		#my $g = 0;
+		#my $g = ($width - $x - 1) * 0x30 / $width;
+		my $g = 0;
 		my $b = ($height - $y - 1) * 0x30 / $height;
 
 		$s .= chr($r);

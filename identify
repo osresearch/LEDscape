@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+# Make a bargraph to help identify which port is which
+# R Y G C B W
+
+my $width = 10;
+my $height = 32;
+
+my $s = '1';
+
+for(my $y = 0 ; $y < $height ; $y++)
+{
+	for(my $x = 0 ; $x < $width ; $x++)
+	{
+		my $v = ($y % 8) >= $x ? 0x10 : 0;
+		my $r = 0;
+		my $g = 0;
+		my $b = 0;
+		$r = $v if int($y / 8) == 0;
+		$g = $v if int($y / 8) == 1;
+		$b = $v if int($y / 8) == 2;
+		$g = $r = $v if int($y / 8) == 3;
+
+		$s .= chr($r);
+		$s .= chr($g);
+		$s .= chr($b);
+	}
+}
+
+print $s;

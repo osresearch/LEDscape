@@ -115,7 +115,7 @@ main(
 {
 	int port = 9999;
 	unsigned width = 10;
-	unsigned height = 8;
+	unsigned height = 32;
 
 	const unsigned num_fds = argc - 1;
 	if (argc <= 1)
