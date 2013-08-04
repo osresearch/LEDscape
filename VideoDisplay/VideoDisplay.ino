@@ -73,7 +73,7 @@
 // Since the receiving program on the host is slicing the image,
 // only the width matters.  The height is always 8.
 //
-#define LED_WIDTH      60   // number of LEDs horizontally
+#define LED_WIDTH      10   // number of LEDs horizontally
 #define LED_HEIGHT     8    // number of LEDs vertically (must be 8)
 #define LED_LAYOUT     0    // 0 = even rows left->right, 1 = even rows right->left
 
