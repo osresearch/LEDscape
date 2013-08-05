@@ -13,4 +13,4 @@ Future:
 -Add HRC logo
 -EEPROM for shield detection
 -Make sure all bypass caps are connected directly to the RS485 transcevers
--LED status?
+-LED status light(s)
