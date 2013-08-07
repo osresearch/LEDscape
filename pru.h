@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <inttypes.h>
+#include "util.h"
 
 
 /** Mapping of the PRU memory spaces.
@@ -44,13 +45,6 @@ pru_close(
 	pru_t * const pru
 );
 
-
-#define die(fmt, ...) \
-	do { \
-		fprintf(stderr, "%s:%d: " fmt, \
-			__func__, __LINE__, ## __VA_ARGS__); \
-		exit(EXIT_FAILURE); \
-	} while (0)
 
 
 /** Configure a GPIO pin.
