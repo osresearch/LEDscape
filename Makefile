@@ -2,7 +2,10 @@
 #
 # The top level targets link in the two .o files for now.
 #
-TARGETS := rgb-test udp-rx
+TARGETS += teensy-udp-rx
+TARGETS += rgb-test
+TARGETS += udp-rx
+
 LEDSCAPE_OBJS = ledscape.o pru.o
 LEDSCAPE_LIB := libledscape.a
 
