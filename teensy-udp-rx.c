@@ -394,7 +394,7 @@ read_config(
 				die("%s:%d: unable to parse bad pixels '%s'\n", config_file, line, s);
 
 			if (bad_strip >= MAX_STRIPS)
-				die("%s:%d: bad bad strip %u line %d\n", config_file, line, bad_strip);
+				die("%s:%d: bad bad strip %u\n", config_file, line, bad_strip);
 			if (bad_pixel >= MAX_PIXELS)
 				die("%s:%d: bad bad pixel %u\n", config_file, line, bad_pixel);
 			strip->bad[bad_pixel] |= 1 << bad_strip;
@@ -503,7 +503,7 @@ main(
 				);
 			else
 				warn("%s: short write %zu != %zu: %s\n",
-					strip->dev,
+					dev->dev,
 					rc,
 					slice_size,
 					strerror(errno)
