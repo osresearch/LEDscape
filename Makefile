@@ -91,7 +91,7 @@ clean:
 		.*.o.d \
 		*~ \
 		$(INCDIR_APP_LOADER)/*~ \
-		$(TARGET) \
+		$(TARGETS) \
 		ws281x.bin \
 
 
