@@ -159,8 +159,9 @@ serial_open(
 typedef struct
 {
 	const char * dev;
-	unsigned id;
 	int fd;
+	unsigned id;
+	int warned;
 } teensy_dev_t;
 
 #define MAX_STRIPS 32
@@ -187,10 +188,10 @@ static unsigned num_strips;
 
 
 static teensy_dev_t teensy_devs[] = {
-	{ "/dev/ttyACM0", 0, -1 },
-	{ "/dev/ttyACM1", 0, -1 },
-	{ "/dev/ttyACM2", 0, -1 },
-	{ "/dev/ttyACM3", 0, -1 },
+	{ .dev = "/dev/ttyACM0", .fd = -1 },
+	{ .dev = "/dev/ttyACM1", .fd = -1 },
+	{ .dev = "/dev/ttyACM2", .fd = -1 },
+	{ .dev = "/dev/ttyACM3", .fd = -1 },
 };
 
 
@@ -268,9 +269,13 @@ teensy_open(
 	rc = write_all(dev->fd, "?", 1);
 	if (rc < 0)
 	{
-		warn("%s: write failed: %s\n", dev->dev, strerror(errno));
+		if (!dev->warned)
+			warn("%s: write failed: %s\n", dev->dev, strerror(errno));
+		dev->warned = 1;
 		goto fail;
 	}
+
+	dev->warned = 0;
 
 	// \todo: Read until a newline or a timeout
 	usleep(100000);
