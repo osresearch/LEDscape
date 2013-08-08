@@ -498,7 +498,7 @@ main(
 
 			if (rc < 0)
 				warn("%s: write failed: %s\n",
-					strip->dev,
+					dev->dev,
 					strerror(errno)
 				);
 			else
