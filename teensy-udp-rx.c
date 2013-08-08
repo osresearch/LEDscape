@@ -163,22 +163,27 @@ typedef struct
 	int fd;
 } teensy_dev_t;
 
+#define MAX_STRIPS 32
+#define MAX_PIXELS 256
 
 typedef struct
 {
 	unsigned id;
 	unsigned y_offset;
 	teensy_dev_t * dev;
-	uint8_t bad[256]; // which pixels are to be masked out
+	uint8_t bad[MAX_PIXELS]; // which pixels are to be masked out
 } teensy_strip_t;
 
 // \todo read this from a file at run time
-static teensy_strip_t strips[] = {
+static teensy_strip_t strips[MAX_STRIPS] = {
+#if 0
 	{ .id = 14401, .y_offset = 0, .bad = { [2] = 1, } },
 	{ .id = 14389, .y_offset = 8, .bad = { [3] = 1, [4] = 1, } },
 	{ .id = 8987, .y_offset = 16, .bad = { [0] = 0xFF, } },
 	{ .id = 8998, .y_offset = 24, .bad = { [1] = 0x80, } },
+#endif
 };
+static unsigned num_strips;
 
 
 static teensy_dev_t teensy_devs[] = {
@@ -189,7 +194,6 @@ static teensy_dev_t teensy_devs[] = {
 };
 
 
-static const unsigned num_strips = sizeof(strips) / sizeof(*strips);
 static const unsigned num_devs = sizeof(teensy_devs) / sizeof(*teensy_devs);
 	
 
@@ -340,6 +344,67 @@ reopen_thread(
 }
 
 
+/** Config file format;
+ *
+ * $(WIDTH),$(PORT)
+ * $(DEVID),$(YOFFSET),$(BAD_STRIP):$(BAD_PIXEL),....
+ */
+static void
+read_config(
+	const char * const config_file
+)
+{
+	FILE * const f = fopen(config_file, "r");
+	if (!f)
+		die("%s: Unable to open: %s\n", config_file, strerror(errno));
+
+	if (fscanf(f, "%u,%u\n", &width, &port) != 2)
+		die("%s: Parse error on image width or port\n", config_file);
+
+	unsigned line = 2;
+
+	for (num_strips = 0 ; num_strips < MAX_STRIPS ; num_strips++, line++)
+	{
+		teensy_strip_t * const strip = &strips[num_strips];
+		char buf[1024];
+		int rc = fscanf(f,"%u,%u,%1024[^\n]\n",
+			&strip->id,
+			&strip->y_offset,
+			buf
+		);
+	        if (rc != 2 && rc != 3)
+		{
+			if (feof(f))
+				break;
+			die("%s:%d: unable to parse rc=%d\n", config_file, line, rc);
+		}
+
+		char * s = buf;
+		do {
+			char * eol = strchr(s, ',');
+			if (eol)
+				*eol++ = '\0';
+			if (*s == '\0' || *s == '\n')
+				break;
+
+			unsigned bad_strip;
+			unsigned bad_pixel;
+
+			if (sscanf(s, "%u:%u", &bad_strip, &bad_pixel) != 2)
+				die("%s:%d: unable to parse bad pixels '%s'\n", config_file, line, s);
+
+			if (bad_strip >= MAX_STRIPS)
+				die("%s:%d: bad bad strip %u line %d\n", config_file, line, bad_strip);
+			if (bad_pixel >= MAX_PIXELS)
+				die("%s:%d: bad bad pixel %u\n", config_file, line, bad_pixel);
+			strip->bad[bad_pixel] |= 1 << bad_strip;
+			s = eol;
+			printf("%u: bad %u:%u\n", strip->id, bad_strip, bad_pixel);
+		} while (s);
+	}
+
+}
+
 
 
 int
@@ -348,6 +413,10 @@ main(
 	char ** argv
 )
 {
+	if (argc != 2)
+		die("Require config file path\n");
+	read_config(argv[1]);
+
 	const int sock = udp_socket(port);
 	if (sock < 0)
 		die("socket port %d failed: %s\n", port, strerror(errno));
