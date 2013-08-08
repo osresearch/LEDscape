@@ -1,11 +1,11 @@
 Building
 --------
 
-SSL install is broken; [http://derekmolloy.ie/fixing-git-and-curl-certificates-problem-on-beaglebone-blac/](disable certs):
+* SSL install is broken; [disable certs](http://derekmolloy.ie/fixing-git-and-curl-certificates-problem-on-beaglebone-blac/):
 
     git config --global http.sslVerify false
 
-Checkout LEDscape and build both PRU and teensy LEDscape code.
+* Checkout LEDscape and build both PRU and teensy LEDscape code.
 
     git clone https://osresearch@github.com/osresearch/LEDscape
     cd LEDscape
@@ -15,7 +15,7 @@ Checkout LEDscape and build both PRU and teensy LEDscape code.
 Teensy config
 -------------
 
-* Code is in `LEDscape/VideoDisplay/`
+* Code is in [LEDscape/VideoDisplay](https://github.com/osresearch/LEDscape/VideoDisplay/)
 * Update `LED_WIDTH` to have the maximum length of the strips
 * Rebuild and flash to all teensys (do this on the laptop)
 
