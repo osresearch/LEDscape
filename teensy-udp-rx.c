@@ -82,6 +82,10 @@ bitslice(
 					const uint8_t * const p
 						= bitmap_pixel(in, x + x_offset, y);
 					const uint8_t v = p[channel];
+
+					// If the bit_num'th bit in v is
+					// set, then mark that the x'th bit
+					// in this output byte should be set.
 					if (v & mask)
 						b |= bit_pos;
 				}
@@ -429,6 +433,24 @@ read_config(
 }
 
 
+static void
+hexdump(
+	const void * const buf,
+	const size_t len
+)
+{
+	const uint8_t * const p = buf;
+
+	for(size_t i = 0 ; i < len ; i++)
+	{
+		if (i % 16 == 0)
+			printf("%s%04zu:", i == 0 ? "": "\n", i);
+		printf(" %02x", p[i]);
+	}
+
+	printf("\n");
+}
+
 
 int
 main(
@@ -452,13 +474,19 @@ main(
 	const size_t slice_size = height * 8 * 3 + 3;
 	uint8_t * const slice = calloc(1, slice_size);
 
+	// largest possible UDP packet
 	uint8_t buf[65536];
+	if (sizeof(buf) < image_size + 1)
+		die("%u x %u too large for UDP\n", width, height);
+
+	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
 
 	while (1)
 	{
 		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
+		warn_once("received %zu bytes\n", rlen);
 
 		if (buf[0] == 2)
 		{
@@ -494,6 +522,18 @@ main(
 		slice[1] = 0;
 		slice[2] = 0;
 
+#if 0
+		bitslice(
+			slice + 3,
+			buf + 1,
+			8,
+			strips[0].bad
+		);
+
+		hexdump(buf+1, rlen-1);
+		hexdump(slice+3, slice_size-3);
+
+#else
 		// Translate the image from packed RGB into sliced 24-bit
 		// for each teensy.
 		for (unsigned i = 0 ; i < num_strips ; i++)
@@ -533,6 +573,7 @@ main(
 
 			strip_close(strip);
 		}
+#endif
 	}
 
 	return 0;
