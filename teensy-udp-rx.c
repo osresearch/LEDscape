@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <ctype.h>
@@ -278,7 +279,7 @@ teensy_open(
 	dev->warned = 0;
 
 	// \todo: Read until a newline or a timeout
-	usleep(100000);
+	nanosleep(10000000);
 	char response[128];
 	rc = read(dev->fd, response, sizeof(response)-1);
 	if (rc < 0)
@@ -363,28 +364,41 @@ read_config(
 	if (!f)
 		die("%s: Unable to open: %s\n", config_file, strerror(errno));
 
-	if (fscanf(f, "%u,%u\n", &width, &port) != 2)
+	char line[1024];
+
+	if (fgets(line, sizeof(line), f) == NULL)
+		die("%s: Unable to read port num\n", config_file);
+
+	port = atoi(line);
+
+	if (fgets(line, sizeof(line), f) == NULL)
+		die("%s: Unable to read dimenstions\n", config_file);
+
+	if (sscanf(line, "%u,%u\n", &width, &height) != 2)
 		die("%s: Parse error on image width or port\n", config_file);
 
-	unsigned line = 2;
+	unsigned line_num = 2;
 
-	for (num_strips = 0 ; num_strips < MAX_STRIPS ; num_strips++, line++)
+	for (num_strips = 0 ; num_strips < MAX_STRIPS ; num_strips++, line_num++)
 	{
+		if (fgets(line, sizeof(line), f) == NULL)
+			break;
+
 		teensy_strip_t * const strip = &strips[num_strips];
-		char buf[1024];
-		int rc = fscanf(f,"%u,%u,%1024[^\n]\n",
+		int offset = 0;
+		int rc = sscanf(line, "%u,%u%n",
 			&strip->id,
 			&strip->y_offset,
-			buf
+			&offset
 		);
-	        if (rc != 2 && rc != 3)
-		{
-			if (feof(f))
-				break;
-			die("%s:%d: unable to parse rc=%d\n", config_file, line, rc);
-		}
 
-		char * s = buf;
+	        if (rc != 2)
+			die("%s:%d: unable to parse rc=%d\n", config_file, line_num, rc);
+
+		char * s = line + offset;
+		if (*s == ',')
+			s++;
+
 		do {
 			char * eol = strchr(s, ',');
 			if (eol)
@@ -396,12 +410,12 @@ read_config(
 			unsigned bad_pixel;
 
 			if (sscanf(s, "%u:%u", &bad_strip, &bad_pixel) != 2)
-				die("%s:%d: unable to parse bad pixels '%s'\n", config_file, line, s);
+				die("%s:%d: unable to parse bad pixels '%s'\n", config_file, line_num, s);
 
 			if (bad_strip >= MAX_STRIPS)
-				die("%s:%d: bad bad strip %u\n", config_file, line, bad_strip);
+				die("%s:%d: bad bad strip %u\n", config_file, line_num, bad_strip);
 			if (bad_pixel >= MAX_PIXELS)
-				die("%s:%d: bad bad pixel %u\n", config_file, line, bad_pixel);
+				die("%s:%d: bad bad pixel %u\n", config_file, line_num, bad_pixel);
 			strip->bad[bad_pixel] |= 1 << bad_strip;
 			s = eol;
 			printf("%u: bad %u:%u\n", strip->id, bad_strip, bad_pixel);
