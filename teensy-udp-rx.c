@@ -456,7 +456,7 @@ main(
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
 
-		if (buf[0] == '2')
+		if (buf[0] == 2)
 		{
 			// image type
 			printf("image type: %.*s\n",
@@ -466,7 +466,7 @@ main(
 			continue;
 		}
 
-		if (buf[0] != '1')
+		if (buf[0] != 1)
 		{
 			// What is it?
 			warn_once("Unknown image type '%c' (%02x)\n",
