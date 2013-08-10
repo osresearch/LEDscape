@@ -32,6 +32,11 @@ static unsigned width = 64;
 static unsigned height = 210;
 
 
+/** Extract a ADDRESSING_HORIZONTAL_NORMAL pixel from the image.
+ *
+ * This reverses the y since the teensy's are at the bottom of the
+ * strips, while the image coordinate frame is at the top.
+ */
 static const uint8_t *
 bitmap_pixel(
 	const uint8_t * const bitmap,
@@ -39,7 +44,7 @@ bitmap_pixel(
 	const unsigned y
 )
 {
-	return bitmap + (y * width + x) * 3;
+	return bitmap + ((height - y - 1) * width + x) * 3;
 }
 
 
@@ -184,7 +189,7 @@ typedef struct
 typedef struct
 {
 	unsigned id;
-	unsigned y_offset;
+	unsigned x_offset;
 	teensy_dev_t * dev;
 	uint8_t bad[MAX_PIXELS]; // which pixels are to be masked out
 } teensy_strip_t;
@@ -396,7 +401,7 @@ read_config(
 		int offset = 0;
 		int rc = sscanf(line, "%u,%u%n",
 			&strip->id,
-			&strip->y_offset,
+			&strip->x_offset,
 			&offset
 		);
 
@@ -548,7 +553,7 @@ main(
 			bitslice(
 				slice + 3,
 				buf + 1,
-				strip->y_offset,
+				strip->x_offset,
 				strip->bad
 			);
 

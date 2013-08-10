@@ -29,12 +29,12 @@ Teensy config
 
 * Update `config.txt`.  At the minimum it needs the first line with the
 maximum strip length and the UDP port number, and four lines for the
-teensy serial IDs and their Y-offset in the image buffer.  It is ok
+teensy serial IDs and their X-offset in the image buffer.  It is ok
 to have teensys that are not in use with this BBB so that the same
 config file can be used with all of them.
 
         9999 # UDP port
-	64,256 # Image width x height
+	64,210 # Image width x height
         14401,0
         14389,8
         8987,16,1:9,0:8
@@ -43,13 +43,14 @@ config file can be used with all of them.
 * If there are any bad pixels, they go on the line with that ID.  In the
 above example, there are two bad pixels, both on the same teensy.
 Pixel #9 on strip #1 and pixel #8 on strip #0 are marked as "bad" and
-will not be set to anything other than black.
+will not be set to anything other than black.  Bad pixels are
+measured from the start of the strip, not the image.
 
 * Run `teensy-rx-udp` on the BeagleBone.  It should report opening all
 four serial ports and querying them to find out their configured pixel
 lengths (which *must match the config file*):
 
-        root@beaglebone:~/LEDscape# ./teensy-udp-rx  config.txt
+        root@beaglebone:~/LEDscape# ./teensy-udp-rx config.txt
         8987: bad 1:9
         8987: bad 0:8
         /dev/ttyACM0: ID 8998 width 10
