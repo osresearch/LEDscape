@@ -33,11 +33,12 @@ teensy serial IDs and their Y-offset in the image buffer.  It is ok
 to have teensys that are not in use with this BBB so that the same
 config file can be used with all of them.
 
-        10,9999
-        14401,0,
-        14389,8,
+        9999 # UDP port
+	64,256 # Image width x height
+        14401,0
+        14389,8
         8987,16,1:9,0:8
-        8998,24,
+        8998,24
 
 * If there are any bad pixels, they go on the line with that ID.  In the
 above example, there are two bad pixels, both on the same teensy.
