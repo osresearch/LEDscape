@@ -1,18 +1,25 @@
 #include <stdio.h>
 #include "util.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
-	int fd = serial_open("/dev/ttyACM1");
+	const char * dev = argc > 1 ? argv[1] : "/dev/ttyACM2";
+	int fd = serial_open(dev);
 	if (fd < 0)
-		die("open failed");
+		die("%s: open failed\n", dev);
 
-	static const uint8_t bad_pattern[] = 
+	static uint8_t bad_pattern[] = 
 	{
+		0x2a,0x00,0x00
 #include "bad-pattern.txt"
+//#include "zeros.txt"
 	};
 
-	write_all(fd, bad_pattern, sizeof(bad_pattern));
+	for (size_t i = 3 ; i < sizeof(bad_pattern) ; i++)
+		bad_pattern[i] &= 0x0F;
+
+	ssize_t rc = write_all(fd, bad_pattern, sizeof(bad_pattern));
+	fprintf(stderr, "rc=%zu\n", rc);
 
 	return 0;
 }
