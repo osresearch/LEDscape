@@ -30,6 +30,7 @@ CFLAGS += \
 	-std=c99 \
 	-W \
 	-Wall \
+	-D_BSD_SOURCE \
 	-Wp,-MMD,$(dir $@).$(notdir $@).d \
 	-Wp,-MT,$@ \
 	-I. \
