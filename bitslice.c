@@ -82,7 +82,7 @@ bitslice(
 						b |= bit_pos;
 				}
 
-				out[24*y + 8*mapped_channel + bit_num] = b;
+				out[24*y + 8*mapped_channel + bit_num] = b & 0xF7;
 			}
 		}
 	}

@@ -462,11 +462,13 @@ main(
 				strip->x_offset
 			);
 
-			hexdump(stderr, slice+3, slice_size-3);
+			if (0 && strip->x_offset == 0)
+				hexdump(stderr, slice+3, slice_size-3);
 
 			const ssize_t rc
 				= write_all(dev->fd, slice, slice_size);
 
+#if 0
 			if (bitslice_check(slice+3, slice_size-3) < 0)
 			{
 				warn("bad slice! rc=%zu image:\n", rc);
@@ -475,6 +477,7 @@ main(
 				hexdump(stderr, slice+3, slice_size-3);
 				die("FAILED\n");
 			}
+#endif
 
 
 			if ((size_t) rc == slice_size)
