@@ -54,58 +54,6 @@ udp_socket(
 }
 
 
-/** Write all the bytes to a fd, even if there is a brief interruption.
- * \return number of bytes written or -1 on any fatal error.
- */
-static ssize_t
-write_all(
-	const int fd,
-	const void * const buf_ptr,
-	const size_t len
-)
-{
-	const uint8_t * const buf = buf_ptr;
-	size_t offset = 0;
-
-	while (offset < len)
-	{
-		const ssize_t rc = write(fd, buf + offset, len - offset);
-		if (rc < 0)
-		{
-			if (errno == EAGAIN)
-				continue;
-			return -1;
-		}
-
-		if (rc == 0)
-			return -1;
-
-		offset += rc;
-	}
-
-	return len;
-}
-		
-
-static int
-serial_open(
-	const char * const dev
-)
-{
-	const int fd = open(dev, O_RDWR | O_NONBLOCK | O_NOCTTY, 0666);
-	if (fd < 0)
-		return -1;
-
-	// Disable modem control signals
-	struct termios attr;
-	tcgetattr(fd, &attr);
-	attr.c_cflag |= CLOCAL | CREAD;
-	tcsetattr(fd, TCSANOW, &attr);
-
-	return fd;
-}
-
-
 typedef struct
 {
 	const char * dev;
@@ -480,6 +428,8 @@ main(
 				height,
 				strip->x_offset
 			);
+
+			hexdump(slice+3, slice_size-3);
 
 			const ssize_t rc
 				= write_all(dev->fd, slice, slice_size);
