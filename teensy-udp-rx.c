@@ -398,6 +398,11 @@ main(
 
 	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
 
+	const unsigned report_interval = 10;
+	unsigned last_report = 0;
+	unsigned long delta_sum = 0;
+	unsigned frames = 0;
+
 	while (1)
 	{
 		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
@@ -500,7 +505,21 @@ main(
 #endif
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);
-		printf("%u.%06u sec\n", delta_tv.tv_sec, delta_tv.tv_usec);
+
+		frames++;
+		delta_sum += delta_tv.tv_usec;
+		if (stop_tv.tv_sec - last_report < report_interval)
+			continue;
+
+		const unsigned delta_avg = delta_sum / frames;
+		printf("%6u usec avg, max %.2f fps, actual %.2f fps (over %u frames)\n",
+			delta_avg,
+			report_interval * 1.0e6 / delta_avg,
+			frames * 1.0 / report_interval,
+			frames
+		);
+
+		frames = delta_sum = 0;
 	}
 
 	return 0;
