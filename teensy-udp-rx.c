@@ -27,81 +27,11 @@
 #include <string.h>
 #include <pthread.h>
 #include "util.h"
+#include "bitslice.h"
 
 static int port = 9999;
 static unsigned width = 64;
 static unsigned height = 210;
-
-
-/** Extract a ADDRESSING_HORIZONTAL_NORMAL pixel from the image.
- *
- * This reverses the y since the teensy's are at the bottom of the
- * strips, while the image coordinate frame is at the top.
- */
-static const uint8_t *
-bitmap_pixel(
-	const uint8_t * const bitmap,
-	const unsigned x,
-	const unsigned y
-)
-{
-	return bitmap + ((height - y - 1) * width + x) * 3;
-}
-
-
-/** Prepare one Teensy3 worth of image data.
- *
- * Each Teensy handles 8 rows of data and needs the bits sliced into
- * each 8 rows.
- *
- * Since some of the pixels might have bad single channels,
- * allow them to be masked out entirely.
- */
-void
-bitslice(
-	uint8_t * const out,
-	const uint8_t * in,
-	const unsigned x_offset,
-	const uint8_t * const bad_pixels
-)
-{
-	// Reorder from RGB in the input to GRB in the output
-	static const uint8_t channel_map[] = { 1, 0, 2 };
-
-	for(unsigned y=0 ; y < height ; y++)
-	{
-		for (unsigned channel = 0 ; channel < 3 ; channel++)
-		{
-			const uint8_t mapped_channel
-				= channel_map[channel];
-
-			for (unsigned bit_num = 0 ; bit_num < 8 ; bit_num++)
-			{
-				uint8_t b = 0;
-				const uint8_t mask = 1 << (7 - bit_num);
-
-				for(unsigned x = 0 ; x < 8 ; x++)
-				{
-					const uint8_t bit_pos = 1 << x;
-					if (bad_pixels[y] & bit_pos)
-						continue;
-					const uint8_t * const p
-						= bitmap_pixel(in, x + x_offset, y);
-					const uint8_t v = p[channel];
-
-					// If the bit_num'th bit in v is
-					// set, then mark that the x'th bit
-					// in this output byte should be set.
-					if (v & mask)
-						b |= bit_pos;
-				}
-
-				out[24*y + 8*mapped_channel + bit_num] = b;
-			}
-		}
-	}
-}
-
 
 static int
 udp_socket(
@@ -439,25 +369,6 @@ read_config(
 }
 
 
-static void
-hexdump(
-	const void * const buf,
-	const size_t len
-)
-{
-	const uint8_t * const p = buf;
-
-	for(size_t i = 0 ; i < len ; i++)
-	{
-		if (i % 16 == 0)
-			printf("%s%04zu:", i == 0 ? "": "\n", i);
-		printf(" %02x", p[i]);
-	}
-
-	printf("\n");
-}
-
-
 int
 main(
 	int argc,
@@ -534,9 +445,11 @@ main(
 #if 0
 		bitslice(
 			slice + 3,
-			buf + 1,
-			8,
 			strips[0].bad
+			buf + 1,
+			width,
+			height
+			8,
 		);
 
 		//hexdump(buf+1, rlen-1);
@@ -556,9 +469,11 @@ main(
 
 			bitslice(
 				slice + 3,
+				strip->bad,
 				buf + 1,
-				strip->x_offset,
-				strip->bad
+				width,
+				height,
+				strip->x_offset
 			);
 
 			const ssize_t rc
