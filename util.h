@@ -34,6 +34,7 @@
 
 static inline void
 hexdump(
+	FILE * const outfile,
 	const void * const buf,
 	const size_t len
 )
@@ -43,11 +44,11 @@ hexdump(
 	for(size_t i = 0 ; i < len ; i++)
 	{
 		if (i % 16 == 0)
-			printf("%s%04zu:", i == 0 ? "": "\n", i);
-		printf(" %02x", p[i]);
+			fprintf(outfile, "%s%04zu:", i == 0 ? "": "\n", i);
+		fprintf(outfile, " %02x", p[i]);
 	}
 
-	printf("\n");
+	fprintf(outfile, "\n");
 }
 
 #endif
