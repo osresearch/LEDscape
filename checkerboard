@@ -29,9 +29,10 @@ while (1)
 	{
 		for(my $x = 0; $x < $width ; $x++)
 		{
-			my $r = ($i % 7 == 0) ? $bright : 0;
-			my $g = ($i % 7 == 1) ? $bright : 0;
-			my $b = ($i % 7 == 2) ? $bright : 0;
+			my $c = $i % 7;
+			my $r = ($c == 0 || $c == 2) ? $bright : 0;
+			my $g = ($c == 1 || $c == 2) ? $bright : 0;
+			my $b = 0; #($i % 7 == 2) ? $bright : 0;
 
 			$s .= chr($r);
 			$s .= chr($g);
@@ -41,6 +42,7 @@ while (1)
 	}
 
 	$sock->send($s);
-	usleep(80000);
+	usleep(1e6/4);
+	#usleep(10);
 	$i++;
 }
