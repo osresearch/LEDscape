@@ -82,14 +82,6 @@ bitslice(
 						b |= bit_pos;
 				}
 
-				// octows2811 bug? if strips 2 and 4 are
-				// both on there are massive glitches.
-				// switch between them each frame.
-				// this sucks, but works
-				static unsigned toggle = 0;
-				b &= ~(toggle ? 0x8 : 0x2);
-				toggle = !toggle;
-
 				out[24*y + 8*mapped_channel + bit_num] = b;
 			}
 		}
