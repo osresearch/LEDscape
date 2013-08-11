@@ -383,7 +383,6 @@ main(
 	unsigned last_report = 0;
 	unsigned long delta_sum = 0;
 	unsigned frames = 0;
-	unsigned toggle = 0;
 
 	while (1)
 	{
@@ -443,8 +442,6 @@ main(
 		//hexdump(slice+3, slice_size-3);
 
 #else
-		toggle = !toggle;
-
 		// Translate the image from packed RGB into sliced 24-bit
 		// for each teensy.
 		for (unsigned i = 0 ; i < num_strips ; i++)
@@ -472,12 +469,13 @@ main(
 			// both on there are massive glitches.
 			// switch between them each frame.
 			// this sucks, but works
-			toggle = 0;
+			unsigned toggle = 0;
 			for (size_t i = 0 ; i < slice_size - 3 ; i++)
 			{
 				if (i % 24 == 0)
 					toggle = !toggle;
-				slice[i+3] &= ~(toggle ? 0x8 : 0x2);
+				//slice[i+3] &= ~(toggle ? 0x8 : 0x2);
+				slice[i+3] &= 0xF7;
 			}
 
 			const ssize_t rc
