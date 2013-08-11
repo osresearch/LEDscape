@@ -510,6 +510,7 @@ main(
 		delta_sum += delta_tv.tv_usec;
 		if (stop_tv.tv_sec - last_report < report_interval)
 			continue;
+		last_report = stop_tv.tv_sec;
 
 		const unsigned delta_avg = delta_sum / frames;
 		printf("%6u usec avg, max %.2f fps, actual %.2f fps (over %u frames)\n",
