@@ -11,3 +11,4 @@ am335x/pasm/pasm
 .*.d
 *~
 *~
+a.out
