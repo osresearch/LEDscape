@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <fcntl.h>
 #include <termios.h>
 #include <ctype.h>
@@ -527,6 +528,9 @@ main(
 		slice[1] = 0;
 		slice[2] = 0;
 
+		struct timeval start_tv, stop_tv, delta_tv;
+		gettimeofday(&start_tv, NULL);
+
 #if 0
 		bitslice(
 			slice + 3,
@@ -535,8 +539,8 @@ main(
 			strips[0].bad
 		);
 
-		hexdump(buf+1, rlen-1);
-		hexdump(slice+3, slice_size-3);
+		//hexdump(buf+1, rlen-1);
+		//hexdump(slice+3, slice_size-3);
 
 #else
 		// Translate the image from packed RGB into sliced 24-bit
@@ -579,6 +583,9 @@ main(
 			strip_close(strip);
 		}
 #endif
+		gettimeofday(&stop_tv, NULL);
+		timersub(&stop_tv, &start_tv, &delta_tv);
+		printf("%u.%06u sec\n", delta_tv.tv_sec, delta_tv.tv_usec);
 	}
 
 	return 0;
