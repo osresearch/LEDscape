@@ -4,7 +4,7 @@ use strict;
 use IO::Socket;
 use Time::HiRes 'usleep';
 
-# Make a smooth gradient pattern
+# Make an RGB checkerboard
 my $host = '192.168.7.2:9999';
 
 my $sock = IO::Socket::INET->new(
@@ -17,6 +17,8 @@ my $width = 64;
 my $height = 210;
 my $offset = 0;
 
+my $i = 0;
+
 while (1)
 {
 	$offset++;
@@ -27,16 +29,20 @@ while (1)
 	{
 		for(my $x = 0; $x < $width ; $x++)
 		{
-			my $r = (($x + $offset) % $width) * $bright / $width;
-			my $g = 0;
-			my $b = (($height - $y - 1 + $offset) % $height) * $bright / $height;
+			my $c = $i % 7;
+			my $r = ($c == 0 || $c == 2) ? $bright : 0;
+			my $g = ($c == 1 || $c == 2) ? $bright : 0;
+			my $b = 0; #($i % 7 == 2) ? $bright : 0;
 
 			$s .= chr($r);
 			$s .= chr($g);
 			$s .= chr($b);
+			$i++;
 		}
 	}
 
 	$sock->send($s);
-	usleep(20000);
+	usleep(1e6/4);
+	#usleep(10);
+	$i++;
 }
