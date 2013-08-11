@@ -6,7 +6,7 @@ TARGETS += teensy-udp-rx
 TARGETS += rgb-test
 TARGETS += udp-rx
 
-LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o
+LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
 LEDSCAPE_LIB := libledscape.a
 
 all: $(TARGETS) ws281x.bin

@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <errno.h>
 #include <unistd.h>
@@ -32,23 +33,28 @@
 	} while(0)
 
 
-static inline void
+extern void
 hexdump(
 	FILE * const outfile,
 	const void * const buf,
 	const size_t len
-)
-{
-	const uint8_t * const p = buf;
+);
 
-	for(size_t i = 0 ; i < len ; i++)
-	{
-		if (i % 16 == 0)
-			fprintf(outfile, "%s%04zu:", i == 0 ? "": "\n", i);
-		fprintf(outfile, " %02x", p[i]);
-	}
 
-	fprintf(outfile, "\n");
-}
+extern int
+serial_open(
+	const char * const dev
+);
+
+
+/** Write all the bytes to a fd, even if there is a brief interruption.
+ * \return number of bytes written or -1 on any fatal error.
+ */
+extern ssize_t
+write_all(
+	const int fd,
+	const void * const buf_ptr,
+	const size_t len
+);
 
 #endif
