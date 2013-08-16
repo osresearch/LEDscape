@@ -84,8 +84,8 @@
 // video it displays.  By reading these numbers, the video application can
 // automatically configure itself, regardless of which serial port COM number
 // or device names are assigned to each Teensy 3.0 by your operating system.
-#define VIDEO_XOFFSET  0
-#define VIDEO_YOFFSET  0       // display entire image
+#define VIDEO_XOFFSET  0	// always 0 for Disorient pyramid
+#define VIDEO_YOFFSET  0       // display entire image -- always 0 for Disorient pyramid
 #define VIDEO_WIDTH    100
 #define VIDEO_HEIGHT   100
 
