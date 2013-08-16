@@ -317,39 +317,6 @@ read_config(
 }
 
 
-static int
-bitslice_check(
-	const uint8_t * const slice,
-	const size_t len
-)
-{
-	// Walk one of the strips to find if there are any 0xFF values
-	for (size_t i = 0 ; i < len ; i += 8)
-	{
-		uint8_t byte = 0;
-		for (unsigned bit_num = 0 ; bit_num < 8 ; bit_num++)
-		{
-			byte <<= 1;
-			if (slice[i + bit_num] & 1)
-				byte |= 0x1;
-		}
-
-		// for the fire demo there is NEVER blue
-		if ((i / 8) % 3 == 2 && byte != 0)
-			return -1;
-
-		//printf(" %02x", byte);
-		//if (byte < 0x10)
-			continue;
-		warn("bad byte at %u: %02x\n", i, byte);
-		return -1;
-	}
-	//printf("\n");
-
-	return 0;
-}
-
-
 int
 main(
 	int argc,
@@ -428,20 +395,6 @@ main(
 		struct timeval start_tv, stop_tv, delta_tv;
 		gettimeofday(&start_tv, NULL);
 
-#if 0
-		bitslice(
-			slice + 3,
-			strips[0].bad
-			buf + 1,
-			width,
-			height
-			8,
-		);
-
-		//hexdump(buf+1, rlen-1);
-		//hexdump(slice+3, slice_size-3);
-
-#else
 		// Translate the image from packed RGB into sliced 24-bit
 		// for each teensy.
 		for (unsigned i = 0 ; i < num_strips ; i++)
@@ -462,36 +415,8 @@ main(
 				strip->x_offset
 			);
 
-			if (0 && strip->x_offset == 0)
-				hexdump(stderr, slice+3, slice_size-3);
-
-			// octows2811 bug? if strips 2 and 4 are
-			// both on there are massive glitches.
-			// switch between them each frame.
-			// this sucks, but works
-			unsigned toggle = 0;
-			for (size_t i = 0 ; i < slice_size - 3 ; i++)
-			{
-				if (i % 24 == 0)
-					toggle = !toggle;
-				//slice[i+3] &= ~(toggle ? 0x8 : 0x2);
-				slice[i+3] &= 0xF7;
-			}
-
 			const ssize_t rc
 				= write_all(dev->fd, slice, slice_size);
-
-#if 0
-			if (bitslice_check(slice+3, slice_size-3) < 0)
-			{
-				warn("bad slice! rc=%zu image:\n", rc);
-				hexdump(stderr, buf+1, image_size);
-				warn("slice %u\n", strip->x_offset);
-				hexdump(stderr, slice+3, slice_size-3);
-				die("FAILED\n");
-			}
-#endif
-
 
 			if ((size_t) rc == slice_size)
 				continue;
@@ -511,7 +436,7 @@ main(
 
 			strip_close(strip);
 		}
-#endif
+
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);
 
