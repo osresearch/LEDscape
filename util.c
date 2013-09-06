@@ -65,6 +65,7 @@ serial_open(
 	struct termios attr;
 	tcgetattr(fd, &attr);
 	attr.c_cflag |= CLOCAL | CREAD;
+	attr.c_oflag &= ~OPOST;
 	tcsetattr(fd, TCSANOW, &attr);
 
 	return fd;
