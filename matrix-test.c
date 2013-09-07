@@ -50,7 +50,7 @@ int main (void)
 			for (unsigned y = 0 ; y < 16 ; y++)
 			{
 				uint8_t * const px = (void*) &p[x + num_pixels * y];
-				uint8_t j = (x + y + (i >> 8)) % 30;
+				uint8_t j = (x + y + (i >> 8)) % 32;
 				const unsigned v = y * 16;
 				px[0] = j <= 14 ? v : 0;
 				px[1] = 11 < j && j <= 26 ? v : 0;
