@@ -256,6 +256,17 @@ PWM_LOOP:
 
 			CLOCK_LO
 
+			// If the brightness is less than the pixel, turn off
+#if 1
+			LSL p2, pixel, 2
+			ADD p2, p2, pixel
+			ADD p2, p2, pixel
+			ADD p2, p2, pixel
+			QBLT no_blank, bright, p2
+			DISPLAY_OFF
+			no_blank:
+#endif
+
 			ADD pix_ptr, pix_ptr, 4
 			ADD pixel, pixel, 1
 			MOV p2, DISPLAY_WIDTH
