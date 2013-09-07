@@ -254,8 +254,6 @@ PWM_LOOP:
 			XOR out0_set, out0_set, gpio0_led_mask
 			SBBO out0_set, gpio0_clr, 0, 4
 
-			// give it a few ns to settle
-			//SLEEPNS 50, 1, data_setup
 			CLOCK_LO
 
 			ADD pix_ptr, pix_ptr, 4
