@@ -5,6 +5,7 @@
 TARGETS += teensy-udp-rx
 TARGETS += rgb-test
 TARGETS += matrix-test
+TARGETS += matrix-udp-rx
 TARGETS += bitmap-test
 TARGETS += udp-rx
 
@@ -72,7 +73,7 @@ PASM_DIR ?= ./am335x/pasm
 PASM := $(PASM_DIR)/pasm
 
 %.bin: %.p $(PASM)
-	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g' > $<.i
+	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g; s/BYTE\((\d+)\)/t\1/g' > $<.i
 	$(PASM) -V3 -b $<.i $(basename $@)
 	$(RM) $<.i
 
