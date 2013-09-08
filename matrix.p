@@ -202,9 +202,6 @@ START:
         SET latch_pin, gpio1_latch
 
 PWM_LOOP:
-	//CLOCK
-	//QBA PWM_LOOP
-
         // Load the pointer to the buffer from PRU DRAM into r0 and the
         // length (in bytes-bit words) into r1.
         // start command into r2
