@@ -1,5 +1,5 @@
 /** \file
- * Test the matrix LCD PRU firmware.
+ * Test the matrix LCD PRU firmware with a multi-hue rainbow.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,28 +11,119 @@
 #include <unistd.h>
 #include "ledscape.h"
 
-static void
-ledscape_fill_color(
-	ledscape_frame_t * const frame,
-	const unsigned num_pixels,
-	const uint8_t r,
-	const uint8_t g,
-	const uint8_t b
+
+// Borrowed by OctoWS2811 rainbow test
+static unsigned int
+h2rgb(
+	unsigned int v1,
+	unsigned int v2,
+	unsigned int hue
 )
 {
-	for (unsigned i = 0 ; i < num_pixels ; i++)
-		for (unsigned strip = 0 ; strip < LEDSCAPE_NUM_STRIPS ; strip++)
-			ledscape_set_color(frame, strip, i, r, g, b);
+	if (hue < 60)
+		return v1 * 60 + (v2 - v1) * hue;
+	if (hue < 180)
+		return v2 * 60;
+	if (hue < 240)
+		return v1 * 60 + (v2 - v1) * (240 - hue);
+
+	return v1 * 60;
 }
 
 
-int main (void)
+// Convert HSL (Hue, Saturation, Lightness) to RGB (Red, Green, Blue)
+//
+//   hue:        0 to 359 - position on the color wheel, 0=red, 60=orange,
+//                            120=yellow, 180=green, 240=blue, 300=violet
+//
+//   saturation: 0 to 100 - how bright or dull the color, 100=full, 0=gray
+//
+//   lightness:  0 to 100 - how light the color is, 100=white, 50=color, 0=black
+//
+static uint32_t
+makeColor(
+	unsigned int hue,
+	unsigned int saturation,
+	unsigned int lightness
+)
+{
+	unsigned int red, green, blue;
+	unsigned int var1, var2;
+
+	if (hue > 359)
+		hue = hue % 360;
+	if (saturation > 100)
+		saturation = 100;
+	if (lightness > 100)
+		lightness = 100;
+
+	// algorithm from: http://www.easyrgb.com/index.php?X=MATH&H=19#text19
+	if (saturation == 0) {
+		red = green = blue = lightness * 255 / 100;
+	} else {
+		if (lightness < 50) {
+			var2 = lightness * (100 + saturation);
+		} else {
+			var2 = ((lightness + saturation) * 100) - (saturation * lightness);
+		}
+		var1 = lightness * 200 - var2;
+		red = h2rgb(var1, var2, (hue < 240) ? hue + 120 : hue - 240) * 255 / 600000;
+		green = h2rgb(var1, var2, hue) * 255 / 600000;
+		blue = h2rgb(var1, var2, (hue >= 120) ? hue - 120 : hue + 240) * 255 / 600000;
+	}
+	return (red << 16) | (green << 8) | blue;
+}
+
+
+
+static uint32_t rainbowColors[180];
+
+
+// phaseShift is the shift between each row.  phaseShift=0
+// causes all rows to show the same colors moving together.
+// phaseShift=180 causes each row to be the opposite colors
+// as the previous.
+//
+// cycleTime is the number of milliseconds to shift through
+// the entire 360 degrees of the color wheel:
+// Red -> Orange -> Yellow -> Green -> Blue -> Violet -> Red
+//
+static void
+rainbow(
+	uint32_t * const pixels,
+	unsigned num_leds,
+	unsigned phaseShift,
+	unsigned cycle
+)
+{
+	const unsigned color = cycle % 180;
+
+	for (unsigned x=0; x < num_leds; x++) {
+		for (unsigned y=0; y < 16; y++) {
+			const int index = (color + x + y*phaseShift/2) % 180;
+			pixels[x + y*num_leds] = rainbowColors[index];
+		}
+	}
+}
+
+
+int
+main(void)
 {
 	const int num_pixels = 256;
 	ledscape_t * const leds = ledscape_init(num_pixels);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
+
+	// pre-compute the 180 rainbow colors
+	for (int i=0; i<180; i++)
+	{
+		int hue = i * 2;
+		int saturation = 100;
+		int lightness = 50;
+		rainbowColors[i] = makeColor(hue, saturation, lightness);
+	}
 
 	unsigned i = 0;
 	while (1)
@@ -44,51 +135,9 @@ int main (void)
 
 		uint32_t * const p = (void*) frame;
 
-#if 1
-		for (unsigned x = 0 ; x < num_pixels ; x++)
-		{
-			for (unsigned y = 0 ; y < 16 ; y++)
-			{
-				uint8_t * const px = (void*) &p[x + num_pixels * y];
-				uint8_t j = (x + y + (i >> 8)) % 32;
-				const unsigned v = y * 16;
-				px[0] = j <= 14 ? v : 0;
-				px[1] = 11 < j && j <= 26 ? v : 0;
-				px[2] = 17 < j && j <= 40 ? v : 0;
-			}
-		}
+		rainbow(p, num_pixels, 10, i);
 		ledscape_draw(leds, frame_num);
-		usleep(100);
-#else
-		uint8_t val = i >> 1;
-		uint16_t r = ((i >>  0) & 0xFF);
-		uint16_t g = ((i >>  8) & 0xFF);
-		uint16_t b = ((i >> 16) & 0xFF);
-		ledscape_fill_color(frame, num_pixels, val, val, val);
-
-		for (unsigned strip = 0 ; strip < 32 ; strip++)
-		{
-			for (unsigned p = 0 ; p < num_pixels ; p++)
-			{
-				ledscape_set_color(
-					frame,
-					strip,
-					p,
-#if 1
-					((strip % 3) == 0) ? (i) : 0,
-					((strip % 3) == 1) ? (i) : 0,
-					((strip % 3) == 2) ? (i) : 0
-#else
-					((strip % 3) == 0) ? 100 : 0,
-					((strip % 3) == 1) ? 100 : 0,
-					((strip % 3) == 2) ? 100 : 0
-#endif
-				);
-				//ledscape_set_color(frame, strip, 3*p+1, 0, p+val + 80, 0);
-				//ledscape_set_color(frame, strip, 3*p+2, 0, 0, p+val + 160);
-			}
-		}
-#endif
+		usleep(10000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
