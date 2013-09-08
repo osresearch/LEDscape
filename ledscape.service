@@ -1,0 +1,10 @@
+[Unit]
+Description=BeagleBone LED matrix driver
+
+[Service]
+WorkingDirectory=/home/root/LEDscape/
+ExecStart=/home/root/LEDscape/run-ledscape
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
