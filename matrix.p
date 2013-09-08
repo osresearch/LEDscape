@@ -127,6 +127,8 @@ lab:
 .endm
 
 
+#define BRIGHT_STEP 32
+
 #define CLOCK_LO \
         SBBO clock_pin, gpio1_set, 0, 4; \
 
@@ -254,11 +256,17 @@ PWM_LOOP:
 			CLOCK_LO
 
 			// If the brightness is less than the pixel, turn off
+			// but keep in mind that this is the brightness of
+			// the previous row, not this one.
 #if 1
 			LSL p2, pixel, 2
 			ADD p2, p2, pixel
 			ADD p2, p2, pixel
 			ADD p2, p2, pixel
+
+			SUB out0_set, bright, BRIGHT_STEP
+			AND out0_set, out0_set, 0xFF
+
 			QBLT no_blank, bright, p2
 			DISPLAY_OFF
 			no_blank:
@@ -304,7 +312,7 @@ PWM_LOOP:
         // We have clocked out all of the panels.
         // Celebrate and go back to the PWM loop
         // Limit brightness to 0..MAX_BRIGHT
-        ADD bright, bright, 32
+        ADD bright, bright, BRIGHT_STEP
 	AND bright, bright, 0xFF
 
         QBA PWM_LOOP
