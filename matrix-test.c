@@ -137,7 +137,7 @@ main(void)
 
 		rainbow(p, num_pixels, 10, i);
 		ledscape_draw(leds, frame_num);
-		usleep(10000);
+		usleep(20000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
