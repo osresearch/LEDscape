@@ -258,14 +258,14 @@ PWM_LOOP:
 			// If the brightness is less than the pixel, turn off
 			// but keep in mind that this is the brightness of
 			// the previous row, not this one.
+			// \todo: Test turning OE on and off every other,
+			// every fourth, every eigth, etc pixel based on
+			// the current brightness.
 #if 1
 			LSL p2, pixel, 2
 			ADD p2, p2, pixel
 			ADD p2, p2, pixel
 			ADD p2, p2, pixel
-
-			SUB out0_set, bright, BRIGHT_STEP
-			AND out0_set, out0_set, 0xFF
 
 			QBLT no_blank, bright, p2
 			DISPLAY_OFF
