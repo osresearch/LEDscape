@@ -44,7 +44,7 @@ main(
 		{
 			for (unsigned y = 0 ; y < 16 ; y++)
 			{
-				uint8_t j = (i >> 8);
+				uint8_t j = (i >> 6);
 				uint8_t * const inpx = (void*) &buf[4 * ((x + j) % num_pixels) + num_pixels * (16 - y) * 4];
 				uint8_t * const px = (void*) &p[x + num_pixels * y];
 
