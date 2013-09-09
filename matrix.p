@@ -15,15 +15,6 @@
  *
  * To pause the redraw loop, write a NULL to the buffer pointer.
  * To shut down the PRU, write -1 to the buffer pointer.
- *
- * HOW WE THINK THIS WORKS IS WRONG: it is not serial on all three rows,
- * but instead each R, G and B has its own input, and the two rows that
- * are simultaneously being scanned have their own.  So there are only 32
- * clocks for the input.
- *
- * This means that we need 6 IOs/panel for data, which is far more than
- * we thought.
- * 16 GPIO0 IOs == 2 with 4 IO left over.
  */
 // Pins available in GPIO0
 #define gpio0_r1 3
@@ -103,8 +94,8 @@
 #define scan r6
 #define pix_ptr r7
 #define pixel r8
-#define out0_set r9
-#define out1_set r10
+#define out_clr r9 // must be one less than out_set
+#define out_set r10
 #define p2 r12
 #define bright r13
 #define gpio0_led_mask r14
@@ -142,14 +133,14 @@ lab:
         SBBO latch_pin, gpio1_clr, 0, 4; \
 
 #define DISPLAY_OFF \
-	MOV out1_set, 0; \
-	SET out1_set, gpio1_oe; \
-	SBBO out1_set, gpio1_set, 0, 4; \
+	MOV out_set, 0; \
+	SET out_set, gpio1_oe; \
+	SBBO out_set, gpio1_set, 0, 4; \
 
 #define DISPLAY_ON \
-	MOV out1_set, 0; \
-	SET out1_set, gpio1_oe; \
-	SBBO out1_set, gpio1_clr, 0, 4; \
+	MOV out_set, 0; \
+	SET out_set, gpio1_oe; \
+	SBBO out_set, gpio1_clr, 0, 4; \
 
 
 START:
@@ -225,7 +216,7 @@ PWM_LOOP:
 		ADD pix_ptr, data_addr, offset
 
 		PIXEL_LOOP:
-			MOV out0_set, 0
+			MOV out_set, 0
 			CLOCK_HI
 
 			// read a pixel worth of data
@@ -233,13 +224,13 @@ PWM_LOOP:
 	MOV p2, (OFFSET); \
 	LBBO pix, pix_ptr, p2, 4; \
 	QBGE skip_r##N, pix.b0, bright; \
-	SET out0_set, gpio0_r##N; \
+	SET out_set, gpio0_r##N; \
 	skip_r##N:; \
 	QBGE skip_g##N, pix.b1, bright; \
-	SET out0_set, gpio0_g##N; \
+	SET out_set, gpio0_g##N; \
 	skip_g##N:; \
 	QBGE skip_b##N, pix.b2, bright; \
-	SET out0_set, gpio0_b##N; \
+	SET out_set, gpio0_b##N; \
 	skip_b##N:; \
 
 			OUTPUT_ROW(1, 0)
@@ -249,9 +240,8 @@ PWM_LOOP:
 
 			// All bits are configured;
 			// the non-set ones will be cleared
-			SBBO out0_set, gpio0_set, 0, 4
-			XOR out0_set, out0_set, gpio0_led_mask
-			SBBO out0_set, gpio0_clr, 0, 4
+			XOR out_clr, out_set, gpio0_led_mask
+			SBBO out_clr, gpio0_clr, 0, 8 // write both clr and set
 
 			CLOCK_LO
 
@@ -282,21 +272,20 @@ PWM_LOOP:
 		LATCH_HI
 
                 // set address; pins in gpio1
-                MOV out1_set, 0
+                MOV out_set, 0
                 QBBC sel0, row, 0
-                SET out1_set, gpio1_sel0
+                SET out_set, gpio1_sel0
                 sel0:
                 QBBC sel1, row, 1
-                SET out1_set, gpio1_sel1
+                SET out_set, gpio1_sel1
                 sel1:
                 QBBC sel2, row, 2
-                SET out1_set, gpio1_sel2
+                SET out_set, gpio1_sel2
                 sel2:
 
                 // write select bits to output
-                SBBO out1_set, gpio1_set, 0, 4
-                XOR out1_set, out1_set, gpio1_sel_mask
-                SBBO out1_set, gpio1_clr, 0, 4
+                XOR out_clr, out_set, gpio1_sel_mask
+                SBBO out_clr, gpio1_clr, 0, 8 // set both
         
                 // We have clocked out all of the pixels for
                 // this row and the one eigth rows later.
