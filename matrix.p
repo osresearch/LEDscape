@@ -101,20 +101,10 @@
 #define pix r16
 #define clock_pin r17
 #define latch_pin r18
-
-/** Sleep a given number of nanoseconds with 10 ns resolution.
- *
- * This busy waits for a given number of cycles.  Not for use
- * with things that must happen on a tight schedule.
- */
-.macro SLEEPNS
-.mparam ns,inst,lab
-    MOV p2, (ns/10)-1-inst
-lab:
-    SUB p2, p2, 1
-    QBNE lab, p2, 0
-.endm
-
+#define row1_ptr r19
+#define row2_ptr r20
+#define row3_ptr r21
+#define row4_ptr r22
 
 #define BRIGHT_STEP 32
 
@@ -216,6 +206,7 @@ PWM_LOOP:
 			CLOCK_HI
 
 			// read a pixel worth of data
+			// \todo: track the four pointers separately
 #define OUTPUT_ROW(N, OFFSET) \
 	MOV p2, (OFFSET); \
 	LBBO pix, pix_ptr, p2, 4; \
