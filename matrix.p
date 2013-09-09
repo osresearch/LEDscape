@@ -34,7 +34,7 @@
 #define gpio0_g4 26
 
 // Pins available in GPIO1
-#define gpio1_sel0 12 /* 44 */
+#define gpio1_sel0 12 /* 44, must be sequential with sel1 and sel2 */
 #define gpio1_sel1 13 /* 45 */
 #define gpio1_sel2 14 /* 46 */
 #define gpio1_latch 28 /* 60 */
@@ -72,23 +72,21 @@
 #include "ws281x.hp"
 
 /** Mappings of the GPIO devices */
-#define GPIO0 0x44E07000
-#define GPIO1 0x4804c000
-#define GPIO2 0x481AC000
-#define GPIO3 0x481AE000
+#define GPIO0 (0x44E07000 + 0x100)
+#define GPIO1 (0x4804c000 + 0x100)
+#define GPIO2 (0x481AC000 + 0x100)
+#define GPIO3 (0x481AE000 + 0x100)
 
 /** Offsets for the clear and set registers in the devices.
- * These are adjacent; can one sbbo instruction be used?
+ * Since the offsets can only be 0xFF, we deliberately add offsets
  */
-#define GPIO_CLRDATAOUT 0x190
-#define GPIO_SETDATAOUT 0x194
+#define GPIO_CLRDATAOUT (0x190 - 0x100)
+#define GPIO_SETDATAOUT (0x194 - 0x100)
 
 /** Register map */
 #define data_addr r0
-#define gpio0_set r20
-#define gpio0_clr r21
-#define gpio1_set r2
-#define gpio1_clr r3
+#define gpio0_base r2
+#define gpio1_base r3
 #define row r4
 #define offset r5
 #define scan r6
@@ -121,26 +119,26 @@ lab:
 #define BRIGHT_STEP 32
 
 #define CLOCK_LO \
-        SBBO clock_pin, gpio1_set, 0, 4; \
+        SBBO clock_pin, gpio1_base, GPIO_SETDATAOUT, 4; \
 
 #define CLOCK_HI \
-        SBBO clock_pin, gpio1_clr, 0, 4; \
+        SBBO clock_pin, gpio1_base, GPIO_CLRDATAOUT, 4; \
 
 #define LATCH_HI \
-        SBBO latch_pin, gpio1_set, 0, 4; \
+        SBBO latch_pin, gpio1_base, GPIO_SETDATAOUT, 4; \
 
 #define LATCH_LO \
-        SBBO latch_pin, gpio1_clr, 0, 4; \
+        SBBO latch_pin, gpio1_base, GPIO_CLRDATAOUT, 4; \
 
 #define DISPLAY_OFF \
 	MOV out_set, 0; \
 	SET out_set, gpio1_oe; \
-	SBBO out_set, gpio1_set, 0, 4; \
+	SBBO out_set, gpio1_base, GPIO_SETDATAOUT, 4; \
 
 #define DISPLAY_ON \
 	MOV out_set, 0; \
 	SET out_set, gpio1_oe; \
-	SBBO out_set, gpio1_clr, 0, 4; \
+	SBBO out_set, gpio1_base, GPIO_CLRDATAOUT, 4; \
 
 
 START:
@@ -181,12 +179,10 @@ START:
 
         MOV bright, #0
 
-        MOV gpio0_set, GPIO0 | GPIO_SETDATAOUT
-        MOV gpio0_clr, GPIO0 | GPIO_CLRDATAOUT
+        MOV gpio0_base, GPIO0
         MOV gpio0_led_mask, GPIO0_LED_MASK
 
-        MOV gpio1_set, GPIO1 | GPIO_SETDATAOUT
-        MOV gpio1_clr, GPIO1 | GPIO_CLRDATAOUT
+        MOV gpio1_base, GPIO1
         MOV gpio1_sel_mask, GPIO1_SEL_MASK
 
         MOV clock_pin, 0
@@ -240,8 +236,11 @@ PWM_LOOP:
 
 			// All bits are configured;
 			// the non-set ones will be cleared
+			// We write 8 bytes since CLR and DATA are contiguous,
+			// which will write both the 0 and 1 bits in the
+			// same instruction.
 			XOR out_clr, out_set, gpio0_led_mask
-			SBBO out_clr, gpio0_clr, 0, 8 // write both clr and set
+			SBBO out_clr, gpio0_base, GPIO_CLRDATAOUT, 8
 
 			CLOCK_LO
 
@@ -271,21 +270,10 @@ PWM_LOOP:
 		DISPLAY_OFF
 		LATCH_HI
 
-                // set address; pins in gpio1
-                MOV out_set, 0
-                QBBC sel0, row, 0
-                SET out_set, gpio1_sel0
-                sel0:
-                QBBC sel1, row, 1
-                SET out_set, gpio1_sel1
-                sel1:
-                QBBC sel2, row, 2
-                SET out_set, gpio1_sel2
-                sel2:
-
-                // write select bits to output
+                // set address; select pins in gpio1 are sequential
+		LSL out_set, row, gpio1_sel0
                 XOR out_clr, out_set, gpio1_sel_mask
-                SBBO out_clr, gpio1_clr, 0, 8 // set both
+                SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8 // set both
         
                 // We have clocked out all of the pixels for
                 // this row and the one eigth rows later.
