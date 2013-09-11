@@ -249,7 +249,7 @@ PWM_LOOP:
 			// every fourth, every eigth, etc pixel based on
 			// the current brightness.
 #if 1
-			LSL p2, pixel, 2
+			LSL p2, pixel, 4
 			ADD p2, p2, pixel
 			ADD p2, p2, pixel
 			ADD p2, p2, pixel
