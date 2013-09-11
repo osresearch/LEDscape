@@ -101,7 +101,21 @@ rainbow(
 	for (unsigned x=0; x < num_leds; x++) {
 		for (unsigned y=0; y < 16; y++) {
 			const int index = (color + x + y*phaseShift/2) % 180;
-			pixels[x + y*num_leds] = rainbowColors[index];
+                        const uint32_t in  = rainbowColors[index];
+			uint8_t * const out = &pixels[x + y*num_leds];
+#if 0
+                        out[0] = ((in >> 0) & 0xFF) * y / 16;
+                        out[1] = ((in >> 8) & 0xFF) * y / 16;
+                        out[2] = ((in >> 16) & 0xFF) * y / 16;
+
+                        out[0] = 0xFF * y / 16;
+                        out[1] = 0xFF * y / 16;
+                        out[2] = 0xFF * y / 16;
+#else
+                        out[0] = ((in >> 0) & 0xFF);
+                        out[1] = ((in >> 8) & 0xFF);
+                        out[2] = ((in >> 16) & 0xFF);
+#endif
 		}
 	}
 }
