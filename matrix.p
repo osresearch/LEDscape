@@ -249,10 +249,7 @@ PWM_LOOP:
 			// every fourth, every eigth, etc pixel based on
 			// the current brightness.
 #if 1
-			LSL p2, pixel, 4
-			ADD p2, p2, pixel
-			ADD p2, p2, pixel
-			ADD p2, p2, pixel
+			LSL p2, pixel, 1
 
 			QBLT no_blank, bright, p2
 			DISPLAY_OFF
@@ -269,7 +266,10 @@ PWM_LOOP:
 #endif
 
 		// Disable output before we latch and set the address
+		// Unless we've just done a full image, in which case
+		// we treat this as a dummy row and go back to the top
 		DISPLAY_OFF
+                QBEQ NEXT_ROW, row, 8
 		LATCH_HI
 
                 // set address; select pins in gpio1 are sequential
@@ -288,8 +288,9 @@ PWM_LOOP:
                 ADD offset, offset, display_width_bytes
 
                 ADD row, row, 1
-                QBNE ROW_LOOP, row, 8
+		QBA ROW_LOOP
     
+NEXT_ROW:
         // We have clocked out all of the panels.
         // Celebrate and go back to the PWM loop
         // Limit brightness to 0..MAX_BRIGHT
