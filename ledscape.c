@@ -22,6 +22,10 @@
  * If these are changed, be sure to check the mappings in
  * ws281x.p!
  *
+ * The RGB matrix uses a subset of these pins, although with
+ * the HDMI disabled it might use quite a few more for the four
+ * output version.
+ *
  * \todo: Find a way to unify this with the defines in the .p file
  */
 static const uint8_t gpios0[] = {
