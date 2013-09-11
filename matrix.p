@@ -85,12 +85,13 @@
 
 /** Register map */
 #define data_addr r0
+#define row_skip_bytes r1
 #define gpio0_base r2
 #define gpio1_base r3
 #define row r4
 #define offset r5
 #define scan r6
-#define pix_ptr r7
+#define display_width_bytes r7
 #define pixel r8
 #define out_clr r9 // must be one less than out_set
 #define out_set r10
@@ -175,6 +176,9 @@ START:
         MOV gpio1_base, GPIO1
         MOV gpio1_sel_mask, GPIO1_SEL_MASK
 
+	MOV display_width_bytes, 4*DISPLAY_WIDTH
+	MOV row_skip_bytes, 4*8*ROW_WIDTH
+
         MOV clock_pin, 0
         MOV latch_pin, 0
         SET clock_pin, gpio1_clock
@@ -195,11 +199,15 @@ PWM_LOOP:
         MOV offset, 0
         MOV row, 0
 
+	// Store the pointers to each of the four outputs
+	ADD row1_ptr, data_addr, 0
+	ADD row2_ptr, row1_ptr, row_skip_bytes
+	ADD row3_ptr, row1_ptr, display_width_bytes
+	ADD row4_ptr, row3_ptr, row_skip_bytes
+
         ROW_LOOP:
 		// compute where we are in the image
-
-		MOV pixel, 0
-		ADD pix_ptr, data_addr, offset
+                MOV pixel, 0
 
 		PIXEL_LOOP:
 			MOV out_set, 0
@@ -207,9 +215,8 @@ PWM_LOOP:
 
 			// read a pixel worth of data
 			// \todo: track the four pointers separately
-#define OUTPUT_ROW(N, OFFSET) \
-	MOV p2, (OFFSET); \
-	LBBO pix, pix_ptr, p2, 4; \
+#define OUTPUT_ROW(N) \
+	LBBO pix, row##N##_ptr, offset, 4; \
 	QBGE skip_r##N, pix.b0, bright; \
 	SET out_set, gpio0_r##N; \
 	skip_r##N:; \
@@ -220,10 +227,10 @@ PWM_LOOP:
 	SET out_set, gpio0_b##N; \
 	skip_b##N:; \
 
-			OUTPUT_ROW(1, 0)
-			OUTPUT_ROW(2, 8*ROW_WIDTH*4)
-			OUTPUT_ROW(3, DISPLAY_WIDTH*4)
-			OUTPUT_ROW(4, 8*ROW_WIDTH*4 + DISPLAY_WIDTH*4)
+			OUTPUT_ROW(1)
+			OUTPUT_ROW(2)
+			OUTPUT_ROW(3)
+			OUTPUT_ROW(4)
 
 			// All bits are configured;
 			// the non-set ones will be cleared
@@ -252,10 +259,14 @@ PWM_LOOP:
 			no_blank:
 #endif
 
-			ADD pix_ptr, pix_ptr, 4
+			ADD offset, offset, 4
 			ADD pixel, pixel, 1
+#if DISPLAY_WIDTH > 0xFF
 			MOV p2, DISPLAY_WIDTH
 			QBNE PIXEL_LOOP, pixel, p2
+#else
+			QBNE PIXEL_LOOP, pixel, DISPLAY_WIDTH
+#endif
 
 		// Disable output before we latch and set the address
 		DISPLAY_OFF
@@ -272,9 +283,11 @@ PWM_LOOP:
                 LATCH_LO
 		DISPLAY_ON
 
+		// We have drawn half the image on each chain;
+		// skip the second half
+                ADD offset, offset, display_width_bytes
+
                 ADD row, row, 1
-		MOV p2, ROW_WIDTH * 4
-                ADD offset, offset, p2
                 QBNE ROW_LOOP, row, 8
     
         // We have clocked out all of the panels.
