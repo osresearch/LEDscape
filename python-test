@@ -1,15 +1,33 @@
 #!/usr/bin/python
 # Draw images with PIL and send them to the display.
 #
-import Image
+import Image, ImageFont, ImageDraw
 import socket
+import time, datetime
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 dest = ("localhost", 9999)
 
-#im = Image.new("RGB", (256,16), "black")
-im = Image.open("futurecrew.png")
-print im.format, im.size, im.mode
+logo = Image.open("futurecrew.png")
+#print im.format, im.size, im.mode
+# use a truetype font
+font = ImageFont.truetype("spincycle.ttf", 24)
 
-sock.sendto(chr(1) + im.convert("RGB").tostring(), dest)
+i = 0
+width = 256
+disp = Image.new("RGB", (256,16), "black")
+im = Image.new("RGB", (width,16), "black")
+draw = ImageDraw.Draw(im)
 
+while True:
+	im.paste("black", (0,0,width,16))
+	t = datetime.datetime.now().strftime("%a %d %b %H:%M:%S")
+	draw.text((0, -4), t, font=font)
+
+	disp.paste(im.crop((0,0,i,16)), (256-i,0))
+	disp.paste(im.crop((i+1,0,255,16)), (0,0))
+
+	# Slice a 256 size image from the large image
+	sock.sendto(chr(1) + disp.tostring(), dest)
+	i = (i+1) % width
+	time.sleep(0.025)
