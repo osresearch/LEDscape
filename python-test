@@ -1,0 +1,15 @@
+#!/usr/bin/python
+# Draw images with PIL and send them to the display.
+#
+import Image
+import socket
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+dest = ("localhost", 9999)
+
+#im = Image.new("RGB", (256,16), "black")
+im = Image.open("futurecrew.png")
+print im.format, im.size, im.mode
+
+sock.sendto(chr(1) + im.convert("RGB").tostring(), dest)
+

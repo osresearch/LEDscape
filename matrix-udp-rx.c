@@ -26,8 +26,8 @@
 #include "ledscape.h"
 
 static int port = 9999;
-static unsigned width = 64;
-static unsigned height = 210;
+static unsigned width = 16;
+static unsigned height = 256;
 
 static int
 udp_socket(
@@ -128,7 +128,8 @@ main(
 			for (unsigned y = 0 ; y < height ; y++)
 			{
 				uint8_t * const out = (void*) &fb[x + y*width];
-				const uint8_t * const in = &buf[1 + (x*64 + y+24)*3];
+				//const uint8_t * const in = &buf[1 + (x*64 + y+24)*3];
+				const uint8_t * const in = &buf[1 + 3*(x + y*width)];
 				out[0] = in[0];
 				out[1] = in[1];
 				out[2] = in[2];
