@@ -6,7 +6,6 @@ TARGETS += teensy-udp-rx
 TARGETS += rgb-test
 TARGETS += matrix-test
 TARGETS += matrix-udp-rx
-TARGETS += bitmap-test
 TARGETS += udp-rx
 
 LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
