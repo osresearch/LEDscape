@@ -76,10 +76,10 @@ hsv2rgb(
 
 
 static const int w = 256;
-static const int h = 16;
+static const int h = 20;
 
 // This will contain the pixels used to calculate the fire effect
-static uint8_t fire[256][16];
+static uint8_t fire[256][32];
 
   // Flame colors
 static uint32_t palette[255];
@@ -88,7 +88,7 @@ static uint32_t calc1[256], calc2[256], calc3[256], calc4[256], calc5[256];
 
 static void draw(uint32_t * frame)
 {
-    memset(frame, 0, w*h*sizeof(*frame));
+    memset(frame, 0, w*16*sizeof(*frame));
 
     angle = angle + 0.05;
 
@@ -111,15 +111,17 @@ static void draw(uint32_t * frame)
           + fire[calc1[x]][calc5[y]]) << 5) / (128+(abs(x-w/2))/4); // 129;
 
         // Output everything to screen using our palette colors
-        frame[counter] = palette[fire[x][y]];
+	const uint32_t c = palette[fire[x][y]];
         //frame[counter] = fire[x][y];
 
         // Extract the red value using right shift and bit mask 
         // equivalent of red(pgTemp.pixels[x+y*w])
-        if ((frame[counter++] >> 8 & 0xFF) == 128) {
-          // Only map 3D cube 'lit' pixels onto fire array needed for next frame
+	// Only map 3D cube 'lit' pixels onto fire array needed for next frame
+        if (((c >> 0) & 0xFF) == 128)
           fire[x][y] = 128;
-        }
+
+	if (y > 1 && y < 2 + 16)
+		frame[counter++] = c;
       }
     }
 }
@@ -145,7 +147,7 @@ init_pallete(void)
       //Hue goes from 0 to 85: red to yellow
       //Saturation is always the maximum: 255
       //Lightness is 0..255 for x=0..128, and 255 for x=128..255
-      palette[x] = hsv2rgb(x/3.5, 100, constrain(x, 0, 70));
+      palette[x] = hsv2rgb(x/2, 100, constrain(x, 0, 40));
     }
 
     // Precalculate which pixel values to add during animation loop
@@ -186,7 +188,7 @@ main(void)
 
 		draw(p);
 		ledscape_draw(leds, frame_num);
-		usleep(20000);
+		usleep(30000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
