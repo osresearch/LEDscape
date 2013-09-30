@@ -188,18 +188,19 @@ main(void)
 
 		draw(p);
 		ledscape_draw(leds, frame_num);
-		usleep(30000);
+		usleep(50000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
 		const uint32_t response = 0;
 		time_t now = time(NULL);
-		if (now != last_time)
+		if (now > last_time + 10)
 		{
 			printf("%d fps. starting %d previous %"PRIx32"\n",
 				i - last_i, i, response);
 			last_i = i;
 			last_time = now;
+			memset(fire, 0, sizeof(fire));
 		}
 
 	}
