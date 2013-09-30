@@ -5,6 +5,7 @@
 TARGETS += teensy-udp-rx
 TARGETS += rgb-test
 TARGETS += matrix-test
+TARGETS += fire
 TARGETS += matrix-udp-rx
 TARGETS += udp-rx
 
