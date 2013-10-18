@@ -191,9 +191,9 @@ lab:
 	LBBO r9, r8, 0xC, 4 // read the cycle counter
 	SUB r9, r9, sleep_counter 
 #ifdef CONFIG_WS2812
-	QBGT lab, r9, 2*(lab)/5
+	QBGT lab, r9, 2*(ns)/5
 #else
-	QBGT lab, r9, (lab)/5
+	QBGT lab, r9, (ns)/5
 #endif
 .endm
 
