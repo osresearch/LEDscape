@@ -1,4 +1,4 @@
-![Testing LEDscape](http://farm4.staticflickr.com/3834/9378678019_b706c55635_z.jpg)
+![Octoscroller Interface board](http://farm6.staticflickr.com/5349/10218235983_c55d247088.jpg)
 
 DANGER!
 =======
@@ -114,6 +114,8 @@ dma address or number of pixels.
 
 LED Strips
 ==========
+
+![Testing LEDscape](http://farm4.staticflickr.com/3834/9378678019_b706c55635_z.jpg)
 
 * http://www.adafruit.com/products/1138
 * http://www.adafruit.com/datasheets/WS2811.pdf
