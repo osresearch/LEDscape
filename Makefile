@@ -3,11 +3,9 @@
 # The top level targets link in the two .o files for now.
 #
 TARGETS += teensy-udp-rx
-TARGETS += rgb-test
 TARGETS += matrix-test
 TARGETS += fire
 TARGETS += matrix-udp-rx
-TARGETS += udp-rx
 TARGETS += opc-rx
 
 LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
