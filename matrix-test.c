@@ -98,7 +98,7 @@ rainbow(
 )
 {
 	const unsigned color = cycle % 180;
-	const unsigned dim = 8;
+	const unsigned dim = 128;
 
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
@@ -141,10 +141,10 @@ gradient(
 			uint8_t b = 0xFF;
 			out[1] = b * ((((x + y + cycle) >> 5) ) & 1);
 #else
-			uint8_t b = ((x+y+cycle) % 32) * 8;
-			out[0] = b * ((((x + y + cycle) >> 5) % 3) & 1);
-			out[1] = b * ((((x + y + cycle) >> 5) % 5) & 1);
-			out[2] = b * ((((x + y + cycle) >> 5) % 7) & 1);
+			uint8_t b = ((x+2*y+cycle)) * 4;
+			out[0] = b;
+			out[1] = b;
+			out[2] = b;
 #endif
 		}
 	}
