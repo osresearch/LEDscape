@@ -184,7 +184,7 @@
 #define gpio1_led_mask r11
 #define gpio2_led_mask r13
 #define gpio3_led_mask r14
-#define clock_pin r15
+#define bright_thresh r15
 #define gpio0_base r16
 #define gpio1_base r17
 #define gpio2_base r18
@@ -194,10 +194,12 @@
 #define BRIGHT_STEP 16
 
 #define CLOCK_LO \
-        SBBO clock_pin, gpio1_base, GPIO_SETDATAOUT, 4; \
+	MOV out_set, 1 << gpio1_clock; \
+        SBBO out_set, gpio1_base, GPIO_SETDATAOUT, 4; \
 
 #define CLOCK_HI \
-        SBBO clock_pin, gpio1_base, GPIO_CLRDATAOUT, 4; \
+	MOV out_set, 1 << gpio1_clock; \
+        SBBO out_set, gpio1_base, GPIO_CLRDATAOUT, 4; \
 
 #define LATCH_HI \
 	MOV out_set, 1 << gpio1_latch; \
@@ -315,7 +317,7 @@ START:
 	SET GPIO_MASK(g82_gpio), g82_pin
 	SET GPIO_MASK(b82_gpio), b82_pin
 
-        MOV clock_pin, 1 << gpio1_clock
+        //MOV clock_pin, 1 << gpio1_clock
 
 READ_LOOP:
         // Load the pointer to the buffer from PRU DRAM into r0 and the
@@ -350,7 +352,8 @@ NEW_ROW_LOOP:
 		XOR out_clr, out_clr, out_set // complement the bits into clr
 		SBBO out_clr, gpio1_base, GPIO_CLRDATAOUT, 8 // set both
 
-		MOV bright, 0x100
+		MOV bright, 7
+		MOV bright_thresh, 255
 	ROW_LOOP:
 		// Re-start reading at the same row
 		MOV offset, 0
@@ -373,18 +376,19 @@ NEW_ROW_LOOP:
 			MOV gpio3_set, 0
 #define GPIO(R) CAT3(gpio,R,_set)
 #define OUTPUT_ROW(N,reg_r,reg_g,reg_b) \
-	QBGE skip_r##N, reg_r, bright; \
+	QBBC skip_r##N, reg_r, bright; \
 	SET GPIO(r##N##_gpio), r##N##_pin; \
 	skip_r##N: \
-	QBGE skip_g##N, reg_g, bright; \
+	QBBC skip_g##N, reg_g, bright; \
 	SET GPIO(g##N##_gpio), g##N##_pin; \
 	skip_g##N: \
-	QBGE skip_b##N, reg_b, bright; \
+	QBBC skip_b##N, reg_b, bright; \
 	SET GPIO(b##N##_gpio), b##N##_pin; \
 	skip_b##N: \
 
 			OUTPUT_ROW(11, r20.b0, r20.b1, r20.b2)
 			OUTPUT_ROW(12, r20.b3, r21.b0, r21.b1)
+
 			OUTPUT_ROW(21, r21.b2, r21.b3, r22.b0)
 			OUTPUT_ROW(22, r22.b1, r22.b2, r22.b3)
 
@@ -431,11 +435,14 @@ NEW_ROW_LOOP:
 			// If the brightness is less than the pixel, turn off
 			// but keep in mind that this is the brightness of
 			// the previous row, not this one.
-			LSR out_set, offset, 0
-			ADD out_clr, bright, 10
-			LSL out_clr, out_clr, 4
+			LSL out_set, offset, 0
+			//LSL out_clr, 1, bright
+			//LSL out_clr, out_clr, 1
+			//MOV out_clr, 2048
+			LSL out_clr, bright_thresh, 5
 
-			QBLT no_blank, out_clr, out_set
+			//QBBS no_blank, out_set, bright
+			QBGT no_blank, out_set, out_clr
 			DISPLAY_OFF
 			no_blank:
 #endif
@@ -448,7 +455,9 @@ NEW_ROW_LOOP:
 		DISPLAY_ON
 
 		// Update the brightness, and then give the row another scan
-		SUB bright, bright, BRIGHT_STEP
+		//SUB bright, bright, BRIGHT_STEP
+		SUB bright, bright, 1
+		LSR bright_thresh, bright_thresh, 1
 		QBLT ROW_LOOP, bright, 0
 
 		// We have just done all eight brightness levels for this
