@@ -98,7 +98,7 @@ rainbow(
 )
 {
 	const unsigned color = cycle % 180;
-	const unsigned dim = 8;
+	const unsigned dim = 128;
 
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
