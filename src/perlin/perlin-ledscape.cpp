@@ -66,9 +66,19 @@ int main (int argc, char *argv[])
     signal (SIGINT, Quit);
 
     ledscape_config_t * config = &ledscape_matrix_default;
-    config->matrix_config.width = 256;
-    config->matrix_config.height = 128;
+    if (argc > 1)
+    {
+	config = ledscape_config(argv[1]);
+	if (!config)
+		return EXIT_FAILURE;
+    }
+
+    config->matrix_config.width = DISPLAY_WIDTH;
+    config->matrix_config.height = DISPLAY_HEIGHT;
     leds = ledscape_init(config);
+
+    ledscape_printf((uint32_t*)(uintptr_t)gLevels, DISPLAY_WIDTH, 0xFF0000, "Perlin noise by Glen Akins");
+    ledscape_draw(leds, gLevels);
 
     // initialize levels to all off
     BlankDisplay ();
