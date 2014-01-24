@@ -191,19 +191,19 @@ ledscape_remap(
  * If rot == 0, rotate -90, else rotate +90.
  */
 static void
-ledscape_matrix_panel_copy_half(
+ledscape_matrix_panel_copy(
 	uint8_t * const out,
 	const uint32_t * const in,
 	const ledscape_matrix_config_t * const config,
 	const int rot
 )
 {
-	const size_t row_stride = LEDSCAPE_MATRIX_OUTPUTS*2*3;
+	const size_t row_stride = LEDSCAPE_MATRIX_OUTPUTS*3*2;
 	const size_t row_len = config->leds_width*row_stride;
 
 	for (int x = 0 ; x < config->panel_width ; x++)
 	{
-		for (int y = 0 ; y < config->panel_height/2 ; y++)
+		for (int y = 0 ; y < config->panel_height ; y++)
 		{
 			int ix, iy;
 			if (rot == 0)
@@ -237,7 +237,12 @@ ledscape_matrix_panel_copy_half(
 
 			const uint32_t * const col_ptr = &in[ix + config->width*iy];
 			const uint32_t col = *col_ptr;
-			uint8_t * const pix = &out[x*row_stride + y*row_len];
+
+			// the top half and bottom half of the panels
+			// are squished together in the output since
+			// they are drawn simultaneously.
+			uint8_t * const pix = &out[x*row_stride + (y/8)*3 + (y%8)*row_len];
+
 			pix[0] = (col >> 16) & 0xFF; // red
 			pix[1] = (col >>  8) & 0xFF; // green
 			pix[2] = (col >>  0) & 0xFF; // blue
@@ -289,19 +294,9 @@ ledscape_matrix_draw(
 			uint8_t * const op = &out[6*i + j*panel_stride];
 		
 			// copy the top half of this matrix
-			ledscape_matrix_panel_copy_half(
+			ledscape_matrix_panel_copy(
 				op,
 				ip,
-				config,
-				panel->rot
-			);
-
-			// and the bottom half, which is stored next in
-			// the output bitstream, but occurs half a panel
-			// height later in the input image.
-			ledscape_matrix_panel_copy_half(
-				op + 3,
-				ip + config->width*config->panel_height/2,
 				config,
 				panel->rot
 			);
