@@ -83,6 +83,10 @@ typedef struct {
 typedef struct ledscape ledscape_t;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern ledscape_config_t ledscape_matrix_default;
 
 extern ledscape_t *
@@ -146,5 +150,9 @@ ledscape_config_t *
 ledscape_config(
 	const char * filename
 );
+
+#ifdef __cplusplus
+};
+#endif
 
 #endif
