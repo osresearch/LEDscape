@@ -29,9 +29,8 @@ else
 export CROSS_COMPILE?=arm-linux-gnueabi-
 endif
 
-CFLAGS += \
+GENERIC_CFLAGS += \
 	-g \
-	-std=c99 \
 	-W \
 	-Wall \
 	-D_BSD_SOURCE \
@@ -43,6 +42,13 @@ CFLAGS += \
 	-mtune=cortex-a8 \
 	-march=armv7-a \
 
+CFLAGS += \
+	-std=c99 \
+	$(GENERIC_CFLAGS) \
+
+CPPFLAGS += \
+	$(GENERIC_CFLAGS) \
+
 LDFLAGS += \
 
 LDLIBS += \
@@ -51,12 +57,15 @@ LDLIBS += \
 	-lpthread \
 	-lm \
 
-COMPILE.o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
+COMPILE.c-o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
+COMPILE.cpp-o = $(CROSS_COMPILE)g++ $(CPPFLAGS) -c -o $@ $< 
 COMPILE.a = $(CROSS_COMPILE)ar crv $@ $^ 
-COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
+COMPILE.link = $(CROSS_COMPILE)g++ $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 $(OBJDIR)/%.o: %.c
-	$(COMPILE.o)
+	$(COMPILE.c-o)
+$(OBJDIR)/%.o: %.cpp
+	$(COMPILE.cpp-o)
 
 $(LIBDIR)/%.a:
 	$(RM) $@
