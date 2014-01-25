@@ -46,8 +46,8 @@ class Pattern
             width = m_width; height = m_height;
         }
 
-        uint16_t translateHue (int32_t hue);
-        uint16_t translateHueValue (int32_t hue, float value);
+        uint32_t translateHue (int32_t hue);
+        uint32_t translateHueValue (int32_t hue, float value);
         
     protected:
         const int32_t m_width;

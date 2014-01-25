@@ -46,7 +46,7 @@ using namespace std;
 static ledscape_t * leds;
 
 // global levels to write to FPGA
-uint16_t gLevels[DISPLAY_HEIGHT][DISPLAY_WIDTH];
+uint32_t gLevels[DISPLAY_HEIGHT][DISPLAY_WIDTH];
 
 // global object to create animated pattern
 Perlin *gPattern = NULL;
@@ -73,6 +73,10 @@ int main (int argc, char *argv[])
 		return EXIT_FAILURE;
     }
 
+    float hue_options = 0.005;
+    if (argc > 2)
+	hue_options = atof(argv[2]);
+
     config->matrix_config.width = DISPLAY_WIDTH;
     config->matrix_config.height = DISPLAY_HEIGHT;
     leds = ledscape_init(config);
@@ -84,7 +88,15 @@ int main (int argc, char *argv[])
     BlankDisplay ();
 
     // create a new pattern object -- perlin noise, mode 2 long repeating
-    gPattern = new Perlin (DISPLAY_WIDTH, DISPLAY_HEIGHT, 2, 6.0/64.0, 1.0/64.0, 256.0, 0.005);
+    gPattern = new Perlin(
+	DISPLAY_WIDTH,
+	DISPLAY_HEIGHT,
+	2, // mode
+	3.0/64.0, // size of blobs: smaller value == larger blob
+	1.0/64.0, // speed
+	256.0,
+	hue_options
+    );
 
     // create a new pattern object -- perlin noise, mode 1 short repeat
     // gPattern = new Perlin (DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 8.0/64.0, 0.0125, 1.0, 0.2);
