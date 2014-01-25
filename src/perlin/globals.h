@@ -25,6 +25,6 @@
 #define DISPLAY_WIDTH  256
 #define DISPLAY_HEIGHT 128
 
-extern uint16_t gLevels[DISPLAY_HEIGHT][DISPLAY_WIDTH];
+extern uint32_t gLevels[DISPLAY_HEIGHT][DISPLAY_WIDTH];
 
 #endif

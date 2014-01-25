@@ -27,7 +27,8 @@
 #include "gammalut.h"
 #include "pattern.h"
 
-#define MAKE_COLOR(r,g,b) (((r)&0xf)<<8)+(((g)&0xf)<<4)+((b)&0xf)
+#define MAKE_COLOR(r,g,b) \
+	(((r) << 16) | ((g) << 8) | ((b) << 0))
 
 //---------------------------------------------------------------------------------------------
 // convert a hue from 0 to 95 to its 12-bit RGB color
@@ -35,14 +36,15 @@
 // hue: 0 = red, 32 = blue, 64 = green
 //
 
-uint16_t Pattern::translateHue (int32_t hue)
+uint32_t Pattern::translateHue (int32_t hue)
 {
     uint8_t hi, lo;
-    uint8_t r, g, b;
+    uint32_t r, g, b;
 
     hi = hue >> 4;
     lo = ((hue & 0xf) << 4) | (hue & 0xf);
 
+#if 1
     switch (hi) {
         case 0: r = 0xff;    g = 0;       b = lo;      break;
         case 1: r = 0xff-lo, g = 0,       b = 0xff;    break;
@@ -51,12 +53,20 @@ uint16_t Pattern::translateHue (int32_t hue)
         case 4: r = lo,      g = 0xff,    b = 0;       break;
         case 5: r = 0xff,    g = 0xff-lo, b = 0;       break;
     }
+//printf("hue=%d=%d,%d: %d,%d,%d\n", hue, hi, lo, r, g, b);
+    r = gammaLut[r] << 3;
+    g = gammaLut[g] << 3;
+    b = gammaLut[b] << 3;
+#else
+	b = hue;
+	r = 0;
+	g = 0;
+#endif
 
-    r = gammaLut[r];
-    g = gammaLut[g];
-    b = gammaLut[b];
 
-    return MAKE_COLOR (r,g,b);
+    uint32_t color = MAKE_COLOR (r,g,b);
+	//printf("color=%08x\n", color);
+return color;
 }
 
 
@@ -67,7 +77,7 @@ uint16_t Pattern::translateHue (int32_t hue)
 // value: 0 = off, 1.0 = 100%
 //
 
-uint16_t Pattern::translateHueValue (int32_t hue, float value)
+uint32_t Pattern::translateHueValue (int32_t hue, float value)
 {
     uint8_t hi, lo;
     uint8_t r, g, b;
@@ -88,9 +98,9 @@ uint16_t Pattern::translateHueValue (int32_t hue, float value)
     g = ((float)g + 0.5) * value;
     b = ((float)b + 0.5) * value;
 
-    r = gammaLut[r];
-    g = gammaLut[g];
-    b = gammaLut[b];
+    r = gammaLut[r] << 4;
+    g = gammaLut[g] << 4;
+    b = gammaLut[b] << 4;
 
     return MAKE_COLOR (r,g,b);
 }
