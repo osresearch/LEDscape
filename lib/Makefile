@@ -66,7 +66,7 @@ CFLAGS += -I$(APP_LOADER_DIR)/include
 PASM_DIR ?= ../am335x/pasm
 PASM := $(PASM_DIR)/pasm
 
-%.bin: %.p $(PASM)
+%.bin: %.p 
 	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g; s/BYTE\((\d+)\)/t\1/g' > $<.i
 	$(PASM) -V3 -b $<.i $(basename $@)
 	$(RM) $<.i
@@ -87,8 +87,7 @@ clean:
 	rm -rf \
 		*.o \
 		*.i \
-		.*.o.d \
-		*~ \
+		*.a \
 		ws281x.bin \
 		matrix.bin \
 

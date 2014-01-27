@@ -6,6 +6,8 @@ TARGETS += matrix-test
 TARGETS += fire
 TARGETS += matrix-udp-rx
 TARGETS += opc-rx
+#TARGETS += udp-rx
+#TARGETS += rgb-test
 
 LEDSCAPE_LIB_DIR = ../lib
 LEDSCAPE_LIB := $(LEDSCAPE_LIB_DIR)/libledscape.a

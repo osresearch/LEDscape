@@ -23,5 +23,5 @@ pasm: $(OBJS)
 
 clean:
 	$(RM) -f *.o
-
+	$(RM) pasm
 

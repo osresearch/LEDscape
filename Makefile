@@ -1,20 +1,14 @@
-#########
+###########
+#
+# Top level build file for LEDscape 
 #
 
-EXAMPLES_DIR = c-examples
-.PHONY: example_code
+all: $(LEDSCAPE_LIB) c-examples
 
-example_code:
-	$(MAKE) -C $(EXAMPLES_DIR)
-
-
-TARGETS += 
-
-LEDSCAPE_LIB := lib/libledscape.a
-
-all: $(TARGETS) ws281x.bin matrix.bin
-
-
+###########
+#
+# Determine if we are using a cross compiler here, so the results can trickle down
+#
 ifeq ($(shell uname -m),armv7l)
 # We are on the BeagleBone Black itself;
 # do not cross compile.
@@ -28,75 +22,6 @@ else
 #
 export CROSS_COMPILE?=arm-linux-gnueabi-
 endif
-
-CFLAGS += \
-	-std=c99 \
-	-W \
-	-Wall \
-	-D_BSD_SOURCE \
-	-Wp,-MMD,$(dir $@).$(notdir $@).d \
-	-Wp,-MT,$@ \
-	-I. \
-	-O2 \
-	-mtune=cortex-a8 \
-	-march=armv7-a \
-
-LDFLAGS += \
-
-LDLIBS += \
-	-lpthread \
-
-COMPILE.o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
-COMPILE.a = $(CROSS_COMPILE)gcc -c -o $@ $< 
-COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
-
-
-#####
-#
-# The TI "app_loader" is the userspace library for talking to
-# the PRU and mapping memory between it and the ARM.
-#
-APP_LOADER_DIR ?= ./am335x/app_loader
-APP_LOADER_LIB := $(APP_LOADER_DIR)/lib/libprussdrv.a
-CFLAGS += -I$(APP_LOADER_DIR)/include
-LDLIBS += $(APP_LOADER_LIB)
-
-#####
-#
-# The TI PRU assembler looks like it has macros and includes,
-# but it really doesn't.  So instead we use cpp to pre-process the
-# file and then strip out all of the directives that it adds.
-# PASM also doesn't handle multiple statements per line, so we
-# insert hard newline characters for every ; in the file.
-#
-PASM_DIR ?= ./am335x/pasm
-PASM := $(PASM_DIR)/pasm
-
-%.bin: %.p $(PASM)
-	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g; s/BYTE\((\d+)\)/t\1/g' > $<.i
-	$(PASM) -V3 -b $<.i $(basename $@)
-	$(RM) $<.i
-
-%.o: %.c
-	$(COMPILE.o)
-
-$(foreach O,$(TARGETS),$(eval $O: $O.o $(LEDSCAPE_LIB) $(APP_LOADER_LIB)))
-
-$(TARGETS):
-	$(COMPILE.link)
-
-
-.PHONY: clean
-
-clean:
-	rm -rf \
-		*.o \
-		*.i \
-		.*.o.d \
-		*~ \
-		$(INCDIR_APP_LOADER)/*~ \
-		$(TARGETS) \
-		ws281x.bin \
 
 
 ###########
@@ -115,17 +40,61 @@ clean:
 #	echo BB-LEDSCAPE > $(SLOT_FILE)
 
 
+#####
+#
+# The TI "app_loader" is the userspace library for talking to
+# the PRU and mapping memory between it and the ARM.
+#
+APP_LOADER_DIR ?= ./am335x/app_loader
+APP_LOADER_LIB := $(APP_LOADER_DIR)/lib/libprussdrv.a
+
+$(APP_LOADER_LIB):
+	$(MAKE) -C $(APP_LOADER_DIR)/interface
 
 
 ###########
 # 
-# PRU Libraries and PRU assembler are build from their own trees.
+# PRU Libraries and PRU assembler are built from their own trees.
 # 
-$(APP_LOADER_LIB):
-	$(MAKE) -C $(APP_LOADER_DIR)/interface
+PASM_DIR ?= ./am335x/pasm
+PASM := $(PASM_DIR)/pasm
 
 $(PASM):
 	$(MAKE) -C $(PASM_DIR)
 
-# Include all of the generated dependency files
--include .*.o.d
+
+###########
+# 
+# The LEDscape library gets built as an archive
+#
+LEDSCAPE_DIR ?= ./lib
+LEDSCAPE_LIB := $(LEDSCAPE_DIR)/libledscape.a
+
+.PHONY: $(LEDSCAPE_LIB)
+$(LEDSCAPE_LIB): $(APP_LOADER_LIB) $(PASM)
+	$(MAKE) -C $(LEDSCAPE_DIR)
+
+
+#########
+#
+# C language examples are
+#
+C_EXAMPLES_DIR ?= ./c-examples
+
+.PHONY: c-examples
+c-examples: $(LEDSCAPE_LIB)
+	$(MAKE) -C $(C_EXAMPLES_DIR)
+
+
+
+.PHONY: clean
+clean:
+	rm -rf \
+		*.o \
+		*.i \
+		.*.o.d \
+		*~
+	$(MAKE) -C $(APP_LOADER_DIR)/interface clean
+	$(MAKE) -C $(PASM_DIR) clean
+	$(MAKE) -C $(LEDSCAPE_DIR) clean
+	$(MAKE) -C $(C_EXAMPLES_DIR) clean
