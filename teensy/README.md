@@ -1,0 +1,1 @@
+This directory contains the remainder of a previous version of LEDscape, which uses teensies to drive WS2812 led strips instead of the BBB directly. The advantage is that USB cables can be used to increase the distance between strip locations. The disadvantage is in dealing with multiple USB devices instead of one PRU.
