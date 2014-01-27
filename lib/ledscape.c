@@ -12,8 +12,7 @@
 #include "ledscape.h"
 #include "pru.h"
 
-#define CONFIG_LED_MATRIX
-
+#define NO_CONFIG_LED_MATRIX
 
 /** GPIO pins used by the LEDscape.
  *

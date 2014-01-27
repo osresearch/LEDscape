@@ -1,16 +1,11 @@
 #########
 #
-# The top level targets link in the two .o files for now.
-#
-TARGETS += matrix-test
-TARGETS += fire
-TARGETS += matrix-udp-rx
-TARGETS += opc-rx
 
-LEDSCAPE_LIB_DIR = ../lib
-LEDSCAPE_LIB := $(LEDSCAPE_LIB_DIR)/libledscape.a
+LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
+LEDSCAPE_LIB := libledscape.a
 
-all: $(TARGETS) 
+
+all: $(LEDSCAPE_LIB) ws281x.bin matrix.bin
 
 
 ifeq ($(shell uname -m),armv7l)
@@ -47,6 +42,9 @@ LDLIBS += \
 COMPILE.o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
 COMPILE.a = $(CROSS_COMPILE)gcc -c -o $@ $< 
 COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
+COMPILE.ar = $(CROSS_COMPILE)ar
+
+
 
 
 #####
@@ -55,19 +53,33 @@ COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
 # the PRU and mapping memory between it and the ARM.
 #
 APP_LOADER_DIR ?= ../am335x/app_loader
-APP_LOADER_LIB := $(APP_LOADER_DIR)/lib/libprussdrv.a
-CFLAGS += -I$(APP_LOADER_DIR)/include -I$(LEDSCAPE_LIB_DIR)
-LDLIBS += $(APP_LOADER_LIB)
+CFLAGS += -I$(APP_LOADER_DIR)/include
 
+#####
+#
+# The TI PRU assembler looks like it has macros and includes,
+# but it really doesn't.  So instead we use cpp to pre-process the
+# file and then strip out all of the directives that it adds.
+# PASM also doesn't handle multiple statements per line, so we
+# insert hard newline characters for every ; in the file.
+#
+PASM_DIR ?= ../am335x/pasm
+PASM := $(PASM_DIR)/pasm
 
+%.bin: %.p $(PASM)
+	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g; s/BYTE\((\d+)\)/t\1/g' > $<.i
+	$(PASM) -V3 -b $<.i $(basename $@)
+	$(RM) $<.i
+
+#####
+#
+# Build the LEDscape library as a static lib
+libledscape.a: $(LEDSCAPE_OBJS)
+	$(COMPILE.ar) rcs $@ $^
+
+# Compile the .c files to objects
 %.o: %.c
-	$(COMPILE.o)
-
-$(foreach O,$(TARGETS),$(eval $O: $O.o $(LEDSCAPE_OBJS) $(APP_LOADER_LIB) $(LEDSCAPE_LIB)))
-
-$(TARGETS):
-	$(COMPILE.link)
-
+	$(COMPILE.o) 
 
 .PHONY: clean
 
@@ -77,9 +89,6 @@ clean:
 		*.i \
 		.*.o.d \
 		*~ \
-		$(INCDIR_APP_LOADER)/*~ \
-		$(TARGETS) \
+		ws281x.bin \
+		matrix.bin \
 
-
-# Include all of the generated dependency files
--include .*.o.d

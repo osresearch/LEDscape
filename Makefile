@@ -1,15 +1,16 @@
 #########
 #
-# The top level targets link in the two .o files for now.
-#
-TARGETS += teensy-udp-rx
-TARGETS += matrix-test
-TARGETS += fire
-TARGETS += matrix-udp-rx
-TARGETS += opc-rx
 
-LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
-LEDSCAPE_LIB := libledscape.a
+EXAMPLES_DIR = c-examples
+.PHONY: example_code
+
+example_code:
+	$(MAKE) -C $(EXAMPLES_DIR)
+
+
+TARGETS += 
+
+LEDSCAPE_LIB := lib/libledscape.a
 
 all: $(TARGETS) ws281x.bin matrix.bin
 
@@ -79,7 +80,7 @@ PASM := $(PASM_DIR)/pasm
 %.o: %.c
 	$(COMPILE.o)
 
-$(foreach O,$(TARGETS),$(eval $O: $O.o $(LEDSCAPE_OBJS) $(APP_LOADER_LIB)))
+$(foreach O,$(TARGETS),$(eval $O: $O.o $(LEDSCAPE_LIB) $(APP_LOADER_LIB)))
 
 $(TARGETS):
 	$(COMPILE.link)
@@ -103,15 +104,17 @@ clean:
 # The correct way to reserve the GPIO pins on the BBB is with the
 # capemgr and a Device Tree file.  But it doesn't work.
 #
-SLOT_FILE=/sys/devices/bone_capemgr.8/slots
-dts: LEDscape.dts
-	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
-	if [ ! -z "$$SLOT" ]; then \
-		echo "Removing slot $$SLOT"; \
-		echo -$$SLOT > $(SLOT_FILE); \
-	fi
-	dtc -O dtb -o /lib/firmware/BB-LEDSCAPE-00A0.dtbo -b 0 -@ LEDscape.dts
-	echo BB-LEDSCAPE > $(SLOT_FILE)
+# SLOT_FILE=/sys/devices/bone_capemgr.8/slots
+# dts: LEDscape.dts
+#	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
+#	if [ ! -z "$$SLOT" ]; then \
+#		echo "Removing slot $$SLOT"; \
+#		echo -$$SLOT > $(SLOT_FILE); \
+#	fi
+#	dtc -O dtb -o /lib/firmware/BB-LEDSCAPE-00A0.dtbo -b 0 -@ LEDscape.dts
+#	echo BB-LEDSCAPE > $(SLOT_FILE)
+
+
 
 
 ###########
