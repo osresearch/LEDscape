@@ -45,98 +45,118 @@
  //* 
  //*/
 
-// Pins available in GPIO0
-#define gpio0_bit0 2
-#define gpio0_bit1 3
-#define gpio0_bit2 4
-#define gpio0_bit3 5
-#define gpio0_bit4 7
-#define gpio0_bit5 12
-#define gpio0_bit6 13
-#define gpio0_bit7 14
-#define gpio0_bit8 15
-#define gpio0_bit9 20
-#define gpio0_bit10 22
-#define gpio0_bit11 23
-#define gpio0_bit12 26
-#define gpio0_bit13 27
-#define gpio0_bit14 30
-#define gpio0_bit15 31
+#define r11_gpio 2
+#define r11_pin 2
+#define g11_gpio 2
+#define g11_pin 3
+#define b11_gpio 2
+#define b11_pin 5
 
-// Pins available in GPIO1
-#define gpio1_bit0 12
-#define gpio1_bit1 13
-#define gpio1_bit2 14
-#define gpio1_bit3 15
-#define gpio1_bit4 16
-#define gpio1_bit5 17
-#define gpio1_bit6 18
-#define gpio1_bit7 19
-#define gpio1_bit8 28
-#define gpio1_bit9 29
+#define r12_gpio 0
+#define r12_pin 23
+#define g12_gpio 2
+#define g12_pin 4
+#define b12_gpio 0
+#define b12_pin 26
 
-// Pins in GPIO2
-#define gpio2_bit0 1
-#define gpio2_bit1 2
-#define gpio2_bit2 3
-#define gpio2_bit3 4
-#define gpio2_bit4 5
+#define r21_gpio 0
+#define r21_pin 27
+#define g21_gpio 2
+#define g21_pin 1
+#define b21_gpio 0
+#define b21_pin 22
 
-// And the paltry pins in GPIO3 to give us 32
-#define gpio3_bit0 16
-#define gpio3_bit1 19
+#define r22_gpio 2
+#define r22_pin 22
+#define g22_gpio 2
+#define g22_pin 23
+#define b22_gpio 2
+#define b22_pin 24
 
-/** Generate a bitmask of which pins in GPIO0-3 are used.
- * 
- * This is used to bring all the pins up for the start of
- * the bit, and then back down at the end of the 1 bits.
- * 
- * \todo wtf "parameter too long": only 128 chars allowed?
- */
-#define GPIO0_LED_MASK (0\
-|(1<<gpio0_bit0)\
-|(1<<gpio0_bit1)\
-|(1<<gpio0_bit2)\
-|(1<<gpio0_bit3)\
-|(1<<gpio0_bit4)\
-|(1<<gpio0_bit5)\
-|(1<<gpio0_bit6)\
-|(1<<gpio0_bit7)\
-|(1<<gpio0_bit8)\
-|(1<<gpio0_bit9)\
-|(1<<gpio0_bit10)\
-|(1<<gpio0_bit11)\
-|(1<<gpio0_bit12)\
-|(1<<gpio0_bit13)\
-|(1<<gpio0_bit14)\
-|(1<<gpio0_bit15)\
-)
+#define r31_gpio 0
+#define r31_pin 30
+#define g31_gpio 1
+#define g31_pin 18
+#define b31_gpio 0
+#define b31_pin 31
 
-#define GPIO1_LED_MASK (0\
-|(1<<gpio1_bit0)\
-|(1<<gpio1_bit1)\
-|(1<<gpio1_bit2)\
-|(1<<gpio1_bit3)\
-|(1<<gpio1_bit4)\
-|(1<<gpio1_bit5)\
-|(1<<gpio1_bit6)\
-|(1<<gpio1_bit7)\
-|(1<<gpio1_bit8)\
-|(1<<gpio1_bit9)\
-)
+#define r32_gpio 1
+#define r32_pin 16
+#define g32_gpio 0
+#define g32_pin 3
+#define b32_gpio 0 // not working?
+#define b32_pin 5
 
-#define GPIO2_LED_MASK (0\
-|(1<<gpio2_bit0)\
-|(1<<gpio2_bit1)\
-|(1<<gpio2_bit2)\
-|(1<<gpio2_bit3)\
-|(1<<gpio2_bit4)\
-)
+#define r41_gpio 0
+#define r41_pin 2
+#define g41_gpio 0
+#define g41_pin 15
+#define b41_gpio 1
+#define b41_pin 17
 
-#define GPIO3_LED_MASK (0\
-|(1<<gpio3_bit0)\
-|(1<<gpio3_bit1)\
-)
+#define r42_gpio 3
+#define r42_pin 21
+#define g42_gpio 3
+#define g42_pin 19
+#define b42_gpio 0
+#define b42_pin 4
+
+#define r51_gpio 2
+#define r51_pin 25
+#define g51_gpio 0
+#define g51_pin 11
+#define b51_gpio 0
+#define b51_pin 10
+
+#define r52_gpio 0
+#define r52_pin 9
+#define g52_gpio 0
+#define g52_pin 8
+#define b52_gpio 2
+#define b52_pin 17
+
+#define r61_gpio 2
+#define r61_pin 16
+#define g61_gpio 2
+#define g61_pin 15
+#define b61_gpio 2
+#define b61_pin 14
+
+#define r62_gpio 2
+#define r62_pin 13
+#define g62_gpio 2
+#define g62_pin 10
+#define b62_gpio 2
+#define b62_pin 12
+
+#define r71_gpio 2
+#define r71_pin 11
+#define g71_gpio 2
+#define g71_pin 9
+#define b71_gpio 2
+#define b71_pin 8
+
+#define r72_gpio 2
+#define r72_pin 6
+#define g72_gpio 0
+#define g72_pin 7
+#define b72_gpio 2
+#define b72_pin 7
+
+#define r81_gpio 3
+#define r81_pin 17
+#define g81_gpio 3
+#define g81_pin 16
+#define b81_gpio 3
+#define b81_pin 15
+
+#define r82_gpio 3
+#define r82_pin 14
+#define g82_gpio 0
+#define g82_pin 14
+#define b82_gpio 0
+#define b82_pin 20
+
 
 .origin 0
 .entrypoint START
@@ -162,7 +182,11 @@
 #define gpio3_zeros r5
 #define bit_num r6
 #define sleep_counter r7
-// r10 - r26 are used for temp storage and bitmap processing
+#define gpio0_led_mask r26
+#define gpio1_led_mask r27
+#define gpio2_led_mask r28
+#define gpio3_led_mask r29
+// r10 - r22 are used for temp storage and bitmap processing
 
 
 /** Sleep a given number of nanoseconds with 10 ns resolution.
@@ -191,9 +215,9 @@ lab:
 	LBBO r9, r8, 0xC, 4 // read the cycle counter
 	SUB r9, r9, sleep_counter 
 #ifdef CONFIG_WS2812
-	QBGT lab, r9, 2*(lab)/5
+	QBGT lab, r9, 2*(ns)/5
 #else
-	QBGT lab, r9, (lab)/5
+	QBGT lab, r9, (ns)/5
 #endif
 .endm
 
@@ -225,6 +249,64 @@ START:
     MOV r2, #0x1
     SBCO r2, CONST_PRUDRAM, 12, 4
 
+#define CAT3(X,Y,Z) X##Y##Z
+#define GPIO_MASK(X) CAT3(gpio,X,_led_mask)
+	SET GPIO_MASK(r11_gpio), r11_pin
+	SET GPIO_MASK(g11_gpio), g11_pin
+	SET GPIO_MASK(b11_gpio), b11_pin
+	SET GPIO_MASK(r12_gpio), r12_pin
+	SET GPIO_MASK(g12_gpio), g12_pin
+	SET GPIO_MASK(b12_gpio), b12_pin
+
+	SET GPIO_MASK(r21_gpio), r21_pin
+	SET GPIO_MASK(g21_gpio), g21_pin
+	SET GPIO_MASK(b21_gpio), b21_pin
+	SET GPIO_MASK(r22_gpio), r22_pin
+	SET GPIO_MASK(g22_gpio), g22_pin
+	SET GPIO_MASK(b22_gpio), b22_pin
+
+	SET GPIO_MASK(r31_gpio), r31_pin
+	SET GPIO_MASK(g31_gpio), g31_pin
+	SET GPIO_MASK(b31_gpio), b31_pin
+	SET GPIO_MASK(r32_gpio), r32_pin
+	SET GPIO_MASK(g32_gpio), g32_pin
+	SET GPIO_MASK(b32_gpio), b32_pin
+
+	SET GPIO_MASK(r41_gpio), r41_pin
+	SET GPIO_MASK(g41_gpio), g41_pin
+	SET GPIO_MASK(b41_gpio), b41_pin
+	SET GPIO_MASK(r42_gpio), r42_pin
+	SET GPIO_MASK(g42_gpio), g42_pin
+	SET GPIO_MASK(b42_gpio), b42_pin
+
+	SET GPIO_MASK(r51_gpio), r51_pin
+	SET GPIO_MASK(g51_gpio), g51_pin
+	SET GPIO_MASK(b51_gpio), b51_pin
+	SET GPIO_MASK(r52_gpio), r52_pin
+	SET GPIO_MASK(g52_gpio), g52_pin
+	SET GPIO_MASK(b52_gpio), b52_pin
+
+	SET GPIO_MASK(r61_gpio), r61_pin
+	SET GPIO_MASK(g61_gpio), g61_pin
+	SET GPIO_MASK(b61_gpio), b61_pin
+	SET GPIO_MASK(r62_gpio), r62_pin
+	SET GPIO_MASK(g62_gpio), g62_pin
+	SET GPIO_MASK(b62_gpio), b62_pin
+
+	SET GPIO_MASK(r71_gpio), r71_pin
+	SET GPIO_MASK(g71_gpio), g71_pin
+	SET GPIO_MASK(b71_gpio), b71_pin
+	SET GPIO_MASK(r72_gpio), r72_pin
+	SET GPIO_MASK(g72_gpio), g72_pin
+	SET GPIO_MASK(b72_gpio), b72_pin
+
+	SET GPIO_MASK(r81_gpio), r81_pin
+	SET GPIO_MASK(g81_gpio), g81_pin
+	SET GPIO_MASK(b81_gpio), b81_pin
+	SET GPIO_MASK(r82_gpio), r82_pin
+	SET GPIO_MASK(g82_gpio), g82_pin
+	SET GPIO_MASK(b82_gpio), b82_pin
+
     // Wait for the start condition from the main program to indicate
     // that we have a rendered frame ready to clock out.  This also
     // handles the exit case if an invalid value is written to the start
@@ -247,9 +329,13 @@ _LOOP:
     // Command of 0xFF is the signal to exit
     QBEQ EXIT, r2, #0xFF
 
+    // The data len is in pixels; convert it to 3 channels * pixels
+    ADD r2, data_len, data_len
+    ADD data_len, data_len, r2
+
 WORD_LOOP:
-	// for bit in 24 to 0
-	MOV bit_num, 24
+	// for bit in 8 to 0; one color at a time
+	MOV bit_num, 8
 
 	BIT_LOOP:
 		SUB bit_num, bit_num, 1
@@ -284,54 +370,45 @@ WORD_LOOP:
 	SET gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
 	gpioN##_##regN##_skip: ; \
 
-		// Load 16 registers of data, starting at r10
-		LBBO r10, r0, 0, 16*4
+		// Load 48 bytes of data, starting at r10
+		// one byte for each of the outputs
+		LBBO r10, r0, 0, 48
 		MOV gpio0_zeros, 0
-		TEST_BIT(r10, gpio0, bit0)
-		TEST_BIT(r11, gpio0, bit1)
-		TEST_BIT(r12, gpio0, bit2)
-		TEST_BIT(r13, gpio0, bit3)
-		TEST_BIT(r14, gpio0, bit4)
-		TEST_BIT(r15, gpio0, bit5)
-		TEST_BIT(r16, gpio0, bit6)
-		TEST_BIT(r17, gpio0, bit7)
-		TEST_BIT(r18, gpio0, bit8)
-		TEST_BIT(r19, gpio0, bit9)
-		TEST_BIT(r20, gpio0, bit10)
-		TEST_BIT(r21, gpio0, bit11)
-		TEST_BIT(r22, gpio0, bit12)
-		TEST_BIT(r23, gpio0, bit13)
-		TEST_BIT(r24, gpio0, bit14)
-		TEST_BIT(r25, gpio0, bit15)
-
-		// Load 10 registers of data, starting at r10
-		LBBO r10, r0, 64, 9*4
 		MOV gpio1_zeros, 0
-		TEST_BIT(r10, gpio1, bit0)
-		TEST_BIT(r11, gpio1, bit1)
-		TEST_BIT(r12, gpio1, bit2)
-		TEST_BIT(r13, gpio1, bit3)
-		TEST_BIT(r14, gpio1, bit4)
-		TEST_BIT(r15, gpio1, bit5)
-		TEST_BIT(r16, gpio1, bit6)
-		TEST_BIT(r17, gpio1, bit7)
-		TEST_BIT(r18, gpio1, bit8)
-		TEST_BIT(r19, gpio1, bit9)
-
-		// Load 5 registers of data, starting at r10
-		LBBO r10, r0, 100, 5*4
 		MOV gpio2_zeros, 0
-		TEST_BIT(r10, gpio2, bit0)
-		TEST_BIT(r11, gpio2, bit1)
-		TEST_BIT(r12, gpio2, bit2)
-		TEST_BIT(r13, gpio2, bit3)
-		TEST_BIT(r14, gpio2, bit4)
-
-		// Load 2 registers of data, starting at r10
-		LBBO r10, r0, 120, 2*4
 		MOV gpio3_zeros, 0
-		TEST_BIT(r10, gpio3, bit0)
-		TEST_BIT(r11, gpio3, bit1)
+
+#define GPIO(R) CAT3(gpio,R,_zeros)
+#define OUTPUT_ROW(N,reg_r,reg_g,reg_b) \
+	QBBS skip_r##N, reg_r, bit_num; \
+	SET GPIO(r##N##_gpio), r##N##_pin; \
+	skip_r##N: \
+	QBBS skip_g##N, reg_g, bit_num; \
+	SET GPIO(g##N##_gpio), g##N##_pin; \
+	skip_g##N: \
+	QBBS skip_b##N, reg_b, bit_num; \
+	SET GPIO(b##N##_gpio), b##N##_pin; \
+	skip_b##N: \
+
+			OUTPUT_ROW(11, r10.b0, r10.b1, r10.b2)
+			OUTPUT_ROW(12, r10.b3, r11.b0, r11.b1)
+			OUTPUT_ROW(21, r11.b2, r11.b3, r12.b0)
+			OUTPUT_ROW(22, r12.b1, r12.b2, r12.b3)
+
+			OUTPUT_ROW(31, r13.b0, r13.b1, r13.b2)
+			OUTPUT_ROW(32, r13.b3, r14.b0, r14.b1)
+			OUTPUT_ROW(41, r14.b2, r14.b3, r15.b0)
+			OUTPUT_ROW(42, r15.b1, r15.b2, r15.b3)
+
+			OUTPUT_ROW(51, r16.b0, r16.b1, r16.b2)
+			OUTPUT_ROW(52, r16.b3, r17.b0, r17.b1)
+			OUTPUT_ROW(61, r17.b2, r17.b3, r18.b0)
+			OUTPUT_ROW(62, r18.b1, r18.b2, r18.b3)
+
+			OUTPUT_ROW(71, r19.b0, r19.b1, r19.b2)
+			OUTPUT_ROW(72, r19.b3, r20.b0, r20.b1)
+			OUTPUT_ROW(81, r20.b2, r20.b3, r21.b0)
+			OUTPUT_ROW(82, r21.b1, r21.b2, r21.b3)
 
 		// Now that we have read all of the data,
 		// we can reuse the registers for the set/clear addresses
@@ -341,22 +418,14 @@ WORD_LOOP:
 		MOV r12, GPIO2 | GPIO_SETDATAOUT
 		MOV r13, GPIO3 | GPIO_SETDATAOUT
 
-		MOV r20, GPIO0_LED_MASK
-		MOV r21, GPIO1_LED_MASK
-		MOV r22, GPIO2_LED_MASK
-		MOV r23, GPIO3_LED_MASK
-
 		// Wait for 650 ns to have passed
-		// \todo: Move some of the other work to the other
-		// cycles.  I think this might have already been exhausted
-		// with the addition of GPIO3 banked LEDs
 		WAITNS 650, wait_start_time
 
 		// Send all the start bits
-		SBBO r20, r10, 0, 4
-		SBBO r21, r11, 0, 4
-		SBBO r23, r13, 0, 4
-		SBBO r22, r12, 0, 4
+		SBBO gpio0_led_mask, r10, 0, 4
+		SBBO gpio1_led_mask, r11, 0, 4
+		SBBO gpio2_led_mask, r12, 0, 4
+		SBBO gpio3_led_mask, r13, 0, 4
 
 		// Reconfigure r10-13 for clearing the bits
 		MOV r10, GPIO0 | GPIO_CLEARDATAOUT
@@ -379,16 +448,16 @@ WORD_LOOP:
 		//SLEEPNS 350, 1, wait_one_time
 
 		// Turn all the bits off
-		SBBO r20, r10, 0, 4
-		SBBO r21, r11, 0, 4
-		SBBO r23, r13, 0, 4
-		SBBO r22, r12, 0, 4
+		SBBO gpio0_led_mask, r10, 0, 4
+		SBBO gpio1_led_mask, r11, 0, 4
+		SBBO gpio2_led_mask, r12, 0, 4
+		SBBO gpio3_led_mask, r13, 0, 4
 
 		QBNE BIT_LOOP, bit_num, 0
 
-	// The 32 RGB streams have been clocked out
-	// Move to the next pixel on each row
-	ADD data_addr, data_addr, 32 * 4
+	// The 48 RGB streams have been clocked out
+	// Move to the next color component for each pixel
+	ADD data_addr, data_addr, 48
 	SUB data_len, data_len, 1
 	QBNE WORD_LOOP, data_len, #0
 

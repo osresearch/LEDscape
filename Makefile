@@ -1,3 +1,19 @@
+#########
+#
+# The top level targets link in the two .o files for now.
+#
+TARGETS += teensy-udp-rx
+TARGETS += matrix-test
+TARGETS += fire
+TARGETS += matrix-udp-rx
+TARGETS += opc-rx
+
+LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
+LEDSCAPE_LIB := libledscape.a
+
+all: $(TARGETS) ws281x.bin matrix.bin
+
+
 ifeq ($(shell uname -m),armv7l)
 # We are on the BeagleBone Black itself;
 # do not cross compile.
@@ -10,54 +26,83 @@ else
 # sudo apt-get install gcc-arm-linux-gnueabi
 #
 export CROSS_COMPILE?=arm-linux-gnueabi-
-#export CROSS_COMPILE
 endif
-
-LIBDIR_APP_LOADER?=./am335x/app_loader/lib
-INCDIR_APP_LOADER?=./am335x/app_loader/include
 
 CFLAGS += \
 	-std=c99 \
+	-W \
 	-Wall \
-	-I$(INCDIR_APP_LOADER) \
-	-D__DEBUG \
+	-D_BSD_SOURCE \
+	-Wp,-MMD,$(dir $@).$(notdir $@).d \
+	-Wp,-MT,$@ \
+	-I. \
 	-O2 \
 	-mtune=cortex-a8 \
 	-march=armv7-a \
 
 LDFLAGS += \
-	-L$(LIBDIR_APP_LOADER) \
-	-lprussdrv \
+
+LDLIBS += \
 	-lpthread \
 
-PASM := ./am335x/pasm/pasm
-TARGET := rgb-test
+COMPILE.o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
+COMPILE.a = $(CROSS_COMPILE)gcc -c -o $@ $< 
+COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
-_DEPS = 
-DEPS = $(patsubst %,$(INCDIR_APP_LOADER)/%,$(_DEPS))
 
-OBJS = ledscape.o pru.o
+#####
+#
+# The TI "app_loader" is the userspace library for talking to
+# the PRU and mapping memory between it and the ARM.
+#
+APP_LOADER_DIR ?= ./am335x/app_loader
+APP_LOADER_LIB := $(APP_LOADER_DIR)/lib/libprussdrv.a
+CFLAGS += -I$(APP_LOADER_DIR)/include
+LDLIBS += $(APP_LOADER_LIB)
 
-%.o: %.c $(DEPS)
-	$(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
+#####
+#
+# The TI PRU assembler looks like it has macros and includes,
+# but it really doesn't.  So instead we use cpp to pre-process the
+# file and then strip out all of the directives that it adds.
+# PASM also doesn't handle multiple statements per line, so we
+# insert hard newline characters for every ; in the file.
+#
+PASM_DIR ?= ./am335x/pasm
+PASM := $(PASM_DIR)/pasm
 
-all: rgb-test udp-rx ws281x.bin
-rgb-test: rgb-test.o $(OBJS)
-	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
+%.bin: %.p $(PASM)
+	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g; s/BYTE\((\d+)\)/t\1/g' > $<.i
+	$(PASM) -V3 -b $<.i $(basename $@)
+	$(RM) $<.i
 
-udp-rx: udp-rx.o $(OBJS)
-	$(CROSS_COMPILE)gcc $(CFLAGS) -o $@ $^ $(LDFLAGS)
+%.o: %.c
+	$(COMPILE.o)
 
-ws281x.bin: ws281x.p ws281x.hp
-	$(CPP) - < $< | grep -v '^#' | sed 's/;/\n/g' > $<.i
-	$(PASM) -V3 -b $<.i
+$(foreach O,$(TARGETS),$(eval $O: $O.o $(LEDSCAPE_OBJS) $(APP_LOADER_LIB)))
+
+$(TARGETS):
+	$(COMPILE.link)
 
 
 .PHONY: clean
 
 clean:
-	rm -rf *.o *.i  *~  $(INCDIR_APP_LOADER)/*~  $(TARGET) ../bin/ws281x.bin ws281x.bin
+	rm -rf \
+		*.o \
+		*.i \
+		.*.o.d \
+		*~ \
+		$(INCDIR_APP_LOADER)/*~ \
+		$(TARGETS) \
+		ws281x.bin \
 
+
+###########
+# 
+# The correct way to reserve the GPIO pins on the BBB is with the
+# capemgr and a Device Tree file.  But it doesn't work.
+#
 SLOT_FILE=/sys/devices/bone_capemgr.8/slots
 dts: LEDscape.dts
 	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
@@ -69,7 +114,15 @@ dts: LEDscape.dts
 	echo BB-LEDSCAPE > $(SLOT_FILE)
 
 
-# Libraries and compiler
-depend:
-	$(MAKE) -C am335x/app_loader/interface
-	$(MAKE) -C am335x/pasm
+###########
+# 
+# PRU Libraries and PRU assembler are build from their own trees.
+# 
+$(APP_LOADER_LIB):
+	$(MAKE) -C $(APP_LOADER_DIR)/interface
+
+$(PASM):
+	$(MAKE) -C $(PASM_DIR)
+
+# Include all of the generated dependency files
+-include .*.o.d

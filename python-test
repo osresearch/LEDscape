@@ -1,0 +1,52 @@
+#!/usr/bin/python
+# Draw images with PIL and send them to the display.
+# Dual scrolling example with fixed time on each side and
+# the date scrolling around.
+#
+import Image, ImageFont, ImageDraw
+import socket
+import time, datetime
+from colorsys import hsv_to_rgb
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+dest = ("localhost", 9999)
+
+#print im.format, im.size, im.mode
+# use a truetype font
+font = ImageFont.truetype("spincycle.ttf", 18)
+font_sm = ImageFont.truetype("pf_tempesta_seven.ttf", 8)
+
+i = 0
+width = 256
+height = 48
+disp = Image.new("RGB", (width,height), "black")
+im = Image.new("RGB", (width,height), "black")
+im_draw = ImageDraw.Draw(im)
+disp_draw = ImageDraw.Draw(disp)
+
+def rainbow(i):
+	rgb = [int(x*256) for x in hsv_to_rgb(i/256.0,0.8,0.8)]
+	return (rgb[0],rgb[1],rgb[2])
+
+
+while True:
+	im.paste("black", (0,0,width,height))
+	now = datetime.datetime.now()
+	d = now.strftime("%a %d %b %Y")
+	t = now.strftime("%H:%M")
+
+	# Draw the date 
+	im_draw.text((0, -2), d, font=font, fill=rainbow(i))
+
+	# Make it scroll
+	disp.paste(im.crop((0,0,i,height)), (width-i,0))
+	disp.paste(im.crop((i+1,0,width-1,height)), (0,0))
+
+	# draw the time on each face
+	for x in range(0,7):
+		disp_draw.text((4+x*32, 8-3), t, font=font_sm)
+
+	# Send it to the drawing server
+	sock.sendto(chr(1) + disp.tostring(), dest)
+	i = (i+1) % width
+	time.sleep(0.025)

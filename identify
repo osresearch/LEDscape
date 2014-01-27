@@ -1,32 +1,39 @@
-#!/usr/bin/perl
-use warnings;
-use strict;
+#!/usr/bin/python
+# Draw an image with PIl that has the coordinates
+# in flashing colors
+#
+import Image, ImageFont, ImageDraw
+import socket
+import time, datetime
+from colorsys import hsv_to_rgb
 
-# Make a bargraph to help identify which port is which
-# R Y G C B W
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+dest = ("localhost", 9999)
 
-my $width = 10;
-my $height = 32;
+#print im.format, im.size, im.mode
+# use a truetype font
+font = ImageFont.truetype("pf_tempesta_seven.ttf", 8)
 
-my $s = '1';
+i = 0
+width = 256
+height = 64
+disp = Image.new("RGB", (width,height), "black")
+disp_draw = ImageDraw.Draw(disp)
 
-for(my $y = 0 ; $y < $height ; $y++)
-{
-	for(my $x = 0 ; $x < $width ; $x++)
-	{
-		my $v = ($y % 8) >= $x ? 0x10 : 0;
-		my $r = 0;
-		my $g = 0;
-		my $b = 0;
-		$r = $v if int($y / 8) == 0;
-		$g = $v if int($y / 8) == 1;
-		$b = $v if int($y / 8) == 2;
-		$g = $r = $v if int($y / 8) == 3;
+def rainbow(i):
+	rgb = [int(x*256) for x in hsv_to_rgb(i/256.0,0.8,0.8)]
+	return (rgb[0],rgb[1],rgb[2])
 
-		$s .= chr($r);
-		$s .= chr($g);
-		$s .= chr($b);
-	}
-}
 
-print $s;
+while True:
+	disp.paste("black", (0,0,width,height))
+
+	for x in range(0,width, 32):
+		for y in range(0,height, 16):
+			s = str(x) + "," + str(y)
+			disp_draw.text((x+2, y), s, font=font, fill=rainbow(i))
+
+	# Send it to the drawing server
+	sock.sendto(chr(1) + disp.tostring(), dest)
+	i = (i+1) % width
+	time.sleep(0.025)

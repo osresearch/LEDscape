@@ -47,21 +47,15 @@ typedef struct ledscape ledscape_t;
 
 extern ledscape_t *
 ledscape_init(
-	unsigned num_pixels
-);
-
-
-extern ledscape_frame_t *
-ledscape_frame(
-	ledscape_t * const leds,
-	unsigned frame
+	unsigned width,
+	unsigned height
 );
 
 
 extern void
 ledscape_draw(
 	ledscape_t * const leds,
-	unsigned frame
+	const void * const rgb // 4-byte rgb data
 );
 
 
