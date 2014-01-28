@@ -3,4 +3,4 @@ DIRNAME="`dirname "$0"`"
 cd "$DIRNAME"
 
 modprobe uio_pruss
-exec ./matrix-test
+cd c-examples && sudo ./matrix-test

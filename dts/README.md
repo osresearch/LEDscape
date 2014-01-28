@@ -6,6 +6,10 @@ Generate DTS from DTB:
 		-o ubuntu-`uname -r`.dts \
 		/boot/uboot/dtbs/am335x-boneblack.dtb
 
+Note: When running from microSD, the correct location is:
+
+	/boot/dtbs/am335x-boneblack.dtb
+
 Enable the PRU.  Change status from "disabled" to "okay"
 
 

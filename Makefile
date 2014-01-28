@@ -1,19 +1,14 @@
-#########
+###########
 #
-# The top level targets link in the two .o files for now.
+# Top level build file for LEDscape 
 #
-TARGETS += teensy-udp-rx
-TARGETS += matrix-test
-TARGETS += fire
-TARGETS += matrix-udp-rx
-TARGETS += opc-rx
 
-LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
-LEDSCAPE_LIB := libledscape.a
+all: $(LEDSCAPE_LIB) c-examples
 
-all: $(TARGETS) ws281x.bin matrix.bin
-
-
+###########
+#
+# Determine if we are using a cross compiler here, so the results can trickle down
+#
 ifeq ($(shell uname -m),armv7l)
 # We are on the BeagleBone Black itself;
 # do not cross compile.
@@ -28,26 +23,21 @@ else
 export CROSS_COMPILE?=arm-linux-gnueabi-
 endif
 
-CFLAGS += \
-	-std=c99 \
-	-W \
-	-Wall \
-	-D_BSD_SOURCE \
-	-Wp,-MMD,$(dir $@).$(notdir $@).d \
-	-Wp,-MT,$@ \
-	-I. \
-	-O2 \
-	-mtune=cortex-a8 \
-	-march=armv7-a \
 
-LDFLAGS += \
-
-LDLIBS += \
-	-lpthread \
-
-COMPILE.o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
-COMPILE.a = $(CROSS_COMPILE)gcc -c -o $@ $< 
-COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
+###########
+# 
+# The correct way to reserve the GPIO pins on the BBB is with the
+# capemgr and a Device Tree file.  But it doesn't work.
+#
+# SLOT_FILE=/sys/devices/bone_capemgr.8/slots
+# dts: LEDscape.dts
+#	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
+#	if [ ! -z "$$SLOT" ]; then \
+#		echo "Removing slot $$SLOT"; \
+#		echo -$$SLOT > $(SLOT_FILE); \
+#	fi
+#	dtc -O dtb -o /lib/firmware/BB-LEDSCAPE-00A0.dtbo -b 0 -@ LEDscape.dts
+#	echo BB-LEDSCAPE > $(SLOT_FILE)
 
 
 #####
@@ -57,72 +47,54 @@ COMPILE.link = $(CROSS_COMPILE)gcc $(LDFLAGS) -o $@ $^ $(LDLIBS)
 #
 APP_LOADER_DIR ?= ./am335x/app_loader
 APP_LOADER_LIB := $(APP_LOADER_DIR)/lib/libprussdrv.a
-CFLAGS += -I$(APP_LOADER_DIR)/include
-LDLIBS += $(APP_LOADER_LIB)
 
-#####
-#
-# The TI PRU assembler looks like it has macros and includes,
-# but it really doesn't.  So instead we use cpp to pre-process the
-# file and then strip out all of the directives that it adds.
-# PASM also doesn't handle multiple statements per line, so we
-# insert hard newline characters for every ; in the file.
-#
+$(APP_LOADER_LIB):
+	$(MAKE) -C $(APP_LOADER_DIR)/interface
+
+
+###########
+# 
+# PRU Libraries and PRU assembler are built from their own trees.
+# 
 PASM_DIR ?= ./am335x/pasm
 PASM := $(PASM_DIR)/pasm
 
-%.bin: %.p $(PASM)
-	$(CPP) - < $< | perl -p -e 's/^#.*//; s/;/\n/g; s/BYTE\((\d+)\)/t\1/g' > $<.i
-	$(PASM) -V3 -b $<.i $(basename $@)
-	$(RM) $<.i
+$(PASM):
+	$(MAKE) -C $(PASM_DIR)
 
-%.o: %.c
-	$(COMPILE.o)
 
-$(foreach O,$(TARGETS),$(eval $O: $O.o $(LEDSCAPE_OBJS) $(APP_LOADER_LIB)))
+###########
+# 
+# The LEDscape library gets built as an archive
+#
+LEDSCAPE_DIR ?= ./lib
+LEDSCAPE_LIB := $(LEDSCAPE_DIR)/libledscape.a
 
-$(TARGETS):
-	$(COMPILE.link)
+.PHONY: $(LEDSCAPE_LIB)
+$(LEDSCAPE_LIB): $(APP_LOADER_LIB) $(PASM)
+	$(MAKE) -C $(LEDSCAPE_DIR)
+
+
+#########
+#
+# C language examples are
+#
+C_EXAMPLES_DIR ?= ./c-examples
+
+.PHONY: c-examples
+c-examples: $(LEDSCAPE_LIB)
+	$(MAKE) -C $(C_EXAMPLES_DIR)
+
 
 
 .PHONY: clean
-
 clean:
 	rm -rf \
 		*.o \
 		*.i \
 		.*.o.d \
-		*~ \
-		$(INCDIR_APP_LOADER)/*~ \
-		$(TARGETS) \
-		ws281x.bin \
-
-
-###########
-# 
-# The correct way to reserve the GPIO pins on the BBB is with the
-# capemgr and a Device Tree file.  But it doesn't work.
-#
-SLOT_FILE=/sys/devices/bone_capemgr.8/slots
-dts: LEDscape.dts
-	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
-	if [ ! -z "$$SLOT" ]; then \
-		echo "Removing slot $$SLOT"; \
-		echo -$$SLOT > $(SLOT_FILE); \
-	fi
-	dtc -O dtb -o /lib/firmware/BB-LEDSCAPE-00A0.dtbo -b 0 -@ LEDscape.dts
-	echo BB-LEDSCAPE > $(SLOT_FILE)
-
-
-###########
-# 
-# PRU Libraries and PRU assembler are build from their own trees.
-# 
-$(APP_LOADER_LIB):
-	$(MAKE) -C $(APP_LOADER_DIR)/interface
-
-$(PASM):
-	$(MAKE) -C $(PASM_DIR)
-
-# Include all of the generated dependency files
--include .*.o.d
+		*~
+	$(MAKE) -C $(APP_LOADER_DIR)/interface clean
+	$(MAKE) -C $(PASM_DIR) clean
+	$(MAKE) -C $(LEDSCAPE_DIR) clean
+	$(MAKE) -C $(C_EXAMPLES_DIR) clean

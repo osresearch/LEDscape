@@ -12,3 +12,5 @@ x-Add extra pads for GPIO like the HDMI on p8
 Future:
 -Add HRC logo
 -EEPROM for shield detection
+-Make sure all bypass caps are connected directly to the RS485 transcevers
+-LED status light(s)
