@@ -1,0 +1,141 @@
+/*  
+* pru dts file BB-BONE-PRU-00A0.dts  
+*
+* Available outputs on pru 0 and their r30 pins:
+* p9.31: 0
+* p9.29: 1
+* p9.30: 2
+* p9.28: 3
+* p9.27: 5
+* p9.25: 7
+* p8.12: 14
+* p8.11: 15
+
+gpio 0: 23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7
+gpio 1: 13, 15, 12, 14, 29, 16, 17, 28, 18, 19,
+gpio 2: 2, 5, 22, 23, 14, 12, 10, 8, 6, 3, 4, 1, 24, 25, 17, 16, 15, 13, 11, 9, 7,
+gpio 3: 21, 19, 15, 14, 17, 16
+
+*/  
+/dts-v1/;  
+/plugin/;  
+  
+/ {  
+  compatible = "ti,beaglebone", "ti,beaglebone-black";  
+  
+  /* identification */  
+  part-number = "BB-BONE-OCTO";  
+  version = "00A0";  
+  
+  exclusive-use =  
+//gpio 0: 23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7
+	"P9.11", "P9.12", "P9.13", "P9.14", "P9.15", "P9.16", "P9.17",
+	"P9.18",
+
+	"P9.21", "P9.22", "P9.23", "P9.24", "P9.25", "P9.26",
+	"P9.27", "P9.28", "P9.29", "P9.30",
+
+	"P9.41", "P9.42",
+
+	"P8.7", "P8.8", "P8.9", "P8.10", "P8.11", "P8.12", "P8.13",
+	"P8.14", "P8.15", "P8.16", "P8.17", "P8.18", "P8.19",
+
+	"P8.26", "P8.27", "P8.28", "P8.29", "P8.30", "P8.31", "P8.32",
+	"P8.33", "P8.34", "P8.35", "P8.36", "P8.37", "P8.38", "P8.39",
+	"P8.40", "P8.41", "P8.42", "P8.43", "P8.44", "P8.45", "P8.46";
+  
+  fragment@0 {  
+    target = <&am33xx_pinmux>;  
+    __overlay__ {  
+      mygpio: pinmux_mygpio {
+        pinctrl-single,pins = <  
+		// p9.11-18
+		0x070 0x7
+		0x078 0x7
+		0x074 0x7
+		0x048 0x7
+		0x040 0x7
+		0x04c 0x7
+		0x15c 0x7
+		0x158 0x7
+
+		// p9.21-29
+		0x154 0x7
+		0x150 0x7
+		0x044 0x7
+		0x184 0x7
+		0x1AC 0x7
+		0x180 0x7
+		0x1A4 0x7
+		0x19C 0x7
+		0x194 0x7
+
+		// p9.41-42, but alternate functions to input
+		0x1B4 0x7 // gpio0.20 as output
+		0x164 0x7 // gpio0.7 as output
+		0x1A8 0x27 // gpio3.18 as input
+		0x1A0 0x27 // gpio3.18 as input
+
+		// p8.7-19
+		0x090 0x7
+		0x094 0x7
+		0x09c 0x7
+		0x098 0x7
+		0x034 0x7
+		0x030 0x7
+		0x024 0x7
+		0x028 0x7
+		0x03c 0x7
+		0x038 0x7
+		0x02c 0x7
+		0x08c 0x7
+		0x020 0x7
+
+		// p8.26-46
+		0x07c 0x7
+		0x0e0 0x7
+		0x0e8 0x7
+		0x0e4 0x7
+		0x0ec 0x7
+		0x0d8 0x7
+		0x0dc 0x7
+		0x0d4 0x7
+		0x0cc 0x7
+		0x0d4 0x7
+		0x0cc 0x7
+		0x0d0 0x7
+		0x0c8 0x7
+		0x0c0 0x7
+		0x0c4 0x7
+		0x0b8 0x7
+		0x0bc 0x7
+		0x0b0 0x7
+		0x0b4 0x7
+		0x0a8 0x7
+		0x0ac 0x7
+		0x0a0 0x7
+		0x0a4 0x7
+        >;  
+      };  
+    };  
+  };  
+  
+  fragment@1 {  
+    target = <&ocp>;  
+    __overlay__ {  
+      test_helper: helper {  
+        compatible = "bone-pinmux-helper";  
+        pinctrl-names = "default";  
+        pinctrl-0 = <&mygpio>;  
+        status = "okay";  
+      };  
+    };  
+  };  
+  
+  fragment@2{  
+  target = <&pruss>;  
+    __overlay__ {  
+      status = "okay";  
+    };  
+  };  
+};  

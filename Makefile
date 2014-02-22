@@ -104,6 +104,9 @@ clean:
 # capemgr and a Device Tree file.  But it doesn't work.
 #
 SLOT_FILE=/sys/devices/bone_capemgr.8/slots
+DTS=CAPE-BONE-OCTO
+DTB=/lib/firmware/$(DTS)-00A0.dtbo
+
 dts: LEDscape.dts
 	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
 	if [ ! -z "$$SLOT" ]; then \
@@ -113,6 +116,14 @@ dts: LEDscape.dts
 	dtc -O dtb -o /lib/firmware/BB-LEDSCAPE-00A0.dtbo -b 0 -@ LEDscape.dts
 	echo BB-LEDSCAPE > $(SLOT_FILE)
 
+
+
+firmware: $(DTB)
+	echo $(DTS) > $(SLOT_FILE)
+
+$(DTB): cape-bone-octo.dts FORCE
+	dtc -O dtb -o $@ -b 0 -@ $<
+FORCE:
 
 ###########
 # 
