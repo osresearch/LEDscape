@@ -439,7 +439,8 @@ NEW_ROW_LOOP:
 			//LSL out_clr, 1, bright
 			//LSL out_clr, out_clr, 1
 			//MOV out_clr, 2048
-			LSL out_clr, bright_thresh, 5
+			LSL out_clr, bright_thresh, 4
+			//LSL out_clr, bright_thresh, 10
 
 			//QBBS no_blank, out_set, bright
 			QBGT no_blank, out_set, out_clr
@@ -467,7 +468,7 @@ NEW_ROW_LOOP:
 		ADD data_addr, data_addr, offset
 
                 ADD row, row, 1
-                QBEQ READ_LOOP, row, 8
+                QBEQ READ_LOOP, row, 16
 
 		QBA NEW_ROW_LOOP
 	
