@@ -439,7 +439,10 @@ NEW_ROW_LOOP:
 			//LSL out_clr, 1, bright
 			//LSL out_clr, out_clr, 1
 			//MOV out_clr, 2048
-			LSL out_clr, bright_thresh, 4
+
+			// higher constants == brighter.
+			// 4 is a ok brightness, 5 is bright, 6 is powerful
+			LSL out_clr, bright_thresh, 5
 			//LSL out_clr, bright_thresh, 10
 
 			//QBBS no_blank, out_set, bright
