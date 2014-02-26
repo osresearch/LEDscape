@@ -141,10 +141,44 @@ gradient(
 			uint8_t b = 0xFF;
 			out[1] = b * ((((x + y + cycle) >> 5) ) & 1);
 #else
-			uint8_t b = ((x+2*y+cycle)) * 4;
-			out[0] = b;
-			out[1] = b;
-			out[2] = b;
+			uint32_t b = 0;
+
+			if (x % 32 == 0 && y % 32 == 0)
+			{
+				b = 0xFFFFFF;
+			} else
+			if (x < 32)
+			{
+				if (y < 32)
+					b = 0xFF0000;
+				else
+				if (y < 64)
+					b = 0x0000FF;
+				else
+				if (y < 96)
+					b = 0x00FF00;
+				else
+					b = 0x411111;
+			} else
+			if (x < 64)
+			{
+				if (y < 32)
+					b = 0xFF00FF;
+				else
+				if (y < 64)
+					b = 0x00FFFF;
+				else
+				if (y < 96)
+					b = 0xFFFF00;
+				else
+					b = 0x114111;
+			} else {
+				b = 0x111141;
+			}
+				
+			out[0] = (b >> 16) & 0xFF;
+			out[1] = (b >>  8) & 0xFF;
+			out[2] = (b >>  0) & 0xFF;
 #endif
 		}
 	}
@@ -153,8 +187,8 @@ gradient(
 int
 main(void)
 {
-	const int width = 256;
-	const int height = 64;
+	const int width = 64;
+	const int height = 128;
 	ledscape_t * const leds = ledscape_init(width, height);
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -174,7 +208,7 @@ main(void)
 
 	while (1)
 	{
-		if (1)
+		if (0)
 			rainbow(p, width, height, 10, i++);
 		else
 			gradient(p, width, height, 10, i++);

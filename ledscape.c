@@ -293,7 +293,7 @@ ledscape_init(
 
 #ifdef CONFIG_LED_MATRIX
 	*(leds->matrix) = (led_matrix_config_t) {
-		.matrix_width	= 128,
+		.matrix_width	= 64,
 		.matrix_height	= 16,
 		.matrix		= {
 			{ 0, 0 },
@@ -302,11 +302,12 @@ ledscape_init(
 			{ 0, 32 },
 			{ 0, 48 },
 
-			{ 0, 0 },
-			{ 0, 16 },
+			{ 0, 64 },
+			{ 0, 80 },
 
-			{ 0, 16 },
-			{ 0, 56 },
+			{ 0, 96 },
+			{ 0, 112 },
+
 			{ 128, 0 },
 			{ 128, 8 },
 			{ 128, 16 },
