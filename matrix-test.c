@@ -187,7 +187,7 @@ gradient(
 int
 main(void)
 {
-	const int width = 64;
+	const int width = 128;
 	const int height = 128;
 	ledscape_t * const leds = ledscape_init(width, height);
 	printf("init done\n");
@@ -208,7 +208,7 @@ main(void)
 
 	while (1)
 	{
-		if (0)
+		if (1)
 			rainbow(p, width, height, 10, i++);
 		else
 			gradient(p, width, height, 10, i++);
