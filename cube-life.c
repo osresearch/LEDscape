@@ -34,39 +34,49 @@
  */
 
 #define WIDTH 32
-typedef struct
+typedef struct game game_t;
+typedef struct {
+	game_t * board;
+	int edge;
+} edge_t;
+
+struct game
 {
 	unsigned px, py;
-	unsigned rotate; // 0, 1, 2, or 3, viewed from the top
 
-	uint8_t edges[4][2]; // top, right, bottom, left
+	edge_t top;
+	edge_t bottom;
+	edge_t left;
+	edge_t right;
+
 	uint8_t board[WIDTH][WIDTH];
-} game_t;
+};
+
 
 static game_t boards[6] = {
 	{
 		// red
-		.px = 0, .py = 0, .rotate = 0,
+		.px = 0, .py = 0,
 	},
 	{
 		// purple
-		.px = WIDTH, .py = 0, .rotate = 0,
+		.px = WIDTH, .py = 0,
 	},
 	{
 		// green
-		.px = 0, .py = WIDTH, .rotate = 3,
+		.px = 0, .py = WIDTH,
 	},
 	{
 		// yellow
-		.px = WIDTH, .py = WIDTH, .rotate = 3,
+		.px = WIDTH, .py = WIDTH,
 	},
 	{
 		// blue
-		.px = 0, .py = 2*WIDTH, .rotate = 2,
+		.px = 0, .py = 2*WIDTH,
 	},
 	{
 		// teal
-		.px = WIDTH, .py = 2*WIDTH, .rotate = 2,
+		.px = WIDTH, .py = 2*WIDTH,
 	},
 	
 };
@@ -87,6 +97,70 @@ randomize(
 }
 
 
+static unsigned
+get_edge(
+	edge_t * const e,
+	int pos
+)
+{
+	game_t * const b = e->board;
+	const int edge = e->edge;
+
+	if (edge == 1)
+		return b->board[0][pos] & 1;
+	if (edge == 2)
+		return b->board[pos][WIDTH-1] & 1;
+	if (edge == 3)
+		return b->board[WIDTH-1][pos] & 1;
+	if (edge == 4)
+		return b->board[pos][0] & 1;
+
+	if (edge == -1)
+		return b->board[0][WIDTH-pos-1] & 1;
+	if (edge == -2)
+		return b->board[WIDTH-pos-1][WIDTH-1] & 1;
+	if (edge == -3)
+		return b->board[WIDTH-1][WIDTH-pos-1] & 1;
+	if (edge == -4)
+		return b->board[WIDTH-pos-1][0] & 1;
+
+printf("bad %d,%d\n", edge, pos);
+	return 9;
+}
+
+
+static unsigned
+get_space(
+	game_t * const b,
+	int x,
+	int y
+)
+{
+	if (x >= 0 && y >= 0 && x < WIDTH && y < WIDTH)
+		return b->board[y][x] & 1;
+
+	// don't deal with diagonal connections
+	if (x < 0 && y < 0)
+		return 0;
+	if (x >= WIDTH && y >= WIDTH)
+		return 0;
+
+	// Check for the four cardinal ones
+	if (y < 0)
+		return get_edge(&b->top, x);
+	if (y >= WIDTH)
+		return get_edge(&b->bottom, x);
+	if (x < 0)
+		return get_edge(&b->left, y);
+	if (x >= WIDTH)
+		return get_edge(&b->right, y);
+
+	// huh?
+printf("bad %d,%d\n", x, y);
+	return 9;
+}
+
+
 static void
 play_game(
 	game_t * const b
@@ -97,30 +171,17 @@ play_game(
 		for (int x = 0 ; x < WIDTH ; x++)
 		{
 			uint8_t sum = 0;
-			const unsigned bx = x == 0;
-			const unsigned by = y == 0;
-			const unsigned tx = x == WIDTH-1;
-			const unsigned ty = y == WIDTH-1;
 
-			if (!bx && !by)
-				sum += b->board[y-1][x-1] & 1;
-			if (!bx && !ty)
-				sum += b->board[y+1][x-1] & 1;
+			sum += get_space(b, x-1, y-1);
+			sum += get_space(b, x-1, y  );
+			sum += get_space(b, x-1, y+1);
 
-			if (!tx && !by)
-				sum += b->board[y-1][x+1] & 1;
-			if (!tx && !ty)
-				sum += b->board[y+1][x+1] & 1;
+			sum += get_space(b, x  , y-1);
+			sum += get_space(b, x  , y+1);
 
-			if (!bx)
-				sum += b->board[y+0][x-1] & 1;
-			if (!tx)
-				sum += b->board[y+0][x+1] & 1;
-
-			if (!by)
-				sum += b->board[y-1][x+0] & 1;
-			if (!ty)
-				sum += b->board[y+1][x+0] & 1;
+			sum += get_space(b, x+1, y-1);
+			sum += get_space(b, x+1, y  );
+			sum += get_space(b, x+1, y+1);
 
 
 /*
@@ -187,9 +248,15 @@ copy_to_fb(
 				if (b > 0xFF)
 					b = 0xFF;
 			} else {
+#if 1
 #define SMOOTH_R 7
 #define SMOOTH_G 63
 #define SMOOTH_B 15
+#else
+#define SMOOTH_R 1
+#define SMOOTH_G 1
+#define SMOOTH_B 1
+#endif
 				r = (r * SMOOTH_R) / (SMOOTH_R+1);
 				g = (g * SMOOTH_G) / (SMOOTH_G+1);
 				b = (b * SMOOTH_B) / (SMOOTH_B+1);
@@ -214,20 +281,51 @@ main(void)
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height,4);
 
+	boards[0].top		= (edge_t) { &boards[2], 4 };
+	boards[0].right		= (edge_t) { &boards[1], 4 };
+	boards[0].bottom	= (edge_t) { &boards[4], -3 };
+	boards[0].left		= (edge_t) { &boards[5], -3 };
+
+	boards[1].top		= (edge_t) { &boards[2], 4 };
+	boards[1].right		= (edge_t) { &boards[3], 4 };
+	boards[1].bottom	= (edge_t) { &boards[4], -4 };
+	boards[1].left		= (edge_t) { &boards[0], 2 };
+
+	boards[2].top		= (edge_t) { &boards[5], 2 };
+	boards[2].right		= (edge_t) { &boards[3], 4 };
+	boards[2].bottom	= (edge_t) { &boards[1], 1 };
+	boards[2].left		= (edge_t) { &boards[0], 1 };
+
+	boards[3].top		= (edge_t) { &boards[5], 1 };
+	boards[3].right		= (edge_t) { &boards[4], -1 };
+	boards[3].bottom	= (edge_t) { &boards[1], 2 };
+	boards[3].left		= (edge_t) { &boards[2], 2 };
+
+	boards[4].top		= (edge_t) { &boards[3], -2 };
+	boards[4].right		= (edge_t) { &boards[5], 4 };
+	boards[4].bottom	= (edge_t) { &boards[0], -2 };
+	boards[4].left		= (edge_t) { &boards[1], 3 };
+
+	boards[5].top		= (edge_t) { &boards[3], -1 };
+	boards[5].right		= (edge_t) { &boards[2], 1 };
+	boards[5].bottom	= (edge_t) { &boards[0], -4 };
+	boards[5].left		= (edge_t) { &boards[1], 2 };
+
+
 	while (1)
 	{
 		if ((i & 0x001FF) == 0)
 		{
 			printf("randomize\n");
-		for (int i = 0 ; i < 6 ; i++)
-			randomize(&boards[i]);
+			for (int i = 0 ; i < 6 ; i++)
+				randomize(&boards[i]);
 		}
 
 		if (i++ % 4 == 0)
 		{
 			printf("i=%x\n", i);
-		for (int i = 0 ; i < 6 ; i++)
-			play_game(&boards[i]);
+			for (int i = 0 ; i < 6 ; i++)
+				play_game(&boards[i]);
 		}
 
 		for (int i = 0 ; i < 6 ; i++)
