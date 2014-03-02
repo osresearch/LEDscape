@@ -177,14 +177,22 @@ copy_to_fb(
 			unsigned live = *sq & 1;
 			if (live)
 			{
-				g += 10;
+				r += 10;
+				g += 5;
+				b += 30;
+				if (r > 0xFF)
+					r = 0xFF;
 				if (g > 0xFF)
 					g = 0xFF;
+				if (b > 0xFF)
+					b = 0xFF;
 			} else {
-#define SMOOTH 16
-				r = (r * SMOOTH) / (SMOOTH+1);
-				g = (g * SMOOTH) / (SMOOTH+1);
-				b = (b * SMOOTH) / (SMOOTH+1);
+#define SMOOTH_R 7
+#define SMOOTH_G 63
+#define SMOOTH_B 15
+				r = (r * SMOOTH_R) / (SMOOTH_R+1);
+				g = (g * SMOOTH_G) / (SMOOTH_G+1);
+				b = (b * SMOOTH_B) / (SMOOTH_B+1);
 			}
 
 			*pix_ptr = (r << 0) | (g << 8) | (b << 16);
