@@ -299,7 +299,7 @@ copy_to_fb(
 			unsigned live = *sq & 1;
 			if (live)
 			{
-				r += 10;
+				r += 80;
 				g += 5;
 				b += 30;
 				if (r > 0xFF)
@@ -310,9 +310,9 @@ copy_to_fb(
 					b = 0xFF;
 			} else {
 #if 1
-#define SMOOTH_R 7
-#define SMOOTH_G 63
-#define SMOOTH_B 15
+#define SMOOTH_R 3
+#define SMOOTH_G 127
+#define SMOOTH_B 63
 #else
 #define SMOOTH_R 1
 #define SMOOTH_G 1
@@ -469,12 +469,12 @@ if (1){
 
 	while (1)
 	{
-		if ((i & 0x1FF) == 0)
+		if ((i & 0x3FF) == 0)
 		{
 			printf("randomize\n");
 			for (int i = 0 ; i < 6 ; i++)
 			{
-				randomize(&boards[i], 40);
+				randomize(&boards[i], 20);
 				//make_glider(&boards[i]);
 			}
 			//make_glider(&boards[rand() % 6]);
