@@ -8,7 +8,7 @@ TARGETS += fire
 TARGETS += matrix-udp-rx
 TARGETS += opc-rx
 TARGETS += cube-life
-TARGETS += image-cube
+TARGETS += cube-image
 
 LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
 LEDSCAPE_LIB := libledscape.a
