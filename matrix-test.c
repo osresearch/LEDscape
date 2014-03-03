@@ -143,7 +143,7 @@ gradient(
 #else
 			uint32_t b = 0;
 
-			if (x % 32 == 0 && y % 32 == 0)
+			if (x % 32 < (x/32 + 4) && y % 32 < (y/32+1))
 			{
 				b = 0xFFFFFF;
 			} else
@@ -179,6 +179,7 @@ gradient(
 			out[0] = (b >> 16) & 0xFF;
 			out[1] = (b >>  8) & 0xFF;
 			out[2] = (b >>  0) & 0xFF;
+			//*out = b;
 #endif
 		}
 	}
