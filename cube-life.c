@@ -482,7 +482,6 @@ if (1){
 
 		if (i++ % 4 == 0)
 		{
-			printf("i=%x\n", i);
 			for (int i = 0 ; i < 6 ; i++)
 				play_game(&boards[i]);
 		}
