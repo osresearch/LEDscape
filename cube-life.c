@@ -142,7 +142,7 @@ get_edge(
 {
 	uint8_t * const u = _get_edge(e, pos);
 	if (u)
-		return *u;
+		return (*u) & 1;
 	return 0;
 }
 
@@ -323,7 +323,7 @@ copy_to_fb(
 				b = (b * SMOOTH_B) / (SMOOTH_B+1);
 			}
 
-			if (x < 3 && y == 0)
+			if (0 && x == 0 && y == 0)
 				identify(pix_ptr, board->px, board->py);
 			else
 				*pix_ptr = (r << 0) | (g << 8) | (b << 16);
@@ -469,13 +469,13 @@ if (1){
 
 	while (1)
 	{
-		if (0 && (i & 0x003FF) == 0)
+		if ((i & 0x1FF) == 0)
 		{
 			printf("randomize\n");
 			for (int i = 0 ; i < 6 ; i++)
 			{
-				randomize(&boards[i], 0);
-				make_glider(&boards[i]);
+				randomize(&boards[i], 40);
+				//make_glider(&boards[i]);
 			}
 			//make_glider(&boards[rand() % 6]);
 		}
