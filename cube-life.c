@@ -53,79 +53,97 @@ struct game
 };
 
 
-static game_t boards[6] = {
-	{
-		// red
-		.px = 0, .py = 0,
-	},
-	{
-		// purple
-		.px = WIDTH, .py = 0,
-	},
-	{
-		// green
-		.px = 0, .py = WIDTH,
-	},
-	{
-		// yellow
-		.px = WIDTH, .py = WIDTH,
-	},
-	{
-		// blue
-		.px = 0, .py = 2*WIDTH,
-	},
-	{
-		// teal
-		.px = WIDTH, .py = 2*WIDTH,
-	},
-	
-};
+static game_t boards[6] = {};
 
 static void
 randomize(
-	game_t * const b
+	game_t * const b,
+	int chance
 )
 {
 	for (int y = 0 ; y < WIDTH ; y++)
 	{
 		for (int x = 0 ; x < WIDTH ; x++)
 		{
-			unsigned live = (rand() % 128 < 20);
+#if 1
+			unsigned live = (rand() % 128 < chance);
 			b->board[y][x] = live ? 3 : 0;
+#else
+			b->board[y][x] = 0;
+#endif
 		}
 	}
+
 }
 
 
-static unsigned
-get_edge(
+static void
+make_glider(
+	game_t * const b
+)
+{
+	//  X
+	//   X
+ 	// XXX
+	int px = (rand() % 8) + 10;
+	int py = (rand() % 8) + 20;
+	b->board[py+0][px+0] = 0;
+	b->board[py+0][px+1] = 3;
+	b->board[py+0][px+2] = 0;
+
+	b->board[py+1][px+0] = 0;
+	b->board[py+1][px+1] = 0;
+	b->board[py+1][px+2] = 3;
+
+	b->board[py+2][px+0] = 3;
+	b->board[py+2][px+1] = 3;
+	b->board[py+2][px+2] = 3;
+}
+
+
+static uint8_t *
+_get_edge(
 	edge_t * const e,
 	int pos
 )
 {
 	game_t * const b = e->board;
 	const int edge = e->edge;
+	const int neg_pos = WIDTH - pos - 1;
 
 	if (edge == 1)
-		return b->board[0][pos] & 1;
+		return &b->board[0][pos];
 	if (edge == 2)
-		return b->board[pos][WIDTH-1] & 1;
+		return &b->board[pos][WIDTH-1];
 	if (edge == 3)
-		return b->board[WIDTH-1][pos] & 1;
+		return &b->board[WIDTH-1][pos];
 	if (edge == 4)
-		return b->board[pos][0] & 1;
+		return &b->board[pos][0];
 
 	if (edge == -1)
-		return b->board[0][WIDTH-pos-1] & 1;
+		return &b->board[0][neg_pos];
 	if (edge == -2)
-		return b->board[WIDTH-pos-1][WIDTH-1] & 1;
+		return &b->board[neg_pos][WIDTH-1];
 	if (edge == -3)
-		return b->board[WIDTH-1][WIDTH-pos-1] & 1;
+		return &b->board[WIDTH-1][neg_pos];
 	if (edge == -4)
-		return b->board[WIDTH-pos-1][0] & 1;
+		return &b->board[neg_pos][0];
 
 printf("bad %d,%d\n", edge, pos);
-	return 9;
+	return NULL;
+}
+
+
+static uint8_t
+get_edge(
+	edge_t * const e,
+	int pos
+)
+{
+	uint8_t * const u = _get_edge(e, pos);
+	if (u)
+		return *u;
+	return 0;
 }
 
 
@@ -214,6 +232,49 @@ as if by reproduction.
 
 
 static void
+identify(
+	uint8_t * const out,
+	int x,
+	int y
+)
+{
+	uint32_t b = 0;
+
+	if (x < 32)
+	{
+		if (y < 32)
+			b = 0xFF0000;
+		else
+		if (y < 64)
+			b = 0x0000FF;
+		else
+		if (y < 96)
+			b = 0x00FF00;
+		else
+			b = 0x411111;
+	} else
+	if (x < 64)
+	{
+		if (y < 32)
+			b = 0xFF00FF;
+		else
+		if (y < 64)
+			b = 0x00FFFF;
+		else
+		if (y < 96)
+			b = 0xFFFF00;
+		else
+			b = 0x114111;
+	} else {
+		b = 0x111141;
+	}
+		
+	out[0] = (b >> 16) & 0xFF;
+	out[1] = (b >>  8) & 0xFF;
+	out[2] = (b >>  0) & 0xFF;
+}
+
+static void
 copy_to_fb(
 	uint32_t * const p,
 	const unsigned width,
@@ -262,10 +323,51 @@ copy_to_fb(
 				b = (b * SMOOTH_B) / (SMOOTH_B+1);
 			}
 
-			*pix_ptr = (r << 0) | (g << 8) | (b << 16);
+			if (x < 3 && y == 0)
+				identify(pix_ptr, board->px, board->py);
+			else
+				*pix_ptr = (r << 0) | (g << 8) | (b << 16);
 		}
 	}
 }
+
+
+static void
+check_edge(
+	game_t * const boards,
+	int i,
+	edge_t *edge,
+	int this_edge
+)
+{
+	game_t * b = &boards[i];
+	game_t * n = edge->board;
+	int e = edge->edge;
+
+	// verify that the back link from the remote board is to this
+	// edge on this board.
+	if (e == 1 && n->top.board == b && n->top.edge == this_edge)
+		return;
+	if (e == 2 && n->right.board == b && n->right.edge == this_edge)
+		return;
+	if (e == 3 && n->bottom.board == b && n->bottom.edge == this_edge)
+		return;
+	if (e == 4 && n->left.board == b && n->left.edge == this_edge)
+		return;
+
+	if (e == -1 && n->top.board == b && n->top.edge == -this_edge)
+		return;
+	if (e == -2 && n->right.board == b && n->right.edge == -this_edge)
+		return;
+	if (e == -3 && n->bottom.board == b && n->bottom.edge == -this_edge)
+		return;
+	if (e == -4 && n->left.board == b && n->left.edge == -this_edge)
+		return;
+
+	fprintf(stderr, "%d edge %d bad back link?\n", i, this_edge);
+	exit(-1);
+}
+
 
 
 int
@@ -281,44 +383,101 @@ main(void)
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height,4);
 
-	boards[0].top		= (edge_t) { &boards[2], 4 };
-	boards[0].right		= (edge_t) { &boards[1], 4 };
-	boards[0].bottom	= (edge_t) { &boards[4], -3 };
-	boards[0].left		= (edge_t) { &boards[5], -3 };
+	game_t * const red = &boards[0];
+	game_t * const purple = &boards[1];
+	game_t * const green = &boards[2];
+	game_t * const yellow = &boards[3];
+	game_t * const blue = &boards[4];
+	game_t * const teal = &boards[5];
 
-	boards[1].top		= (edge_t) { &boards[2], 4 };
-	boards[1].right		= (edge_t) { &boards[3], 4 };
-	boards[1].bottom	= (edge_t) { &boards[4], -4 };
-	boards[1].left		= (edge_t) { &boards[0], 2 };
+	// red
+	red->px		= 0;
+	red->py		= 0;
+	red->top	= (edge_t) { green, 4 };
+	red->right	= (edge_t) { purple, 4 };
+	red->bottom	= (edge_t) { blue, -3 };
+	red->left	= (edge_t) { teal, -3 };
 
-	boards[2].top		= (edge_t) { &boards[5], 2 };
-	boards[2].right		= (edge_t) { &boards[3], 4 };
-	boards[2].bottom	= (edge_t) { &boards[1], 1 };
-	boards[2].left		= (edge_t) { &boards[0], 1 };
+	// purple
+	purple->px	= WIDTH;
+	purple->py	= 0;
+	purple->top	= (edge_t) { green, 3 };
+	purple->right	= (edge_t) { yellow, 3 };
+	purple->bottom	= (edge_t) { blue, -4 };
+	purple->left	= (edge_t) { red, 2 };
 
-	boards[3].top		= (edge_t) { &boards[5], 1 };
-	boards[3].right		= (edge_t) { &boards[4], -1 };
-	boards[3].bottom	= (edge_t) { &boards[1], 2 };
-	boards[3].left		= (edge_t) { &boards[2], 2 };
+	// green
+	green->px	= 0;
+	green->py	= 2*WIDTH;
+	green->top	= (edge_t) { teal, -2 };
+	green->right	= (edge_t) { yellow, 4 };
+	green->bottom	= (edge_t) { purple, 1 };
+	green->left	= (edge_t) { red, 1 };
 
-	boards[4].top		= (edge_t) { &boards[3], -2 };
-	boards[4].right		= (edge_t) { &boards[5], 4 };
-	boards[4].bottom	= (edge_t) { &boards[0], -2 };
-	boards[4].left		= (edge_t) { &boards[1], 3 };
+	// yellow
+	yellow->px	= WIDTH;
+	yellow->py	= 2*WIDTH;
+	yellow->top	= (edge_t) { teal, -1 };
+	yellow->right	= (edge_t) { blue, -1 };
+	yellow->bottom	= (edge_t) { purple, 2 };
+	yellow->left	= (edge_t) { green, 2 };
 
-	boards[5].top		= (edge_t) { &boards[3], -1 };
-	boards[5].right		= (edge_t) { &boards[2], 1 };
-	boards[5].bottom	= (edge_t) { &boards[0], -4 };
-	boards[5].left		= (edge_t) { &boards[1], 2 };
+	// blue
+	blue->px	= 0;
+	blue->py	= WIDTH;
+	blue->top	= (edge_t) { yellow, -2 };
+	blue->right	= (edge_t) { teal, 4 };
+	blue->bottom	= (edge_t) { red, -3 };
+	blue->left	= (edge_t) { purple, -3 };
+
+	// teal
+	teal->px	= WIDTH;
+	teal->py	= WIDTH;
+	teal->top	= (edge_t) { yellow, -1 };
+	teal->right	= (edge_t) { green, -1 };
+	teal->bottom	= (edge_t) { red, -4 };
+	teal->left	= (edge_t) { blue, 2 };
+
+	for (int i = 0 ; i < 6 ; i++)
+	{
+		game_t * b = &boards[i];
+		check_edge(boards, i, &boards[i].top, 1);
+		check_edge(boards, i, &boards[i].right, 2);
+		check_edge(boards, i, &boards[i].bottom, 3);
+		check_edge(boards, i, &boards[i].left, 4);
+	}
+
+	srand(getpid());
+
+if (1){
+	int which = 5;
+	game_t * const b = &boards[which];
+	
+	b->board[0][4] = 3;
+	*_get_edge(&b->top, 4) = 3;
+
+	b->board[6][WIDTH-1] = 3;
+	*_get_edge(&b->right, 6) = 3;
+
+	b->board[WIDTH-1][8] = 3;
+	*_get_edge(&b->bottom, 8) = 3;
+
+	b->board[8][0] = 3;
+	*_get_edge(&b->left, 8) = 3;
+}
 
 
 	while (1)
 	{
-		if ((i & 0x001FF) == 0)
+		if (0 && (i & 0x003FF) == 0)
 		{
 			printf("randomize\n");
 			for (int i = 0 ; i < 6 ; i++)
-				randomize(&boards[i]);
+			{
+				randomize(&boards[i], 0);
+				make_glider(&boards[i]);
+			}
+			//make_glider(&boards[rand() % 6]);
 		}
 
 		if (i++ % 4 == 0)
