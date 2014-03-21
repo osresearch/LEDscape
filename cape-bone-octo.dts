@@ -1,5 +1,5 @@
-/*  
-* pru dts file BB-BONE-PRU-00A0.dts  
+/*
+* pru dts file BB-BONE-PRU-00A0.dts
 *
 * Available outputs on pru 0 and their r30 pins:
 * p9.31: 0
@@ -16,18 +16,18 @@ gpio 1: 13, 15, 12, 14, 29, 16, 17, 28, 18, 19,
 gpio 2: 2, 5, 22, 23, 14, 12, 10, 8, 6, 3, 4, 1, 24, 25, 17, 16, 15, 13, 11, 9, 7,
 gpio 3: 21, 19, 15, 14, 17, 16
 
-*/  
-/dts-v1/;  
-/plugin/;  
-  
-/ {  
-  compatible = "ti,beaglebone", "ti,beaglebone-black";  
-  
-  /* identification */  
-  part-number = "BB-BONE-OCTO";  
-  version = "00A0";  
-  
-  exclusive-use =  
+*/
+/dts-v1/;
+/plugin/;
+
+/ {
+  compatible = "ti,beaglebone", "ti,beaglebone-black";
+
+  /* identification */
+  part-number = "BB-BONE-OCTO";
+  version = "00A0";
+
+  exclusive-use =
 //gpio 0: 23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7
 	"P9.11", "P9.12", "P9.13", "P9.14", "P9.15", "P9.16", "P9.17",
 	"P9.18",
@@ -42,20 +42,23 @@ gpio 3: 21, 19, 15, 14, 17, 16
 
 	"P8.26", "P8.27", "P8.28", "P8.29", "P8.30", "P8.31", "P8.32",
 	"P8.33", "P8.34", "P8.35", "P8.36", "P8.37", "P8.38", "P8.39",
-	"P8.40", "P8.41", "P8.42", "P8.43", "P8.44", "P8.45", "P8.46";
-  
-  fragment@0 {  
-    target = <&am33xx_pinmux>;  
-    __overlay__ {  
+	"P8.40", "P8.41", "P8.42", "P8.43", "P8.44", "P8.45", "P8.46",
+
+	"pruss",
+	"ehrpwm1B";
+
+  fragment@0 {
+    target = <&am33xx_pinmux>;
+    __overlay__ {
       mygpio: pinmux_mygpio {
-        pinctrl-single,pins = <  
+        pinctrl-single,pins = <
 		// p9.11-18
 		0x070 0x7
 		0x078 0x7
 		0x074 0x7
 		0x048 0x7
 		0x040 0x7
-		0x04c 0x7
+		0x04c 0x7 // P9.16 could be PWM for output enable
 		0x15c 0x7
 		0x158 0x7
 
@@ -64,7 +67,8 @@ gpio 3: 21, 19, 15, 14, 17, 16
 		0x150 0x7
 		0x044 0x7
 		0x184 0x7
-		0x1AC 0x7
+		//0x1AC 0x5 // PRU0 r30.7 for the clock line
+		0x1AC 0x7 // GPIO
 		0x180 0x7
 		0x1A4 0x7
 		0x19C 0x7
@@ -115,27 +119,88 @@ gpio 3: 21, 19, 15, 14, 17, 16
 		0x0ac 0x7
 		0x0a0 0x7
 		0x0a4 0x7
-        >;  
-      };  
-    };  
-  };  
-  
-  fragment@1 {  
-    target = <&ocp>;  
-    __overlay__ {  
-      test_helper: helper {  
-        compatible = "bone-pinmux-helper";  
-        pinctrl-names = "default";  
-        pinctrl-0 = <&mygpio>;  
-        status = "okay";  
-      };  
-    };  
-  };  
-  
-  fragment@2{  
-  target = <&pruss>;  
-    __overlay__ {  
-      status = "okay";  
-    };  
-  };  
-};  
+        >;
+      };
+    };
+  };
+
+  fragment@1 {
+    target = <&ocp>;
+    __overlay__ {
+      test_helper: helper {
+        compatible = "bone-pinmux-helper";
+        pinctrl-names = "default";
+        pinctrl-0 = <&mygpio>;
+        status = "okay";
+      };
+    };
+  };
+
+  fragment@2{
+    target = <&pruss>;
+    __overlay__ {
+      status = "okay";
+    };
+  };
+
+/*
+  // import of am335x_pwm-00A0.dts
+  // but pru can't write to pwm?
+
+	fragment@3 {
+		target = <&epwmss0>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@4 {
+		target = <&ehrpwm0>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@5 {
+		target = <&ecap0>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@6 {
+		target = <&epwmss1>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@7 {
+		target = <&ehrpwm1>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@8 {
+		target = <&epwmss2>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@9 {
+		target = <&ehrpwm2>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@10 {
+		target = <&ecap2>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+*/
+};
