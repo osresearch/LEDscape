@@ -31,7 +31,7 @@
  * \todo: Find a way to unify this with the defines in the .p file
  */
 static const uint8_t gpios0[] = {
-	23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7
+	23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7, 15
 };
 
 static const uint8_t gpios1[] = {
@@ -293,29 +293,32 @@ ledscape_init(
 
 #ifdef CONFIG_LED_MATRIX
 	*(leds->matrix) = (led_matrix_config_t) {
-		.matrix_width	= 64,
-		.matrix_height	= 16,
+		.matrix_width	= 128,
+		.matrix_height	= 8,
 		.matrix		= {
 			{ 0, 0 },
-			{ 0, 16 },
-
-			{ 0, 32 },
-			{ 0, 48 },
-
-			{ 0, 64 },
-			{ 0, 80 },
-
-			{ 0, 96 },
-			{ 0, 112 },
-
-			{ 0, 0 },
 			{ 0, 8 },
+
 			{ 0, 16 },
 			{ 0, 24 },
+
 			{ 0, 32 },
 			{ 0, 40 },
+
 			{ 0, 48 },
 			{ 0, 56 },
+
+			{ 0, 64 },
+			{ 0, 72 },
+
+			{ 0, 80 },
+			{ 0, 88 },
+
+			{ 0, 96 },
+			{ 0, 104 },
+
+			{ 0, 112 },
+			{ 0, 120 },
 		},
 	};
 
