@@ -81,4 +81,17 @@ ledscape_close(
 	ledscape_t * const leds
 );
 
+
+/** Flip a rectangular frame buffer to map the LED matrices */
+void
+framebuffer_flip(
+	uint32_t * leds_out,
+	const uint32_t * fb_in,
+	const int leds_width,
+	const int leds_height,
+	const int width,
+	const int height
+);
+
+
 #endif
