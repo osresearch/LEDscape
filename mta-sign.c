@@ -12,8 +12,10 @@
 #include "ledscape.h"
 #include "mta-font.c"
 
-const int width = 128;
-const int height = 128;
+const int leds_width = 128;
+const int leds_height = 128;
+const int width = 256;
+const int height = 32;
 
 
 static int
@@ -88,6 +90,59 @@ font_write(
 	return x;
 }
 
+/** Copy a 16x32 region from in to a 32x16 region of out.
+ * If rot == 0, rotate -90, else rotate +90.
+ */
+static void
+framebuffer_copy(
+	uint32_t * const out,
+	const uint32_t * const in,
+	int rot
+)
+{
+	for (int x = 0 ; x < 16 ; x++)
+	{
+		for (int y = 0 ; y < 32 ; y++)
+		{
+			int ox, oy;
+			if (rot)
+			{
+				// rotate +90 (0,0) => (0,15)
+				ox = y;
+				oy = 15 - x;
+			} else {
+				// rotate -90 (0,0) => (31,0)
+				ox = 31 - y;
+				oy = x;
+			}
+
+			out[ox + leds_width*oy] = in[x + width*y];
+		}
+	}
+}
+
+
+/** With the panels mounted vertically, adjust the mapping.
+ * Even panels are rotated -90, odd ones +90.
+ * Input framebuffer is 256x32
+ * Output framebuffer is 128x64 (actually x128, but we are not using the
+ * other half of it).
+ */
+void
+framebuffer_flip(
+	uint32_t * const out,
+	const uint32_t * const in
+)
+{
+	for (int x = 0, rot=0 ; x < width ; x += 16, rot = !rot)
+	{
+		int ox = (x*2) % leds_width;
+		int oy = (((x*2)) / leds_width) * 16;
+
+		framebuffer_copy(&out[ox + oy * leds_width], &in[x], rot);
+	}
+}
+
 
 int
 main(
@@ -95,7 +150,7 @@ main(
 	char ** argv
 )
 {
-	ledscape_t * const leds = ledscape_init(width, height);
+	ledscape_t * const leds = ledscape_init(leds_width, leds_height);
 
 
 	printf("init done\n");
@@ -103,23 +158,25 @@ main(
 	unsigned last_i = 0;
 
 	unsigned i = 0;
-	uint32_t * const p = calloc(width*height,4);
+	uint32_t * const p = calloc(width*height, 4);
+	uint32_t * const fb = calloc(leds_width*leds_height,4);
 	int scroll_x = 128;
 
 	while (1)
 	{
-		font_write(p, 0x00FF00, 0, 0, "1!NYCResistor");
-		font_write(p, 0xFF0000, 7, 0, "!");
-		font_write(p, 0x00FF00, 100, 0, "8min");
+		font_write(p, 0x00FF00, 0, 0, "1.! NYCResistor-Atlantic Pacific");
+		font_write(p, 0xFF0000, 11, 0, "!");
+		font_write(p, 0x00FF00, 224, 0, "8min");
 		
 		int end_x = font_write(p, 0xFF4000, scroll_x, 16, argc > 1 ? argv[1] : "");
 		if (end_x <= 0)
-			scroll_x = 128;
+			scroll_x = width;
 		else
 			scroll_x--;
 
-		ledscape_draw(leds, p);
-		usleep(30000);
+		framebuffer_flip(fb, p);
+		ledscape_draw(leds, fb);
+		usleep(20000);
 
 		// wait for the previous frame to finish;
 		//const uint32_t response = ledscape_wait(leds);
