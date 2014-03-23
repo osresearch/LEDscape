@@ -10,6 +10,7 @@ TARGETS += opc-rx
 TARGETS += cube-life
 TARGETS += cube-image
 TARGETS += mta-sign
+TARGETS += identify
 
 LEDSCAPE_OBJS = ledscape.o pru.o bitslice.o util.o
 LEDSCAPE_LIB := libledscape.a
