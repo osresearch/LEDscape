@@ -188,9 +188,12 @@ gradient(
 int
 main(void)
 {
-	const int width = 128;
-	const int height = 128;
-	ledscape_t * const leds = ledscape_init(width, height);
+	const int width = 256;
+	const int height = 32;
+	const int led_width = 128;
+	const int led_height = 128;
+	ledscape_t * const leds = ledscape_init(led_width, led_height);
+
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
@@ -206,6 +209,7 @@ main(void)
 
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height,4);
+	uint32_t * const led_fb = calloc(led_width*led_height,4);
 
 	while (1)
 	{
@@ -213,7 +217,8 @@ main(void)
 			rainbow(p, width, height, 10, i++);
 		else
 			gradient(p, width, height, 10, i++);
-		ledscape_draw(leds, p);
+		framebuffer_flip(led_fb, p, led_width, led_height, width, height);
+		ledscape_draw(leds, led_fb);
 		usleep(20000);
 
 		// wait for the previous frame to finish;
