@@ -59,7 +59,9 @@ main(
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const unsigned width = 256;
-	const unsigned height = 48;
+	const unsigned height = 64;
+	const unsigned leds_width = 128;
+	const unsigned leds_height = 128;
 	const size_t image_size = width * height * 3;
 
 	// largest possible UDP packet
@@ -69,7 +71,7 @@ main(
 
 	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
 
-	ledscape_t * const leds = ledscape_init(width, height);
+	ledscape_t * const leds = ledscape_init(leds_width, leds_height);
 
 	const unsigned report_interval = 10;
 	unsigned last_report = 0;
@@ -77,6 +79,7 @@ main(
 	unsigned frames = 0;
 
 	uint32_t * const fb = calloc(width*height,4);
+	uint32_t * const leds_fb = calloc(leds_width*leds_height,4);
 
 	while (1)
 	{
@@ -118,20 +121,24 @@ main(
 
 		const unsigned frame_num = 0;
 
+		// copy the 3-byte values into the 4-byte framebuffer
 		for (unsigned x = 0 ; x < width ; x++)
 		{
 			for (unsigned y = 0 ; y < height ; y++)
 			{
 				uint8_t * const out = (void*) &fb[x + y*width];
 				//const uint8_t * const in = &buf[1 + (x*64 + y+24)*3];
-				const uint8_t * const in = &buf[1 + 3*(x + y*width)];
+				const uint8_t * const in = &buf[1 + 3*(x*height + (width - y - 1))];
 				out[0] = in[0];
-				out[1] = in[1];
-				out[2] = in[2];
+				out[1] = in[1] / 2;
+				out[2] = in[2] / 2;
 			}
 		}
 
-		ledscape_draw(leds, fb);
+		// the panel is 256x32, the pyramid was 256x64.
+		// ignore the left most 16 pixels
+		framebuffer_flip(leds_fb, fb + width*0, leds_width, leds_height, width, height-16);
+		ledscape_draw(leds, leds_fb);
 
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);

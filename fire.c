@@ -11,6 +11,11 @@
 #include <unistd.h>
 #include "ledscape.h"
 
+static const int w = 256;
+static const int h = 36;
+static const int leds_height = 128;
+static const int leds_width = 128;
+
 
 // Borrowed by OctoWS2811 rainbow test
 static unsigned int
@@ -74,9 +79,6 @@ hsv2rgb(
 	return (blue << 16) | (green << 8) | red;
 }
 
-
-static const int w = 256;
-static const int h = 64;
 
 // This will contain the pixels used to calculate the fire effect
 static uint8_t fire[256][64];
@@ -180,7 +182,7 @@ init_pallete(void)
 int
 main(void)
 {
-	ledscape_t * const leds = ledscape_init(w,h);
+	ledscape_t * const leds = ledscape_init(leds_width,leds_height);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
@@ -188,6 +190,7 @@ main(void)
 	unsigned i = 0;
 	init_pallete();
 	uint32_t * const p = calloc(w*h,4);
+	uint32_t * const fb = calloc(leds_width*leds_height,4);
 
 	while (1)
 	{
@@ -198,7 +201,8 @@ main(void)
 
 		fire_draw(p);
 		sparkles(p, delta);
-		ledscape_draw(leds, p);
+		framebuffer_flip(fb, p, leds_width, leds_height, w, h);
+		ledscape_draw(leds, fb);
 		usleep(50000);
 
 		// wait for the previous frame to finish;
