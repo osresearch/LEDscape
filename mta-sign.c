@@ -70,19 +70,22 @@ font_write(
 			for (int j = 0 ; j < max_width ; j++, row >>= 1)
 			{
 				uint32_t pixel_color = (row & 1) ? color : 0;
+				int ox = x + j;
 /*
 				if (x + j >= width || x + j < 0)
 					continue;
 */
-				if (x + j >= width)
+				if (ox >= width)
 					continue;
-				if (x + j < 0)
-					x = width - x + j;
+
+				// wrap in x
+				if (ox < 0)
+					ox += width;
 		
 				if (y + h >= height || y + h < 0)
 					continue;
 
-				uint8_t * pix = (uint8_t*) &buf[(y+h)*width + x + j];
+				uint8_t * pix = (uint8_t*) &buf[(y+h)*width + ox];
 			       	pix[0] = pixel_color >> 16;
 			       	pix[1] = pixel_color >>  8;
 			       	pix[2] = pixel_color >>  0;
