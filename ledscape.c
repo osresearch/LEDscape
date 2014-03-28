@@ -293,7 +293,7 @@ ledscape_init(
 
 #ifdef CONFIG_LED_MATRIX
 	*(leds->matrix) = (led_matrix_config_t) {
-		.matrix_width	= 128,
+		.matrix_width	= 256,
 		.matrix_height	= 8,
 		.matrix		= {
 			{ 0, 0 },
@@ -395,3 +395,77 @@ ledscape_set_color(
 	p->g = g;
 	p->b = b;
 }
+
+
+/** Copy a 16x32 region from in to a 32x16 region of out.
+ * If rot == 0, rotate -90, else rotate +90.
+ */
+static void
+framebuffer_copy(
+	uint32_t * const out,
+	const uint32_t * const in,
+	const int rot,
+	const int leds_width,
+	const int width
+)
+{
+	for (int x = 0 ; x < 16 ; x++)
+	{
+		for (int y = 0 ; y < 32 ; y++)
+		{
+			int ox, oy;
+			if (rot)
+			{
+				// rotate +90 (0,0) => (0,15)
+				ox = y;
+				oy = 15 - x;
+			} else {
+				// rotate -90 (0,0) => (31,0)
+				ox = 31 - y;
+				oy = x;
+			}
+
+			out[ox + leds_width*oy] = in[x + width*y];
+		}
+	}
+}
+
+
+/** With the panels mounted vertically, adjust the mapping.
+ * Even panels are rotated -90, odd ones +90.
+ * Input framebuffer is 256x32
+ * Output framebuffer is 128x64 (actually x128, but we are not using the
+ * other half of it).
+ */
+void
+framebuffer_flip(
+	uint32_t * const out,
+	const uint32_t * const in,
+	const int leds_width,
+	const int leds_height,
+	const int width,
+	const int height
+)
+{
+	(void) height;
+
+	for (int x = 0, rot=0 ; x < width ; x += 16, rot = !rot)
+	{
+		int ox = (x*2) % leds_width;
+		int oy = (((x*2)) / leds_width) * 16;
+
+		// if we are more than half-way past the width,
+		// flip the axis
+		const uint32_t * p = &in[x];
+
+		framebuffer_copy(
+			&out[ox + oy * leds_width],
+			p,
+			rot,
+			leds_width,
+			width
+		);
+	}
+}
+
+
