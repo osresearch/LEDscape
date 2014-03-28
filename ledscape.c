@@ -293,7 +293,7 @@ ledscape_init(
 
 #ifdef CONFIG_LED_MATRIX
 	*(leds->matrix) = (led_matrix_config_t) {
-		.matrix_width	= 128,
+		.matrix_width	= 256,
 		.matrix_height	= 8,
 		.matrix		= {
 			{ 0, 0 },
@@ -454,7 +454,17 @@ framebuffer_flip(
 		int ox = (x*2) % leds_width;
 		int oy = (((x*2)) / leds_width) * 16;
 
-		framebuffer_copy(&out[ox + oy * leds_width], &in[x], rot, leds_width, width);
+		// if we are more than half-way past the width,
+		// flip the axis
+		const uint32_t * p = &in[x];
+
+		framebuffer_copy(
+			&out[ox + oy * leds_width],
+			p,
+			rot,
+			leds_width,
+			width
+		);
 	}
 }
 
