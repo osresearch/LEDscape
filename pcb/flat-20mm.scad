@@ -1,32 +1,47 @@
 /** \file
  * Brackets for 20mm extrusion.
  *
- * These hold the panels a few mm away from the bracket.
+ * These hold the panels a few mm away from the bracket in alternating
+ * orientation.
  */
 
-length=20;
 width=20;
 
-render() difference () {
-	translate([0,0,4]) cube([28,length,6], center=true);
+module baseplate()
+{
+render() difference()
+{
+	translate([0,0,3]) cube([32,28,6], center=true);
 
-	translate([10,5,-1]) cylinder(r=3.5/2, h=6, $fs=1);
-	translate([10,5,4]) cylinder(r=6/2, h=4, $fs=1);
+	translate([0,-10,-1]) cylinder(r=3.75/2, h=6, $fs=1);
+	translate([0,-10,2]) cylinder(r=6/2, h=5, $fs=1);
 
-	translate([-10,5,-1]) cylinder(r=3.5/2, h=6, $fs=1);
-	translate([-10,5,4]) cylinder(r=6/2, h=4, $fs=1);
+	translate([0,+10,-1]) cylinder(r=3.75/2, h=6, $fs=1);
+	translate([0,+10,2]) cylinder(r=6/2, h=5, $fs=1);
+}
 }
 
-translate([width/2+2,-4,width/2+6]) render() difference() {
-	cube([4,length-8,width], center=true);
-	translate([-3,0,0]) rotate([0,90,0]) cylinder(r=4.5/2, h=6, $fs=1);
+module upright()
+{
+	rotate([0,-90,0]) render() difference() {
+		linear_extrude(height=6)
+			polygon([[-1,-14], [0,-14], [20,-5], [20,+5], [0,+14], [-1,+14]]);
+		translate([10,0,-1]) cylinder(r=4.5/2, h=8, $fs=1);
+	}
 }
 
-translate([-(width/2+2),-4,width/2+6]) render() difference() {
-	cube([4,length-8,width], center=true);
-	translate([-3,0,0]) rotate([0,90,0]) cylinder(r=4.5/2, h=6, $fs=1);
+module bracket()
+{
+	baseplate();
+	translate([20/2+6,0,6]) upright();
+	translate([-20/2,0,6]) upright();
 }
 
+
+for (i=[-3:4])
+{
+	translate([0,i*30,0]) bracket();
+}
 
 %color([0,1,0]) translate([0,0,width/2+6]) extrusion(100);
 
