@@ -60,7 +60,7 @@ main(
 
 	const unsigned width = 256;
 	const unsigned height = 64;
-	const unsigned leds_width = 128;
+	const unsigned leds_width = 256;
 	const unsigned leds_height = 128;
 	const size_t image_size = width * height * 3;
 
@@ -80,6 +80,7 @@ main(
 
 	uint32_t * const fb = calloc(width*height,4);
 	uint32_t * const leds_fb = calloc(leds_width*leds_height,4);
+	ledscape_draw(leds, leds_fb);
 
 	while (1)
 	{
@@ -122,11 +123,12 @@ main(
 		const unsigned frame_num = 0;
 
 		// copy the 3-byte values into the 4-byte framebuffer
-		for (unsigned x = 0 ; x < width ; x++)
+		// and turn onto the side
+		for (unsigned x = 0 ; x < width ; x++) // 256
 		{
-			for (unsigned y = 0 ; y < height ; y++)
+			for (unsigned y = 0 ; y < height ; y++) // 64
 			{
-				uint8_t * const out = (void*) &fb[x + y*width];
+				uint8_t * const out = (void*) &fb[y*2*leds_width + x];
 				//const uint8_t * const in = &buf[1 + (x*64 + y+24)*3];
 				const uint8_t * const in = &buf[1 + 3*(x*height + (width - y - 1))];
 				out[0] = in[0];
@@ -135,10 +137,13 @@ main(
 			}
 		}
 
-		// the panel is 256x32, the pyramid was 256x64.
-		// ignore the left most 16 pixels
+#if 0
+		// the panel is 256x128, the pyramid was 256x64.
 		framebuffer_flip(leds_fb, fb + width*0, leds_width, leds_height, width, height-16);
 		ledscape_draw(leds, leds_fb);
+#else
+		ledscape_draw(leds, fb);
+#endif
 
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);
