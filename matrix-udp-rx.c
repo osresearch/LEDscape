@@ -128,12 +128,19 @@ main(
 		{
 			for (unsigned y = 0 ; y < height ; y++) // 64
 			{
-				uint8_t * const out = (void*) &fb[y*2*leds_width + x];
-				//const uint8_t * const in = &buf[1 + (x*64 + y+24)*3];
+				uint8_t * out = (void*) &fb[y*2*leds_width + x];
 				const uint8_t * const in = &buf[1 + 3*(x*height + (width - y - 1))];
 				out[0] = in[0];
-				out[1] = in[1] / 2;
-				out[2] = in[2] / 2;
+				out[1] = in[1];// / 2;
+				out[2] = in[2];// / 2;
+
+				if (0) {
+					// double the pixels?
+					out += leds_width * 4;
+					out[0] = in[0];
+					out[1] = in[1] / 2;
+					out[2] = in[2] / 2;
+				}
 			}
 		}
 
