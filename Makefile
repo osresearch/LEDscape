@@ -7,6 +7,7 @@ TARGETS += matrix-test
 TARGETS += fire
 TARGETS += matrix-udp-rx
 TARGETS += opc-rx
+TARGETS += life
 TARGETS += cube-life
 TARGETS += cube-image
 TARGETS += mta-sign
@@ -107,7 +108,7 @@ clean:
 # The correct way to reserve the GPIO pins on the BBB is with the
 # capemgr and a Device Tree file.  But it doesn't work.
 #
-SLOT_FILE=/sys/devices/bone_capemgr.8/slots
+SLOT_FILE=/sys/devices/bone_capemgr.9/slots
 DTS=CAPE-BONE-OCTO
 DTB=/lib/firmware/$(DTS)-00A0.dtbo
 

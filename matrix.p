@@ -167,6 +167,8 @@
 |(1<<gpio1_sel3)\
 )
 
+#define NOP MOV gpio2_base, GPIO2
+
 .origin 0
 .entrypoint START
 
@@ -455,6 +457,26 @@ NEW_ROW_LOOP:
 			XOR out_clr, out_set, gpio3_led_mask
 			SBBO out_clr, gpio3_base, GPIO_CLRDATAOUT, 8
 
+			CLOCK_LO
+#if 0
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+			NOP; NOP; NOP; NOP;
+#endif
+
 #if 1
 			// If the brightness is less than the pixel, turn off
 			// but keep in mind that this is the brightness of
@@ -473,7 +495,6 @@ NEW_ROW_LOOP:
 			no_blank:
 #endif
 
-			CLOCK_LO
 
 			ADD offset, offset, 3*16
 			QBNE PIXEL_LOOP, offset, width
