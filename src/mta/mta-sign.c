@@ -99,6 +99,7 @@ font_write(
 }
 
 
+#if 0
 static ledscape_matrix_config_t ledscape_config =
 {
 	// frame buffer size
@@ -115,27 +116,28 @@ static ledscape_matrix_config_t ledscape_config =
 
 	.panels = {
 	[0] = {
-		[0] = {  0, 0, 2 },
-		[1] = { 16, 0, 1 },
-		[2] = { 32, 0, 2 },
-		[3] = { 48, 0, 1 },
-		[4] = { 64, 0, 2 },
-		[5] = { 80, 0, 1 },
-		[6] = { 96, 0, 2 },
-		[7] = { 112, 0, 1 },
+		[0] = {  0, 0, 1 },
+		[1] = { 16, 0, 2 },
+		[2] = { 32, 0, 1 },
+		[3] = { 48, 0, 2 },
+		[4] = { 64, 0, 1 },
+		[5] = { 80, 0, 2 },
+		[6] = { 96, 0, 1 },
+		[7] = { 112, 0, 2 },
 	},
 	[1] = {
-		[7] = { 128, 0, 2 },
-		[6] = { 144, 0, 1 },
-		[5] = { 160, 0, 2 },
-		[4] = { 176, 0, 1 },
-		[3] = { 192, 0, 2 },
-		[2] = { 208, 0, 1 },
-		[1] = { 224, 0, 2 },
-		[0] = { 240, 0, 1 },
+		[0] = { 128, 0, 1 },
+		[1] = { 144, 0, 2 },
+		[2] = { 160, 0, 1 },
+		[3] = { 176, 0, 2 },
+		[4] = { 192, 0, 1 },
+		[5] = { 208, 0, 2 },
+		[6] = { 224, 0, 1 },
+		[7] = { 240, 0, 2 },
 	},
 	},
 };
+#endif
 
 
 
@@ -145,8 +147,22 @@ main(
 	char ** argv
 )
 {
+	const int leds_width = 256;
+	const int leds_height = 128;
+	const int width = 256;
+	const int height = 32;
 	ledscape_t * const leds
-		= ledscape_init(ledscape_config.leds_width, ledscape_config.leds_height);
+		= ledscape_init(leds_width, leds_height);
+	ledscape_matrix_config_t * config = NULL;
+
+	if (argc > 1)
+	{
+		config = ledscape_matrix_config(argv[1]);
+		if (!config)
+			return EXIT_FAILURE;
+		config->width = width;
+		config->height = height;
+	}
 
 
 	printf("init done\n");
@@ -154,8 +170,8 @@ main(
 	unsigned last_i = 0;
 
 	unsigned i = 0;
-	uint32_t * const p = calloc(ledscape_config.width*ledscape_config.height, 4);
-	uint32_t * const fb = calloc(ledscape_config.leds_width*ledscape_config.leds_height,4);
+	uint32_t * const p = calloc(width*height, 4);
+	uint32_t * const fb = calloc(leds_width*leds_height,4);
 	int scroll_x = 256;
 
 	while (1)
@@ -164,14 +180,19 @@ main(
 		font_write(p, 0xFF0000, 11, 0, "!");
 		font_write(p, 0x00FF00, 224, 0, "8min");
 		
-		int end_x = font_write(p, 0xFF4000, scroll_x, 16, argc > 1 ? argv[1] : "");
+		int end_x = font_write(p, 0xFF4000, scroll_x, 16, argc > 2 ? argv[2] : "");
 		if (end_x <= 0)
 			scroll_x = width;
 		else
 			scroll_x--;
 
-		ledscape_matrix_remap(fb, p, &ledscape_config);
-		ledscape_draw(leds, fb);
+		if (config)
+		{
+			ledscape_matrix_remap(fb, p, config);
+			ledscape_draw(leds, fb);
+		} else {
+			ledscape_draw(leds, p);
+		}
 		usleep(20000);
 
 		// wait for the previous frame to finish;

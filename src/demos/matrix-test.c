@@ -185,14 +185,28 @@ gradient(
 	}
 }
 
+
 int
-main(void)
+main(
+	int argc,
+	const char ** argv
+)
 {
 	const int width = 256;
 	const int height = 128;
 	const int led_width = 256;
 	const int led_height = 128;
 	ledscape_t * const leds = ledscape_init(led_width, led_height);
+
+	ledscape_matrix_config_t * config = NULL;
+	if (argc > 1)
+	{
+		config = ledscape_matrix_config(argv[1]);
+		if (!config)
+			return EXIT_FAILURE;
+		config->width = width;
+		config->height = height;
+	}
 
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -218,9 +232,9 @@ main(void)
 		else
 			gradient(p, width, height, 10, i++);
 
-		if (0)
+		if (config)
 		{
-			framebuffer_flip(led_fb, p, led_width, led_height, width, height);
+			ledscape_matrix_remap(led_fb, p, config);
 			ledscape_draw(leds, led_fb);
 		} else {
 			ledscape_draw(leds, p);
