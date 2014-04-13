@@ -12,6 +12,7 @@ libledscape.srcs += \
 	ledscape.c \
 	pru.c \
 	util.c \
+	config.c \
 	fixed-font.c \
 
 include ../../Makefile.common

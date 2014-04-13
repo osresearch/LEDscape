@@ -121,4 +121,10 @@ ledscape_printf(
 	...
 );
 
+/** Parse a matrix config file */
+ledscape_matrix_config_t *
+ledscape_matrix_config(
+	const char * filename
+);
+
 #endif

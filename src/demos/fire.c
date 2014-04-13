@@ -12,8 +12,8 @@
 #include "ledscape.h"
 
 // sideways pyramid; 256 height, but 128 wide
-#define width 128
-#define height 256
+#define WIDTH 128
+#define HEIGHT 256
 
 static const int leds_width = 256;
 static const int leds_height = 128;
@@ -83,57 +83,57 @@ hsv2rgb(
 
 
 // This will contain the pixels used to calculate the fire effect
-static uint8_t fire[width][height];
+static uint8_t fire[WIDTH][HEIGHT];
 
   // Flame colors
 static uint32_t palette[255];
 static float angle;
-static uint32_t calc1[width], calc2[height], calc3[width], calc4[width], calc5[height];
+static uint32_t calc1[WIDTH], calc2[HEIGHT], calc3[WIDTH], calc4[WIDTH], calc5[HEIGHT];
 
 static void
 fire_draw(
 	uint32_t * const frame
 )
 {
-    memset(frame, 0, width*height*sizeof(*frame));
+    memset(frame, 0, WIDTH*HEIGHT*sizeof(*frame));
 
     angle = angle + 0.05;
 
     // Randomize the bottom row of the fire buffer
-    for (int x = 0; x < width; x++)
+    for (int x = 0; x < WIDTH; x++)
     {
-      fire[x][height-1] = random() % 190;
+      fire[x][HEIGHT-1] = random() % 190;
     }
 
     int counter = 0;
     // Do the fire calculations for every pixel, from top to bottom
-    for (int x = 0; x < width; x++) { // up to 128, leds_height
-      for (int y = 0; y < height; y++) { // up to 256, leds_width
+    for (int x = 0; x < WIDTH; x++) { // up to 128, leds_height
+      for (int y = 0; y < HEIGHT; y++) { // up to 256, leds_width
         // Add pixel values around current pixel
 
         fire[x][y] =
           ((fire[calc3[x]][calc2[y]]
           + fire[calc1[x]][calc2[y]]
           + fire[calc4[x]][calc2[y]]
-          + fire[calc1[x]][calc5[y]]) << 5) / (128+(abs(x-width/2))/4); // 129;
+          + fire[calc1[x]][calc5[y]]) << 5) / (128+(abs(x-WIDTH/2))/4); // 129;
 
         // Output everything to screen using our palette colors
 	const uint32_t c = palette[fire[x][y]];
         //frame[counter] = fire[x][y];
 
         // Extract the red value using right shift and bit mask 
-        // equivalent of red(pgTemp.pixels[x+y*width])
+        // equivalent of red(pgTemp.pixels[x+y*WIDTH])
 	// Only map 3D cube 'lit' pixels onto fire array needed for next frame
         if (((c >> 0) & 0xFF) == 128)
           fire[x][y] = 128;
 
 	// skip the bottom few rows
 #if 1
-	if (y > height - leds_width)
-		frame[y - (height - leds_width) + x*leds_width] = c;
+	if (y > HEIGHT - leds_width)
+		frame[y - (HEIGHT - leds_width) + x*leds_width] = c;
 #else
-	if (x > height - leds_width)
-		frame[y - (height - leds_width) + x*leds_width] = c;
+	if (x > HEIGHT - leds_width)
+		frame[y - (HEIGHT - leds_width) + x*leds_width] = c;
 #endif
 	//frame[(leds_width-x-1) + y*leds_height] = c;
 	//frame[counter++] = c;
@@ -149,7 +149,7 @@ sparkles(
 )
 {
 	for(int i = 0 ; i < num_sparkles ; i++)
-		frame[rand() % (width*height)] = 0xFFFFFF;
+		frame[rand() % (WIDTH*HEIGHT)] = 0xFFFFFF;
 }
 
 static int constrain(
@@ -177,30 +177,45 @@ init_pallete(void)
 
     // Precalculate which pixel values to add during animation loop
     // this speeds up the effect by 10fps
-    for (int x = 0; x < width; x++) {
-      calc1[x] = x % width;
-      calc3[x] = (x - 1 + width) % width;
-      calc4[x] = (x + 1) % width;
+    for (int x = 0; x < WIDTH; x++) {
+      calc1[x] = x % WIDTH;
+      calc3[x] = (x - 1 + WIDTH) % WIDTH;
+      calc4[x] = (x + 1) % WIDTH;
     }
 
-    for (int y = 0; y < height; y++) {
-      calc2[y] = (y + 1) % height;
-      calc5[y] = (y + 2) % height;
+    for (int y = 0; y < HEIGHT; y++) {
+      calc2[y] = (y + 1) % HEIGHT;
+      calc5[y] = (y + 2) % HEIGHT;
     }
 }
 
 
 int
-main(void)
+main(
+	int argc,
+	const char ** argv
+)
 {
+	ledscape_matrix_config_t * config = NULL;
+
+	if (argc > 1)
+	{
+		config = ledscape_matrix_config(argv[1]);
+		if (!config)
+			return EXIT_FAILURE;
+		config->width = WIDTH;
+		config->height = HEIGHT;
+	}
+
 	ledscape_t * const leds = ledscape_init(leds_width,leds_height);
+
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
 
 	unsigned i = 0;
 	init_pallete();
-	uint32_t * const p = calloc(width*height,4);
+	uint32_t * const p = calloc(WIDTH*HEIGHT,4);
 	uint32_t * const fb = calloc(leds_width*leds_height,4);
 
 	while (1)
@@ -212,12 +227,14 @@ main(void)
 
 		fire_draw(p);
 		sparkles(p, delta);
-#if 0
-		framebuffer_flip(fb, p, leds_width, leds_height, width, height);
-		ledscape_draw(leds, fb);
-#else
-		ledscape_draw(leds, p);
-#endif
+
+		if (config)
+		{
+			ledscape_matrix_remap(fb, p, config);
+			ledscape_draw(leds, fb);
+		} else {
+			ledscape_draw(leds, p);
+		}
 		usleep(50000);
 
 		// wait for the previous frame to finish;
