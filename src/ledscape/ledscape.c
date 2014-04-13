@@ -49,6 +49,26 @@ static const uint8_t gpios3[] = {
 #define ARRAY_COUNT(a) ((sizeof(a) / sizeof(*a)))
 
 
+/*
+ * Configure all of our output pins.
+ * These must have also been set by the device tree overlay.
+ * If they are not, some things will appear to work, but not
+ * all the output pins will be correctly configured as outputs.
+ */
+static void
+ledscape_gpio_init(void)
+{
+	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios0) ; i++)
+		pru_gpio(0, gpios0[i], 1, 0);
+	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios1) ; i++)
+		pru_gpio(1, gpios1[i], 1, 0);
+	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios2) ; i++)
+		pru_gpio(2, gpios2[i], 1, 0);
+	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios3) ; i++)
+		pru_gpio(3, gpios3[i], 1, 0);
+}
+
+
 /** Command structure shared with the PRU.
  *
  * This is mapped into the PRU data RAM and points to the
@@ -163,13 +183,8 @@ ledscape_remap(
 }
 
 
-/** Translate the RGBA buffer to the correct output type and
- * initiate the transfer of a frame to the LED strips.
- *
- * Matrix drivers shuffle to have consecutive bits, ws281x do bit slicing.
- */
-void
-ledscape_draw(
+static void
+ledscape_matrix_draw(
 	ledscape_t * const leds,
 	const void * const buffer
 )
@@ -178,7 +193,6 @@ ledscape_draw(
 	const uint32_t * const in = buffer;
 	uint8_t * const out = leds->pru->ddr + leds->frame_size * frame;
 
-#ifdef CONFIG_LED_MATRIX
 	// matrix packed is:
 	// this way the PRU can read all sixteen output pixels in
 	// one LBBO and clock them out.
@@ -206,8 +220,26 @@ ledscape_draw(
 		}
 	}
 	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
+	// disable double buffering for now
 	//frame = (frame + 1) & 1;
-#else
+}
+
+
+/** Translate the RGBA buffer to the correct output type and
+ * initiate the transfer of a frame to the LED strips.
+ *
+ * Matrix drivers shuffle to have consecutive bits, ws281x do bit slicing.
+ */
+void
+ledscape_strip_draw(
+	ledscape_t * const leds,
+	const void * const buffer
+)
+{
+	static unsigned frame = 0;
+	const uint32_t * const in = buffer;
+	uint8_t * const out = leds->pru->ddr + leds->frame_size * frame;
+
 	// Translate the RGBA frame into G R B, sliced by color
 	// only 48 outputs currently supported
 	const unsigned pru_stride = 48;
@@ -236,7 +268,6 @@ ledscape_draw(
 
 	// Send the start command
 	leds->ws281x->command = 1;
-#endif
 }
 
 
@@ -258,28 +289,14 @@ ledscape_wait(
 	}
 }
 
-
-ledscape_t *
-ledscape_init(
+static ledscape_t *
+ledscape_matrix_init(
 	unsigned width,
 	unsigned height
 )
 {
 	pru_t * const pru = pru_init(0);
-#ifdef CONFIG_LED_MATRIX
 	const size_t frame_size = 16 * 8 * width * 3; //LEDSCAPE_NUM_STRIPS * 4;
-#else
-	const size_t frame_size = 48 * width * 8 * 3;
-#endif
-
-	printf("frame-size %zu, ddr-size=%zu\n", frame_size, pru->ddr_size);
-#if 0
-	if (2 *frame_size > pru->ddr_size)
-		die("Pixel data needs at least 2 * %zu, only %zu in DDR\n",
-			frame_size,
-			pru->ddr_size
-		);
-#endif
 
 	ledscape_t * const leds = calloc(1, sizeof(*leds));
 
@@ -292,7 +309,6 @@ ledscape_init(
 		.matrix		= calloc(sizeof(*leds->matrix), 1),
 	};
 
-#ifdef CONFIG_LED_MATRIX
 	*(leds->matrix) = (led_matrix_config_t) {
 		.matrix_width	= 256,
 		.matrix_height	= 8,
@@ -329,35 +345,11 @@ ledscape_init(
 		.command	= 0,
 		.response	= 0,
 	};
-#else
-	// LED strips, not matrix output
-	*(leds->ws281x) = (ws281x_command_t) {
-		.pixels_dma	= 0, // will be set in draw routine
-		.num_pixels	= width * 8, // panel height
-		.command	= 0,
-		.response	= 0,
-	};
-#endif
 
-	printf("%d\n", leds->ws281x->num_pixels);
-
-
-	// Configure all of our output pins.
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios0) ; i++)
-		pru_gpio(0, gpios0[i], 1, 0);
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios1) ; i++)
-		pru_gpio(1, gpios1[i], 1, 0);
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios2) ; i++)
-		pru_gpio(2, gpios2[i], 1, 0);
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios3) ; i++)
-		pru_gpio(3, gpios3[i], 1, 0);
+	ledscape_gpio_init();
 
 	// Initiate the PRU program
-#ifdef CONFIG_LED_MATRIX
 	pru_exec(pru, "./lib/matrix.bin");
-#else
-	pru_exec(pru, "./lib/ws281x.bin");
-#endif
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
@@ -367,6 +359,81 @@ ledscape_init(
 	printf("got response\n");
 
 	return leds;
+}
+
+
+static ledscape_t *
+ledscape_strips_init(
+	unsigned width,
+	unsigned height
+)
+{
+	pru_t * const pru = pru_init(0);
+	const size_t frame_size = 48 * width * 8 * 3;
+
+	printf("frame-size %zu, ddr-size=%zu\n", frame_size, pru->ddr_size);
+#if 0
+	if (2 *frame_size > pru->ddr_size)
+		die("Pixel data needs at least 2 * %zu, only %zu in DDR\n",
+			frame_size,
+			pru->ddr_size
+		);
+#endif
+
+	ledscape_t * const leds = calloc(1, sizeof(*leds));
+
+	*leds = (ledscape_t) {
+		.pru		= pru,
+		.width		= width,
+		.height		= height,
+		.ws281x		= pru->data_ram,
+		.frame_size	= frame_size,
+		.matrix		= calloc(sizeof(*leds->matrix), 1),
+	};
+
+	// LED strips, not matrix output
+	*(leds->ws281x) = (ws281x_command_t) {
+		.pixels_dma	= 0, // will be set in draw routine
+		.num_pixels	= width * 8, // panel height
+		.command	= 0,
+		.response	= 0,
+	};
+
+	printf("%d\n", leds->ws281x->num_pixels);
+
+	ledscape_gpio_init();
+
+	// Initiate the PRU program
+	pru_exec(pru, "./lib/ws281x.bin");
+
+	// Watch for a done response that indicates a proper startup
+	// \todo timeout if it fails
+	printf("waiting for response\n");
+	while (!leds->ws281x->response)
+		;
+	printf("got response\n");
+
+	return leds;
+}
+
+
+ledscape_t *
+ledscape_init(
+	unsigned width,
+	unsigned height
+)
+{
+	return ledscape_matrix_init(width, height);
+}
+
+
+void
+ledscape_draw(
+	ledscape_t * const leds,
+	const void * const buffer
+)
+{
+	return ledscape_matrix_draw(leds, buffer);
 }
 
 
