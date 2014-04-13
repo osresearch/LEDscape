@@ -104,13 +104,10 @@ ledscape_close(
 
 /** Flip a rectangular frame buffer to map the LED matrices */
 void
-framebuffer_flip(
+ledscape_matrix_remap(
 	uint32_t * leds_out,
 	const uint32_t * fb_in,
-	const int leds_width,
-	const int leds_height,
-	const int width,
-	const int height
+	const ledscape_matrix_config_t * config
 );
 
 

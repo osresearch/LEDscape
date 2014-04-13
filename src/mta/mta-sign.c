@@ -110,8 +110,8 @@ static ledscape_matrix_config_t ledscape_config =
 	.panel_height = 16,
 
 	// ledscape matrix output size
-	.leds_width = LEDSCAPE_PANELS*32, // could be less
-	.leds_height = LEDSCAPE_OUTPUTS*16,
+	.leds_width = LEDSCAPE_MATRIX_PANELS*32, // could be less
+	.leds_height = LEDSCAPE_MATRIX_OUTPUTS*16,
 
 	.panels = {
 	[0] = {
@@ -136,96 +136,6 @@ static ledscape_matrix_config_t ledscape_config =
 	},
 	},
 };
-
-
-/** Copy a 16x32 region from in to a 32x16 region of out.
- * If rot == 0, rotate -90, else rotate +90.
- */
-static void
-framebuffer_copy(
-	uint32_t * const out,
-	const uint32_t * const in,
-	const ledscape_matrix_config_t * const config,
-	const int rot
-)
-{
-	for (int x = 0 ; x < config->panel_width ; x++)
-	{
-		for (int y = 0 ; y < config->panel_height ; y++)
-		{
-			int ox, oy;
-			if (rot == 0)
-			{
-				// no rotation == (0,0) => (0,0)
-				ox = x;
-				oy = y;
-			} else
-			if (rot == 1)
-			{
-				// rotate +90 (0,0) => (0,15)
-				ox = config->panel_height-1 - y;
-				oy = x;
-			} else
-			if (rot == 2)
-			{
-				// rotate -90 (0,0) => (31,0)
-				ox = y;
-				oy = config->panel_width-1 - x;
-			} else
-			if (rot == 3)
-			{
-				// flip == (0,0) => (31,15)
-				ox = config->panel_width-1 - x;
-				oy = config->panel_height-1 - y;
-			} else
-			{
-				// barf
-				ox = oy = 0;
-			}
-
-			out[x + config->leds_width*y]
-				= in[ox + config->width*oy];
-		}
-	}
-}
-
-
-/** With the panels mounted vertically, adjust the mapping.
- * Even panels are rotated -90, odd ones +90.
- * Input framebuffer is 256x32
- */
-void
-framebuffer_fixup(
-	uint32_t * const out,
-	const uint32_t * const in,
-	const ledscape_matrix_config_t * const config
-)
-{
-	for (int i = 0 ; i < LEDSCAPE_MATRIX_OUTPUTS ; i++)
-	{
-		for (int j = 0 ; j < LEDSCAPE_MATRIX_PANELS ; j++)
-		{
-			const ledscape_matrix_panel_t * const panel
-				= &config->panels[i][j];
-
-			int ox = config->panel_width * j;
-			int oy = config->panel_height * i;
-			printf("%d,%d => %d,%d <= %d,%d,%d\n", i, j, ox, oy, panel->x, panel->y, panel->rot);
-
-			const uint32_t * const ip
-				= &in[panel->x + panel->y * config->width];
-			uint32_t * const op
-				= &out[ox + oy * config->leds_width];
-		
-			framebuffer_copy(
-				op,
-				ip,
-				config,
-				panel->rot
-			);
-		}
-	}
-}
 
 
 
@@ -260,7 +170,7 @@ main(
 		else
 			scroll_x--;
 
-		framebuffer_fixup(fb, p, &ledscape_config);
+		ledscape_matrix_remap(fb, p, &ledscape_config);
 		ledscape_draw(leds, fb);
 		usleep(20000);
 
