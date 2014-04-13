@@ -189,8 +189,8 @@ int
 main(void)
 {
 	const int width = 256;
-	const int height = 32;
-	const int led_width = 128;
+	const int height = 128;
+	const int led_width = 256;
 	const int led_height = 128;
 	ledscape_t * const leds = ledscape_init(led_width, led_height);
 
@@ -217,8 +217,15 @@ main(void)
 			rainbow(p, width, height, 10, i++);
 		else
 			gradient(p, width, height, 10, i++);
-		framebuffer_flip(led_fb, p, led_width, led_height, width, height);
-		ledscape_draw(leds, led_fb);
+
+		if (0)
+		{
+			framebuffer_flip(led_fb, p, led_width, led_height, width, height);
+			ledscape_draw(leds, led_fb);
+		} else {
+			ledscape_draw(leds, p);
+		}
+
 		usleep(20000);
 
 		// wait for the previous frame to finish;

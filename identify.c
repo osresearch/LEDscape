@@ -11,7 +11,7 @@
 #include "ledscape.h"
 #include "mta-font.c"
 
-const int width = 128;
+const int width = 256;
 const int height = 128;
 
 
@@ -106,7 +106,7 @@ main(
 	int scroll_x = 128;
 	memset(p, 0x10, width*height*4);
 
-	for (int x = 0 ; x < 128 ; x += 32)
+	for (int x = 0 ; x < 256 ; x += 32)
 	{
 		for (int y = 0 ; y < 128 ; y += 16)
 		{
