@@ -97,7 +97,8 @@ $(LIBDIR)/%.bin: %.p $(PASM)
 # object files for that source.
 #
 $(foreach O,$(BIN-y),\
-	$(eval $(BINDIR)/$O: $(foreach s,$($O.srcs),$(OBJDIR)/$(basename $s).o)))
+	$(eval $(BINDIR)/$O: $(foreach s,$($O.srcs),$(OBJDIR)/$(basename $s).o) $(LIBDIR)/libledscape.a))
+
 $(foreach O,$(LIB-y),\
 	$(eval $(LIBDIR)/$O: $(foreach s,$($(basename $O).srcs),$(OBJDIR)/$(basename $s).o)))
 
