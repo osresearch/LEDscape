@@ -18,6 +18,26 @@
 #define LEDSCAPE_NUM_STRIPS 32
 
 
+typedef struct {
+	int x;
+	int y;
+	int rot; // 0 == none, 1 == left, 2 == right, 3 == flip
+} ledscape_matrix_panel_t;
+
+#define LEDSCAPE_MATRIX_OUTPUTS 8 // number of outputs on the cape
+#define LEDSCAPE_MATRIX_PANELS 8 // number of panels chained per output
+
+typedef struct {
+	int width;
+	int height;
+	int panel_width;
+	int panel_height;
+	int leds_width;
+	int leds_height;
+	ledscape_matrix_panel_t panels[LEDSCAPE_MATRIX_OUTPUTS][LEDSCAPE_MATRIX_PANELS];
+} ledscape_matrix_config_t;
+
+
 /** LEDscape pixel format is BRGA.
  *
  * data is laid out with BRGA format, since that is how it will
