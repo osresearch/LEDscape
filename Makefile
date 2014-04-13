@@ -7,7 +7,6 @@ SUBDIR-y += src/ledscape
 SUBDIR-y += src/demos
 SUBDIR-y += src/mta
 SUBDIR-y += src/net
-SUBDIR-y += am335x
 
 all: 
 	for dir in $(SUBDIR-y); do \

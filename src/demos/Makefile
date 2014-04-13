@@ -3,14 +3,15 @@
 # Build the various demos
 #
 #
-TARGETS-y += $(BINDIR)/fire
-TARGETS-y += $(BINDIR)/matrix-test
-TARGETS-y += $(BINDIR)/life
-TARGETS-y += $(BINDIR)/cube-life
+BIN-y += fire
+BIN-y += life
+BIN-y += cube-life
+BIN-y += matrix-test
+
+fire.srcs += fire.c
+life.srcs += life.c
+cube-life.srcs += cube-life.c
+matrix-test.srcs += matrix-test.c
 
 include ../../Makefile.common
 
-$(BINDIR)/fire: $(OBJDIR)/fire.o
-$(BINDIR)/matrix-test: $(OBJDIR)/matrix-test.o
-$(BINDIR)/life: $(OBJDIR)/life.o
-$(BINDIR)/cube-life: $(OBJDIR)/cube-life.o
