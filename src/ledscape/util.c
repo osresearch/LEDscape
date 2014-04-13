@@ -17,7 +17,6 @@
 #include <string.h>
 #include <pthread.h>
 #include "util.h"
-#include "bitslice.h"
 
 /** Write all the bytes to a fd, even if there is a brief interruption.
  * \return number of bytes written or -1 on any fatal error.

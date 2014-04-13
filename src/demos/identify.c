@@ -9,11 +9,11 @@
 #include <errno.h>
 #include <unistd.h>
 #include "ledscape.h"
-#include "mta-font.c"
 
 const int width = 256;
 const int height = 128;
 
+/*
 
 static int
 font_write(
@@ -86,6 +86,7 @@ font_write(
 
 	return x;
 }
+*/
 
 
 int
@@ -95,7 +96,6 @@ main(
 )
 {
 	ledscape_t * const leds = ledscape_init(width, height);
-
 
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -108,11 +108,16 @@ main(
 
 	for (int x = 0 ; x < 256 ; x += 32)
 	{
-		for (int y = 0 ; y < 128 ; y += 16)
+		for (int y = 0 ; y < 128 ; y += 8)
 		{
-			char buf[32];
-			snprintf(buf, sizeof(buf), "%d,%d", x, y);
-			font_write(p, 0xFF0000, x, y, buf);
+			ledscape_printf(
+				&p[x + width*y],
+				width,
+				0xFF0000,
+				"%d,%d",
+				x,
+				y
+			);
 		}
 	}
 
