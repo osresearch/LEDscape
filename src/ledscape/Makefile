@@ -11,9 +11,8 @@ LIB-y += libledscape.a
 libledscape.srcs += \
 	ledscape.c \
 	pru.c \
-	bitslice.c \
 	util.c \
-
+	fixed-font.c \
 
 include ../../Makefile.common
 

@@ -111,4 +111,14 @@ ledscape_matrix_remap(
 );
 
 
+/** Write with a fixed-width 8px font */
+void
+ledscape_printf(
+	uint32_t * px,
+	const size_t width,
+	const uint32_t color,
+	const char * fmt,
+	...
+);
+
 #endif
