@@ -206,7 +206,7 @@ ledscape_draw(
 		}
 	}
 	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
-	frame = (frame + 1) & 1;
+	//frame = (frame + 1) & 1;
 #else
 	// Translate the RGBA frame into G R B, sliced by color
 	// only 48 outputs currently supported
@@ -272,6 +272,7 @@ ledscape_init(
 	const size_t frame_size = 48 * width * 8 * 3;
 #endif
 
+	printf("frame-size %zu, ddr-size=%zu\n", frame_size, pru->ddr_size);
 #if 0
 	if (2 *frame_size > pru->ddr_size)
 		die("Pixel data needs at least 2 * %zu, only %zu in DDR\n",
