@@ -99,26 +99,7 @@ font_write(
 }
 
 
-typedef struct {
-	int x;
-	int y;
-	int rot; // 0 == none, 1 == left, 2 == right, 3 == flip
-} ledscape_panel_t;
-
-#define LEDSCAPE_OUTPUTS 8 // number of outputs on the cape
-#define LEDSCAPE_PANELS 8 // number of panels chained per output
-
-typedef struct {
-	int width;
-	int height;
-	int panel_width;
-	int panel_height;
-	int leds_width;
-	int leds_height;
-	ledscape_panel_t panels[LEDSCAPE_OUTPUTS][LEDSCAPE_PANELS];
-} ledscape_config_t;
-
-static ledscape_config_t ledscape_config =
+static ledscape_matrix_config_t ledscape_config =
 {
 	// frame buffer size
 	.width = 256,
@@ -164,7 +145,7 @@ static void
 framebuffer_copy(
 	uint32_t * const out,
 	const uint32_t * const in,
-	const ledscape_config_t * const config,
+	const ledscape_matrix_config_t * const config,
 	const int rot
 )
 {
@@ -217,14 +198,14 @@ void
 framebuffer_fixup(
 	uint32_t * const out,
 	const uint32_t * const in,
-	const ledscape_config_t * const config
+	const ledscape_matrix_config_t * const config
 )
 {
-	for (int i = 0 ; i < LEDSCAPE_OUTPUTS ; i++)
+	for (int i = 0 ; i < LEDSCAPE_MATRIX_OUTPUTS ; i++)
 	{
-		for (int j = 0 ; j < LEDSCAPE_PANELS ; j++)
+		for (int j = 0 ; j < LEDSCAPE_MATRIX_PANELS ; j++)
 		{
-			const ledscape_panel_t * const panel
+			const ledscape_matrix_panel_t * const panel
 				= &config->panels[i][j];
 
 			int ox = config->panel_width * j;
