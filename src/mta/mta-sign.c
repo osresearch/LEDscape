@@ -10,11 +10,11 @@
 #include <errno.h>
 #include <unistd.h>
 #include "ledscape.h"
-#include "mta-font.c"
 
 const int width = 256;
 const int height = 32;
 
+extern const uint16_t font[][16];
 
 static int
 font_write(

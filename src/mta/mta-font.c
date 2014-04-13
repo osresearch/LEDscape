@@ -2,6 +2,8 @@
  * Generated font from json file output by
  * http://www.pentacom.jp/pentacom/bitfontmaker2/
  */
+#include <stdint.h>
+
 const uint16_t font[][16] = {
 ['!'] = {
 	0x0780,
