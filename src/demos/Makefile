@@ -3,9 +3,9 @@
 # Build the various demos
 #
 #
-BIN-n += fire
-BIN-n += life
-BIN-n += cube-life
+BIN-y += fire
+BIN-y += life
+BIN-y += cube-life
 BIN-y += matrix-test
 BIN-y += identify
 
