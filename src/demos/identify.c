@@ -95,7 +95,7 @@ main(
 	char ** argv
 )
 {
-	ledscape_t * const leds = ledscape_init(width, height);
+	ledscape_t * const leds = ledscape_init(&ledscape_matrix_default);
 
 	printf("init done\n");
 	time_t last_time = time(NULL);

@@ -582,6 +582,7 @@ ledscape_printf(
 	va_start(ap, fmt);
 	int len = vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
+	(void) len;
 
 	printf("%p => '%s'\n", px, buf);
 	for (unsigned i = 0 ; i < sizeof(buf) ; i++)
@@ -594,3 +595,37 @@ ledscape_printf(
 	}
 }
 
+
+/** Default ledscape config */
+#define DEFAULT_MATRIX(i) { \
+	{ 0*16, i*16, 0 }, \
+	{ 1*16, i*16, 0 }, \
+	{ 2*16, i*16, 0 }, \
+	{ 3*16, i*16, 0 }, \
+	{ 4*16, i*16, 0 }, \
+	{ 5*16, i*16, 0 }, \
+	{ 6*16, i*16, 0 }, \
+	{ 7*16, i*16, 0 }, \
+	} \
+
+ledscape_config_t ledscape_matrix_default = {
+	.matrix_config = {
+		.type		= LEDSCAPE_MATRIX,
+		.width		= 256,
+		.height		= 18,
+		.panel_width	= 32,
+		.panel_height 	= 16,
+		.leds_width	= 256,
+		.leds_height	= 128,
+		.panels		= {
+			DEFAULT_MATRIX(0),
+			DEFAULT_MATRIX(1),
+			DEFAULT_MATRIX(2),
+			DEFAULT_MATRIX(3),
+			DEFAULT_MATRIX(4),
+			DEFAULT_MATRIX(5),
+			DEFAULT_MATRIX(6),
+			DEFAULT_MATRIX(7),
+		},
+	},
+};
