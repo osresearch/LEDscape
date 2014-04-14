@@ -191,7 +191,7 @@ ledscape_remap(
  * If rot == 0, rotate -90, else rotate +90.
  */
 static void
-ledscape_matrix_panel_copy(
+ledscape_matrix_panel_copy_half(
 	uint8_t * const out,
 	const uint32_t * const in,
 	const ledscape_matrix_config_t * const config,
@@ -268,6 +268,8 @@ ledscape_matrix_draw(
 	const ledscape_matrix_config_t * const config
 		= &leds->config->matrix_config;
 
+	const size_t panel_stride = config->panel_width*2*3*LEDSCAPE_MATRIX_OUTPUTS;
+
 	for (unsigned i = 0 ; i < LEDSCAPE_MATRIX_OUTPUTS ; i++)
 	{
 		for (unsigned j = 0 ; j < LEDSCAPE_MATRIX_PANELS ; j++)
@@ -275,74 +277,35 @@ ledscape_matrix_draw(
 			const ledscape_matrix_panel_t * const panel
 				= &config->panels[i][j];
 
-			//int ox = config->panel_width * j;
-			//int oy = config->panel_height * i;
-
-			//printf("%d,%d => %d,%d <= %d,%d,%d\n", i, j, ox, oy, panel->x, panel->y, panel->rot);
-
 			// the start of the panel in the input
 			// is defined by the panel's xy coordinate
 			// and the width of the input image.
 			const uint32_t * const ip
-				= &in[panel->x + panel->y * config->width];
+				= &in[panel->x + panel->y*config->width];
 
 			// the start of the panel's output is defined
 			// by the current output panel number and the total
 			// number of panels in the chain.
-			// 0,0 => 0+0
-			// 0,1 => 0+panel->width * 16 * 3
-			// 1,0 => 6+0
-			// 1,1 => 6+panel->width * 16 * 3
-			uint8_t * const op
-				= &out[6*i + j*config->panel_width*2*3*LEDSCAPE_MATRIX_OUTPUTS];
+			uint8_t * const op = &out[6*i + j*panel_stride];
 		
-			ledscape_matrix_panel_copy(
+			// copy the top half of this matrix
+			ledscape_matrix_panel_copy_half(
 				op,
 				ip,
 				config,
 				panel->rot
 			);
+
+			// and the bottom half, which is stored next in
+			// the output bitstream, but occurs half a panel
+			// height later in the input image.
+			ledscape_matrix_panel_copy_half(
+				op + 3,
+				ip + config->width*config->panel_height/2,
+				config,
+				panel->rot
+			);
 		}
-
-#if 0
-		// copy the top half of the panel
-		for (unsigned y = 0 ; y < config->panel_height/2 ; y++)
-		{
-			const uint32_t * const in_row
-				= &in[(y+y_off) * config->leds_width];
-
-			uint8_t * const out_row
-				= &out[y * 3 * 2 * LEDSCAPE_MATRIX_OUTPUTS * config->leds_width];
-
-			for (uint32_t x = 0 ; x < config->leds_width ; x++)
-			{
-				const uint8_t * const rgb = (const void*) &in_row[x];
-				uint8_t * const out_rgb = &out_row[(i*2 + x * LEDSCAPE_MATRIX_OUTPUTS*2)*3];
-				out_rgb[0] = bright_map(rgb[0]);
-				out_rgb[1] = bright_map(rgb[1]);
-				out_rgb[2] = bright_map(rgb[2]);
-			}
-		}
-
-		// copy the bottom half of the panel
-		for (unsigned y = config->panel_height/2 ; y < config->panel_height; y++)
-		{
-			const uint32_t * const in_row
-				= &in[(y+y_off) * config->leds_width];
-
-			uint8_t * const out_row
-				= &out[((y-config->panel_height/2) * 3 * 2 * LEDSCAPE_MATRIX_OUTPUTS + 1) * config->leds_width];
-
-			for (uint32_t x = 0 ; x < config->leds_width ; x++)
-			{
-				const uint8_t * const rgb = (const void*) &in_row[x];
-				uint8_t * const out_rgb = &out_row[(i*2 + x * LEDSCAPE_MATRIX_OUTPUTS*2)*3];
-				out_rgb[0] = bright_map(rgb[0]);
-				out_rgb[1] = bright_map(rgb[1]);
-				out_rgb[2] = bright_map(rgb[2]);
-			}
-		}
-#endif
 	}
 
 	leds->ws281x->pixels_dma = leds->pru->ddr_addr + leds->frame_size * frame;
@@ -414,6 +377,7 @@ ledscape_wait(
 		return response;
 	}
 }
+
 
 static ledscape_t *
 ledscape_matrix_init(
@@ -578,45 +542,6 @@ ledscape_set_color(
 	p->b = b;
 }
 
-
-
-
-#if 0
-/** Remap the matrix framebuffer based on the config.
- */
-void
-ledscape_matrix_remap(
-	uint32_t * const out,
-	const uint32_t * const in,
-	const ledscape_matrix_config_t * const config
-)
-{
-	for (int i = 0 ; i < LEDSCAPE_MATRIX_OUTPUTS ; i++)
-	{
-		for (int j = 0 ; j < LEDSCAPE_MATRIX_PANELS ; j++)
-		{
-			const ledscape_matrix_panel_t * const panel
-				= &config->panels[i][j];
-
-			int ox = config->panel_width * j;
-			int oy = config->panel_height * i;
-			//printf("%d,%d => %d,%d <= %d,%d,%d\n", i, j, ox, oy, panel->x, panel->y, panel->rot);
-
-			const uint32_t * const ip
-				= &in[panel->x + panel->y * config->width];
-			uint32_t * const op
-				= &out[ox + oy * config->leds_width];
-		
-			ledscape_matrix_panel_copy(
-				op,
-				ip,
-				config,
-				panel->rot
-			);
-		}
-	}
-}
-#endif
 
 
 extern const uint8_t fixed_font[][5];
