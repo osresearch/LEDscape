@@ -17,6 +17,9 @@
  */
 #define LEDSCAPE_NUM_STRIPS 32
 
+#define LEDSCAPE_MATRIX 1
+#define LEDSCAPE_STRIP 2
+
 
 typedef struct {
 	int x;
@@ -28,6 +31,7 @@ typedef struct {
 #define LEDSCAPE_MATRIX_PANELS 8 // number of panels chained per output
 
 typedef struct {
+	int type;
 	int width;
 	int height;
 	int panel_width;
@@ -36,6 +40,20 @@ typedef struct {
 	int leds_height;
 	ledscape_matrix_panel_t panels[LEDSCAPE_MATRIX_OUTPUTS][LEDSCAPE_MATRIX_PANELS];
 } ledscape_matrix_config_t;
+
+
+typedef struct {
+	int type;
+	int leds_width; // length of the longest strip
+	int leds_height; // number of output strips
+} ledscape_strip_config_t;
+
+
+typedef union {
+	int type;
+	ledscape_matrix_config_t matrix_config;
+	ledscape_strip_config_t strip_config;
+} ledscape_config_t;
 
 
 /** LEDscape pixel format is BRGA.
@@ -67,8 +85,7 @@ typedef struct ledscape ledscape_t;
 
 extern ledscape_t *
 ledscape_init(
-	unsigned width,
-	unsigned height
+	ledscape_config_t * config
 );
 
 
@@ -121,9 +138,10 @@ ledscape_printf(
 	...
 );
 
-/** Parse a matrix config file */
-ledscape_matrix_config_t *
-ledscape_matrix_config(
+
+/** Parse a config file */
+ledscape_config_t *
+ledscape_config(
 	const char * filename
 );
 
