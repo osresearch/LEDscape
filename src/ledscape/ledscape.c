@@ -238,9 +238,9 @@ ledscape_matrix_panel_copy_half(
 			const uint32_t * const col_ptr = &in[ix + config->width*iy];
 			const uint32_t col = *col_ptr;
 			uint8_t * const pix = &out[x*row_stride + y*row_len];
-			pix[0] = (col >> 16) & 0xFF;
-			pix[1] = (col >>  8) & 0xFF;
-			pix[2] = (col >>  0) & 0xFF;
+			pix[0] = (col >> 16) & 0xFF; // red
+			pix[1] = (col >>  8) & 0xFF; // green
+			pix[2] = (col >>  0) & 0xFF; // blue
 			//printf("%d,%d => %p %p %08x\n", x, y, pix, col_ptr, col);
 		}
 	}
