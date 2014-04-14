@@ -12,7 +12,7 @@
 #include "ledscape.h"
 
 const int width = 256;
-const int height = 32;
+const int height = 128;
 
 extern const uint16_t font[][16];
 
@@ -99,71 +99,21 @@ font_write(
 }
 
 
-#if 0
-static ledscape_matrix_config_t ledscape_config =
-{
-	// frame buffer size
-	.width = 256,
-	.height = 32,
-
-	// panel size
-	.panel_width = 32,
-	.panel_height = 16,
-
-	// ledscape matrix output size
-	.leds_width = LEDSCAPE_MATRIX_PANELS*32, // could be less
-	.leds_height = LEDSCAPE_MATRIX_OUTPUTS*16,
-
-	.panels = {
-	[0] = {
-		[0] = {  0, 0, 1 },
-		[1] = { 16, 0, 2 },
-		[2] = { 32, 0, 1 },
-		[3] = { 48, 0, 2 },
-		[4] = { 64, 0, 1 },
-		[5] = { 80, 0, 2 },
-		[6] = { 96, 0, 1 },
-		[7] = { 112, 0, 2 },
-	},
-	[1] = {
-		[0] = { 128, 0, 1 },
-		[1] = { 144, 0, 2 },
-		[2] = { 160, 0, 1 },
-		[3] = { 176, 0, 2 },
-		[4] = { 192, 0, 1 },
-		[5] = { 208, 0, 2 },
-		[6] = { 224, 0, 1 },
-		[7] = { 240, 0, 2 },
-	},
-	},
-};
-#endif
-
-
-
 int
 main(
 	int argc,
 	char ** argv
 )
 {
-	const int leds_width = 256;
-	const int leds_height = 128;
-	const int width = 256;
-	const int height = 32;
-	ledscape_t * const leds
-		= ledscape_init(leds_width, leds_height);
-	ledscape_matrix_config_t * config = NULL;
-
+	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
 	{
-		config = ledscape_matrix_config(argv[1]);
+		config = ledscape_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
-		config->width = width;
-		config->height = height;
 	}
 
+	ledscape_t * const leds = ledscape_init(config);
 
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -171,8 +121,7 @@ main(
 
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height, 4);
-	uint32_t * const fb = calloc(leds_width*leds_height,4);
-	int scroll_x = 256;
+	int scroll_x = width;
 
 	while (1)
 	{
@@ -186,13 +135,7 @@ main(
 		else
 			scroll_x--;
 
-		if (config)
-		{
-			ledscape_matrix_remap(fb, p, config);
-			ledscape_draw(leds, fb);
-		} else {
-			ledscape_draw(leds, p);
-		}
+		ledscape_draw(leds, p);
 		usleep(20000);
 
 		// wait for the previous frame to finish;
