@@ -196,10 +196,24 @@ copy_to_fb(
 
 
 int
-main(void)
+main(
+	int argc,
+	const char ** argv
+)
 {
 	const int leds_width = 128;
 	const int leds_height = 256;
+
+	ledscape_matrix_config_t * config = NULL;
+	if (argc > 1)
+	{
+		config = ledscape_matrix_config(argv[1]);
+		if (!config)
+			return EXIT_FAILURE;
+		config->width = HEIGHT;
+		config->height = WIDTH;
+	}
+
 	ledscape_t * const leds = ledscape_init(leds_width, leds_height);
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -207,6 +221,7 @@ main(void)
 
 	unsigned i = 0;
 	uint32_t * const p = calloc(leds_width*leds_height,4);
+	uint32_t * const fb = calloc(WIDTH*HEIGHT,4);
 
 	srand(getpid());
 
@@ -226,7 +241,13 @@ main(void)
 
 		copy_to_fb(p, leds_width, leds_height, &board);
 
-		ledscape_draw(leds, p);
+		if (config)
+		{
+			ledscape_matrix_remap(fb, p, config);
+			ledscape_draw(leds, fb);
+		} else {
+			ledscape_draw(leds, p);
+		}
 		usleep(1000);
 	}
 
