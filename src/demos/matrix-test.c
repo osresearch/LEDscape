@@ -197,15 +197,16 @@ main(
 	const int led_width = 256;
 	const int led_height = 128;
 
-	ledscape_config_t * config = NULL;
+	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
 	{
 		config = ledscape_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
-		config->matrix_config.width = width;
-		config->matrix_config.height = height;
 	}
+
+	config->matrix_config.width = width;
+	config->matrix_config.height = height;
 
 	ledscape_t * const leds = ledscape_init(config);
 
