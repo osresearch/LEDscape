@@ -108,14 +108,21 @@ main(
 
 	for (int x = 0 ; x < 256 ; x += 32)
 	{
-		for (int y = 0 ; y < 128 ; y += 8)
+		for (int y = 0 ; y < 128 ; y += 16)
 		{
 			ledscape_printf(
 				&p[x + width*y],
 				width,
 				0xFF0000,
-				"%d,%d",
-				x,
+				"x=%d",
+				x
+			);
+
+			ledscape_printf(
+				&p[x + width*(y+8)],
+				width,
+				0xFF0000,
+				"y=%d",
 				y
 			);
 		}

@@ -39,35 +39,26 @@ readline(
 }
 
 
-ledscape_matrix_config_t *
+ledscape_config_t *
 ledscape_matrix_config(
-	const char * filename
+	const char * const filename,
+	FILE * const file
 )
 {
-	FILE * const file = fopen(filename, "r");
-	if (!file)
-	{
-		fprintf(stderr, "%s: unable to open\n", filename);
+	ledscape_config_t * const config_union
+		= calloc(1, sizeof(*config_union));
+	if (!config_union)
 		return NULL;
-	}
+	ledscape_matrix_config_t * const config = &config_union->matrix_config;
 
-	ledscape_matrix_config_t * const config = calloc(1, sizeof(*config));
-	if (!config)
-		return NULL;
-
-	char line[1024];
-	int line_num = 1;
-
-	if (readline(file, line, sizeof(line)) < 0)
-		goto fail;
-
-	if (strcmp(line, "matrix16") != 0)
-		goto fail;
-
+	config->type = LEDSCAPE_MATRIX;
 	config->panel_width = 32;
 	config->panel_height = 16;
 	config->leds_width = 256;
 	config->leds_height = 128;
+
+	char line[1024];
+	int line_num = 1;
 
 	while (1)
 	{
@@ -103,7 +94,7 @@ ledscape_matrix_config(
 	}
 
 	fclose(file);
-	return config;
+	return config_union;
 
 fail:
 	fprintf(stderr, "%s: read or parse error on line %d\n", filename, line_num);
@@ -111,3 +102,71 @@ fail:
 	free(config);
 	return NULL;
 }
+
+
+ledscape_config_t *
+ledscape_strip_config(
+	const char * const filename,
+	FILE * const file
+)
+{
+	ledscape_config_t * const config_union
+		= calloc(1, sizeof(*config_union));
+	if (!config_union)
+		return NULL;
+	ledscape_strip_config_t * const config = &config_union->strip_config;
+
+	config->type = LEDSCAPE_STRIP;
+
+	char line[1024];
+	int line_num = 2;
+
+	if (readline(file, line, sizeof(line)) < 0)
+		goto fail;
+
+	// maybe do this better to handle mappings
+	int width, height;
+	if (sscanf(line, "%d,%d", &width, &height) != 2)
+		goto fail;
+	config->leds_width = width;
+	config->leds_height = height;
+
+	return config_union;
+
+fail:
+	fprintf(stderr, "%s: line %d: parse error\n", filename, line_num);
+
+}
+
+
+ledscape_config_t *
+ledscape_config(
+	const char * filename
+)
+{
+	FILE * const file = fopen(filename, "r");
+	if (!file)
+	{
+		fprintf(stderr, "%s: unable to open\n", filename);
+		return NULL;
+	}
+
+	char line[1024];
+
+	if (readline(file, line, sizeof(line)) < 0)
+		goto fail;
+
+	if (strcmp(line, "matrix16") == 0)
+		return ledscape_matrix_config(filename, file);
+	if (strcmp(line, "ws2812") == 0)
+		return ledscape_strip_config(filename, file);
+
+	fprintf(stderr, "%s: unknown output type '%s'\n", filename, line);
+	fclose(file);
+	return NULL;
+
+fail:
+	fclose(file);
+	return NULL;
+}
+

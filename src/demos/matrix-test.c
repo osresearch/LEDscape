@@ -196,17 +196,18 @@ main(
 	const int height = 128;
 	const int led_width = 256;
 	const int led_height = 128;
-	ledscape_t * const leds = ledscape_init(led_width, led_height);
 
-	ledscape_matrix_config_t * config = NULL;
+	ledscape_config_t * config = NULL;
 	if (argc > 1)
 	{
-		config = ledscape_matrix_config(argv[1]);
+		config = ledscape_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
-		config->width = width;
-		config->height = height;
+		config->matrix_config.width = width;
+		config->matrix_config.height = height;
 	}
+
+	ledscape_t * const leds = ledscape_init(config);
 
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -223,7 +224,6 @@ main(
 
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height,4);
-	uint32_t * const led_fb = calloc(led_width*led_height,4);
 
 	while (1)
 	{
@@ -232,13 +232,7 @@ main(
 		else
 			gradient(p, width, height, 10, i++);
 
-		if (config)
-		{
-			ledscape_matrix_remap(led_fb, p, config);
-			ledscape_draw(leds, led_fb);
-		} else {
-			ledscape_draw(leds, p);
-		}
+		ledscape_draw(leds, p);
 
 		usleep(20000);
 
