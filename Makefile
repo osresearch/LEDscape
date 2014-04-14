@@ -10,7 +10,7 @@ SUBDIR-y += src/net
 
 all: 
 	for dir in $(SUBDIR-y); do \
-		$(MAKE) -C $$dir; \
+		$(MAKE) -C $$dir || exit 1; \
 	done
 
 clean:
