@@ -21,8 +21,8 @@
 #define DELTA_G 30
 #define DELTA_B 80
 
-#define WIDTH 128
-#define HEIGHT 256
+#define WIDTH 256
+#define HEIGHT 128
 
 typedef struct
 {
@@ -188,7 +188,14 @@ copy_to_fb(
 				b = (b * SMOOTH_B) / (SMOOTH_B+1);
 			}
 
-			*pix_ptr = (r << 0) | (g << 8) | (b << 16);
+			if (r > 255) r = 255;
+			if (g > 255) g = 255;
+			if (b > 255) b = 255;
+			if (r < 0) r = 0;
+			if (g < 0) g = 0;
+			if (b < 0) b = 0;
+
+			*pix_ptr = ((r << 16) | (g << 8) | (b << 0));
 		}
 	}
 }
@@ -201,27 +208,24 @@ main(
 	const char ** argv
 )
 {
-	const int leds_width = 128;
-	const int leds_height = 256;
-
-	ledscape_matrix_config_t * config = NULL;
+	ledscape_matrix_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
 	{
 		config = ledscape_matrix_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
-		config->width = HEIGHT;
-		config->height = WIDTH;
 	}
 
-	ledscape_t * const leds = ledscape_init(leds_width, leds_height);
+	config->width = WIDTH;
+	config->height = HEIGHT;
+
+	ledscape_t * const leds = ledscape_init(config);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
 
 	unsigned i = 0;
-	uint32_t * const p = calloc(leds_width*leds_height,4);
-	uint32_t * const fb = calloc(WIDTH*HEIGHT,4);
+	uint32_t * const p = calloc(config->width*config->height,4);
 
 	srand(getpid());
 
@@ -239,15 +243,9 @@ main(
 			play_game(&board);
 		}
 
-		copy_to_fb(p, leds_width, leds_height, &board);
+		copy_to_fb(p, config->width, config->height, &board);
 
-		if (config)
-		{
-			ledscape_matrix_remap(fb, p, config);
-			ledscape_draw(leds, fb);
-		} else {
-			ledscape_draw(leds, p);
-		}
+		ledscape_draw(leds, p);
 		usleep(1000);
 	}
 
