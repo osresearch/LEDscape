@@ -83,6 +83,8 @@ typedef struct {
 typedef struct ledscape ledscape_t;
 
 
+extern ledscape_config_t ledscape_matrix_default;
+
 extern ledscape_t *
 ledscape_init(
 	ledscape_config_t * config
