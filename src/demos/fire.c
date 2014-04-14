@@ -196,18 +196,18 @@ main(
 	const char ** argv
 )
 {
-	ledscape_matrix_config_t * config = NULL;
+	ledscape_matrix_config_t * config = &ledscape_matrix_default;
 
 	if (argc > 1)
 	{
-		config = ledscape_matrix_config(argv[1]);
+		config = ledscape_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
-		config->width = WIDTH;
-		config->height = HEIGHT;
 	}
 
-	ledscape_t * const leds = ledscape_init(leds_width,leds_height);
+	config->width = WIDTH;
+	config->height = HEIGHT;
+	ledscape_t * const leds = ledscape_init(config);
 
 	printf("init done\n");
 	time_t last_time = time(NULL);
@@ -216,7 +216,6 @@ main(
 	unsigned i = 0;
 	init_pallete();
 	uint32_t * const p = calloc(WIDTH*HEIGHT,4);
-	uint32_t * const fb = calloc(leds_width*leds_height,4);
 
 	while (1)
 	{
@@ -228,13 +227,7 @@ main(
 		fire_draw(p);
 		sparkles(p, delta);
 
-		if (config)
-		{
-			ledscape_matrix_remap(fb, p, config);
-			ledscape_draw(leds, fb);
-		} else {
-			ledscape_draw(leds, p);
-		}
+		ledscape_draw(leds, p);
 		usleep(50000);
 
 		// wait for the previous frame to finish;

@@ -1,5 +1,7 @@
 /** \file
  * Play the game of life on the matrix cube.
+ *
+ * \todo this is broken until the matrix.p can handle different heights
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -375,7 +377,10 @@ main(void)
 {
 	const int width = 128;
 	const int height = 128;
-	ledscape_t * const leds = ledscape_init(width, height);
+	ledscape_config_t * const config = &ledscape_matrix_default;
+	config->matrix_config.panel_height = 32;
+
+	ledscape_t * const leds = ledscape_init(config);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
