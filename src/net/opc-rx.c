@@ -17,7 +17,6 @@
 #include <string.h>
 #include <pthread.h>
 #include "util.h"
-#include "bitslice.h"
 #include "ledscape.h"
 
 typedef struct

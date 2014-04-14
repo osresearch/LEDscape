@@ -100,7 +100,7 @@ $(foreach O,$(BIN-y),\
 	$(eval $(BINDIR)/$O: $(foreach s,$($O.srcs),$(OBJDIR)/$(basename $s).o) $(LIBDIR)/libledscape.a))
 
 $(foreach O,$(LIB-y),\
-	$(eval $(LIBDIR)/$O: $(foreach s,$($(basename $O).srcs),$(OBJDIR)/$(basename $s).o)))
+	$(eval $(LIBDIR)/$O: $(foreach s,$($(basename $O).srcs),$(OBJDIR)/$(basename $s).o) $(APP_LOADER_LIB)))
 
 #$(TARGETS):
 	#$(COMPILE.link)
