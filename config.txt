@@ -1,6 +1,0 @@
-9999 # UDP port number
-64,210 # width,height in pixels (only 32 of the width are on this machine)
-14401,0
-14389,8,1:1,2:3,3:3,4:4
-8987,16,1:4,2:3,3:2
-8998,24,4:4
