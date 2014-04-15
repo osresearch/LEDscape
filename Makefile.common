@@ -30,6 +30,7 @@ export CROSS_COMPILE?=arm-linux-gnueabi-
 endif
 
 CFLAGS += \
+	-g \
 	-std=c99 \
 	-W \
 	-Wall \
