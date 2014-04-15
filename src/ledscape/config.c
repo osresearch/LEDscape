@@ -131,11 +131,13 @@ ledscape_strip_config(
 	config->leds_width = width;
 	config->leds_height = height;
 
+	printf("strips: %d,%d\n", width, height);
 	return config_union;
 
 fail:
 	fprintf(stderr, "%s: line %d: parse error\n", filename, line_num);
-
+	free(config_union);
+	return NULL;
 }
 
 
