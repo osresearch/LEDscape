@@ -192,10 +192,8 @@ main(
 	const char ** argv
 )
 {
-	const int width = 256;
-	const int height = 128;
-	const int led_width = 256;
-	const int led_height = 128;
+	int width = 64; // 256;
+	int height = 48; //128;
 
 	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
@@ -205,10 +203,11 @@ main(
 			return EXIT_FAILURE;
 	}
 
-	config->matrix_config.width = width;
-	config->matrix_config.height = height;
+	//config->matrix_config.width = width;
+	//config->matrix_config.height = height;
 
 	ledscape_t * const leds = ledscape_init(config);
+
 
 	printf("init done\n");
 	time_t last_time = time(NULL);
