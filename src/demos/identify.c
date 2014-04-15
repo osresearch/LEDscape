@@ -17,33 +17,43 @@ main(
 	char ** argv
 )
 {
-	ledscape_matrix_config_t * const config = &ledscape_matrix_default.matrix_config;
-	ledscape_t * const leds = ledscape_init(&ledscape_matrix_default);
+	ledscape_config_t * config = &ledscape_matrix_default;
+	if (argc > 1)
+	{
+		config = ledscape_config(argv[1]);
+		if (!config)
+			return EXIT_FAILURE;
+	}
 
-	printf("init done %d,%d\n", config->width, config->height);
+	ledscape_t * const leds = ledscape_init(config);
+
+	const int width = 256;
+	const int height = 128;
+
+	//printf("init done %d,%d\n", width, height);
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
 
 	unsigned i = 0;
-	uint32_t * const p = calloc(config->width*config->height,4);
+	uint32_t * const p = calloc(width*height,4);
 	int scroll_x = 128;
-	memset(p, 0x10, config->width*config->height*4);
+	memset(p, 0x10, width*height*4);
 
-	for (int x = 0 ; x < config->width ; x += 32)
+	for (int x = 0 ; x < width ; x += 32)
 	{
-		for (int y = 0 ; y < config->height ; y += 16)
+		for (int y = 0 ; y < height ; y += 16)
 		{
 			ledscape_printf(
-				&p[x + config->width*y],
-				config->width,
+				&p[x + width*y],
+				width,
 				0x00FF00, // green
 				"x=%d",
 				x
 			);
 
 			ledscape_printf(
-				&p[x + config->width*(y+8)],
-				config->width,
+				&p[x + width*(y+8)],
+				width,
 				0xFF00FF, // red
 				"y=%d",
 				y
