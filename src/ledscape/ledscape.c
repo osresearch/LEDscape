@@ -339,7 +339,7 @@ ledscape_strip_draw(
 		{
 			uint8_t * const row_out
 				= ledscape_remap(leds, out, x, y);
-			const uint32_t p = row_in[x];
+			uint32_t p = row_in[x];
 			row_out[0*pru_stride] = (p >>  8) & 0xFF; // green
 			row_out[1*pru_stride] = (p >>  0) & 0xFF; // red
 			row_out[2*pru_stride] = (p >> 16) & 0xFF; // blue
@@ -443,9 +443,10 @@ ledscape_strip_init(
 	ledscape_t * const leds = calloc(1, sizeof(*leds));
 
 	*leds = (ledscape_t) {
+		.config		= config_union,
 		.pru		= pru,
 		.width		= config->leds_width,
-		.height		= config->leds_height,
+		.height		= 48, // only 48 are supported, config->leds_height,
 		.ws281x		= pru->data_ram,
 		.frame_size	= frame_size,
 	};
@@ -453,12 +454,12 @@ ledscape_strip_init(
 	// LED strips, not matrix output
 	*(leds->ws281x) = (ws281x_command_t) {
 		.pixels_dma	= 0, // will be set in draw routine
-		.num_pixels	= config->leds_width * 8, // panel height
+		.num_pixels	= config->leds_width, // * leds->height,
 		.command	= 0,
 		.response	= 0,
 	};
 
-	printf("%d\n", leds->ws281x->num_pixels);
+	printf("pixels: %d\n", leds->ws281x->num_pixels);
 
 	ledscape_gpio_init();
 
@@ -584,7 +585,7 @@ ledscape_printf(
 	va_end(ap);
 	(void) len;
 
-	printf("%p => '%s'\n", px, buf);
+	//printf("%p => '%s'\n", px, buf);
 	for (unsigned i = 0 ; i < sizeof(buf) ; i++)
 	{
 		char c = buf[i];
