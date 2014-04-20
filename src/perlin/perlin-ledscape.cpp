@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <memory.h>
+#include <pthread.h>
 #include <vector>
 
 using namespace std;
@@ -56,6 +57,35 @@ void Quit (int sig);
 void BlankDisplay (void);
 void WriteLevels (void);
 void timer_handler (int signum);
+
+
+static void *
+read_thread(
+	void * arg
+)
+{
+	char line[128];
+	float new_size;
+	printf("read thread waiting\n");
+
+	while (1)
+	{
+		if (fgets(line, sizeof(line), stdin) == NULL)
+			break;
+		printf("read '%s'\n", line);
+		int rc = sscanf(line, "%f", &new_size);
+		if (rc != 1)
+		{
+			printf("scanf failed: %d\n", rc);
+			continue;
+		}
+		printf("old size %f new size %f\n", gPattern->getZStep(), new_size);
+		gPattern->setZStep(new_size);
+	}
+
+	fprintf(stderr, "read thread exiting\n");
+	return NULL;
+}
 
 int main (int argc, char *argv[])
 {
@@ -98,32 +128,24 @@ int main (int argc, char *argv[])
 	hue_options
     );
 
+    // spin off a thread to read size, speed and other settings
+    pthread_t read_id;
+    if (pthread_create(&read_id, NULL, read_thread, NULL) < 0)
+	    return EXIT_FAILURE;
+
     // create a new pattern object -- perlin noise, mode 1 short repeat
     // gPattern = new Perlin (DISPLAY_WIDTH, DISPLAY_HEIGHT, 1, 8.0/64.0, 0.0125, 1.0, 0.2);
 
     // reset to first frame
     gPattern->init ();
 
-    // install timer handler
-    memset (&sa, 0, sizeof (sa));
-    sa.sa_handler = &timer_handler;
-    sigaction (SIGALRM, &sa, NULL);
+	while (1) {
+		WriteLevels ();
 
-    // configure the timer to expire after 20 msec
-    timer.it_value.tv_sec = 0;
-    timer.it_value.tv_usec = 20000;
-
-    // and every 20 msec after that.
-    timer.it_interval.tv_sec = 0;
-    timer.it_interval.tv_usec = 20000;
-
-    // start the timer
-    setitimer (ITIMER_REAL, &timer, NULL);
-
-    // wait forever
-    while (1) {
-        sleep (1);
-    }
+		// calculate next frame in animation
+		gPattern->next ();
+		usleep(1000);
+	}
 
     // delete pattern object
     delete gPattern;
@@ -157,14 +179,3 @@ void WriteLevels (void)
     ledscape_draw(leds, gLevels);
 }
 
-
-void timer_handler (int signum)
-{
-    // write levels to display
-    WriteLevels ();
-
-    // calculate next frame in animation
-    if (gPattern != NULL) {
-        bool patternComplete = gPattern->next ();
-    }
-}
