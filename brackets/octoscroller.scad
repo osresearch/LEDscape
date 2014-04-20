@@ -22,7 +22,7 @@ module horizontal_bracket()
 	}
 }
 
-// vetical has only 10mm
+// vertical has only 10mm
 module vertical_bracket()
 {
 	rotate([0,0,-360/sides/2])
@@ -38,7 +38,41 @@ module vertical_bracket()
 	}
 }
 
+// combo bracket has only 10mm, with 13*2 mm spacing
+module vertical_bracket2()
+{
+	rotate([0,0,-360/sides/2])
+	render() difference() {
+		translate([-16,0,]) cube([16,8,26+5+5]);
+		translate([-10,15,5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+		translate([-10,15,26+5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+	}
 
+	rotate([0,0,+360/sides/2])
+	render() difference() {
+		translate([0,0,]) cube([16,8,26+5+5]);
+		translate([10,15,5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+		translate([10,15,26+5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+	}
+
+	translate([-7,3.5,0]) cube([14,5,26+5+5]);
+}
+
+
+module vertical_bracket3()
+{
+	linear_extrude(height=8) polygon([
+		[0,0],
+		//[20,cos(360/sides/2)*10],
+		[-20,10],
+		[20,10],
+		//[-cos(360/sides/2)*10,10],
+	]);
+}
+
+
+if (0)
+{
 for (i = [0:7])
 {
 	for (j = [0:3])
@@ -47,4 +81,8 @@ for (i = [0:7])
 		rotate([0,0,90])
 		vertical_bracket();
 	}
+}
+} else {
+	vertical_bracket2();
+	//vertical_bracket3();
 }
