@@ -19,3 +19,7 @@ clean:
 		$(MAKE) -C $$dir clean; \
 	done
 
+
+firmware:
+	echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr.8/slots
+
