@@ -4,9 +4,7 @@
  * Horizontal or vertical connections are possible.
  * The spacing between the holes differs for each.
  */
-sides = 16;
-orientation = 1;
-
+sides = 32;
 
 // horizontal has 13 mm from edge to center of hole.
 module horizontal_bracket()
@@ -41,11 +39,11 @@ module vertical_bracket()
 }
 
 
-for (i = [0:3])
+for (i = [0:7])
 {
 	for (j = [0:3])
 	{
-		translate([i*21, j*37,0])
+		translate([i*15, j*37,0])
 		rotate([0,0,90])
 		vertical_bracket();
 	}
