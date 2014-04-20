@@ -71,15 +71,15 @@ module vertical_bracket3()
 }
 
 
-if (0)
+if (1)
 {
-for (i = [0:7])
+for (i = [0:3])
 {
 	for (j = [0:3])
 	{
 		translate([i*15, j*37,0])
 		rotate([0,0,90])
-		vertical_bracket();
+		vertical_bracket2();
 	}
 }
 } else {
