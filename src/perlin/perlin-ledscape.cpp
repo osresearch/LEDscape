@@ -92,8 +92,8 @@ int main (int argc, char *argv[])
 	DISPLAY_WIDTH,
 	DISPLAY_HEIGHT,
 	2, // mode
-	3.0/64.0, // size of blobs: smaller value == larger blob
-	1.0/64.0, // speed
+	1.0/64.0, // size of blobs: smaller value == larger blob
+	1/64.0, // speed
 	256.0,
 	hue_options
     );

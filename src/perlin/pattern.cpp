@@ -54,9 +54,9 @@ uint32_t Pattern::translateHue (int32_t hue)
         case 5: r = 0xff,    g = 0xff-lo, b = 0;       break;
     }
 //printf("hue=%d=%d,%d: %d,%d,%d\n", hue, hi, lo, r, g, b);
-    r = gammaLut[r] << 3;
-    g = gammaLut[g] << 3;
-    b = gammaLut[b] << 3;
+    //r = gammaLut[r] << 3;
+    //g = gammaLut[g] << 3;
+    //b = gammaLut[b] << 3;
 #else
 	b = hue;
 	r = 0;
@@ -98,9 +98,9 @@ uint32_t Pattern::translateHueValue (int32_t hue, float value)
     g = ((float)g + 0.5) * value;
     b = ((float)b + 0.5) * value;
 
-    r = gammaLut[r] << 4;
-    g = gammaLut[g] << 4;
-    b = gammaLut[b] << 4;
+    //r = gammaLut[r] << 4;
+    //g = gammaLut[g] << 4;
+    //b = gammaLut[b] << 4;
 
     return MAKE_COLOR (r,g,b);
 }
