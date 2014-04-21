@@ -87,6 +87,35 @@ module vertical_bracket3()
 }
 
 
+// the T-bracket is for securing the center struts
+module t_bracket()
+{
+	render() difference()
+	{
+		translate([0,0,5/2])
+		union() {
+		intersection() {
+			rotate([0,0,45]) cube([50,50,5], center=true);
+			cube([50,50,5], center=true);
+		}
+		rotate([0,0,0]) translate([0,0,10]) cube([21,50,20], center=true);
+		rotate([0,0,90]) translate([0,0,10]) cube([21,50,20], center=true);
+		rotate([0,0,45]) translate([0,0,10]) cube([35,35,20], center=true);
+		}
+
+	translate([0,0,20/2+5]) rotate([0,0,90]) cube([100,15,20], center=true);
+	translate([0,0,20/2+5]) rotate([0,0,0]) cube([100,15,20], center=true);
+
+	// and the screw holes
+	translate([-20,+20,15/2+5]) rotate([0,90,0]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	translate([-20,-20,15/2+5]) rotate([0,90,0]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	translate([-20,-20,15/2+5]) rotate([0,90,90]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	translate([+20,-20,15/2+5]) rotate([0,90,90]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	}
+
+}
+
+
 if (0)
 {
 for (i = [0:3])
@@ -100,5 +129,6 @@ for (i = [0:3])
 }
 } else {
 	//vertical_bracket2();
-	vertical_bracket3();
+	//vertical_bracket3();
+	t_bracket();
 }
