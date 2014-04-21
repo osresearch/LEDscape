@@ -340,6 +340,9 @@ ledscape_strip_draw(
 			uint8_t * const row_out
 				= ledscape_remap(leds, out, x, y);
 			uint32_t p = row_in[x];
+			row_out[0*pru_stride] = 0xFF; // green
+			row_out[1*pru_stride] = 0x00; // red
+			row_out[2*pru_stride] = 0x00; // blue
 			row_out[0*pru_stride] = (p >>  8) & 0xFF; // green
 			row_out[1*pru_stride] = (p >>  0) & 0xFF; // red
 			row_out[2*pru_stride] = (p >> 16) & 0xFF; // blue
@@ -353,7 +356,7 @@ ledscape_strip_draw(
 	// Update the pixel data and send the start
 	leds->ws281x->pixels_dma
 		= leds->pru->ddr_addr + leds->frame_size * frame;
-	frame = (frame + 1) & 1;
+//	frame = (frame + 1) & 1;
 
 	// Send the start command
 	leds->ws281x->command = 1;
