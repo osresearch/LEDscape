@@ -445,7 +445,7 @@ WORD_LOOP:
 
 		// Wait until the length of the one bits
 		WAITNS 650+600, wait_one_time
-		//SLEEPNS 350, 1, wait_one_time
+		SLEEPNS 500, 1, sleep_one_time
 
 		// Turn all the bits off
 		SBBO gpio0_led_mask, r10, 0, 4

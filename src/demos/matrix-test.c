@@ -98,7 +98,7 @@ rainbow(
 )
 {
 	const unsigned color = cycle % 180;
-	const unsigned dim = 128;
+	const unsigned dim = 127;
 
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
@@ -192,8 +192,8 @@ main(
 	const char ** argv
 )
 {
-	int width = 64; // 256;
-	int height = 48; //128;
+	int width = 240; // 256;
+	int height = 64; //128;
 
 	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
