@@ -23,18 +23,18 @@ module horizontal_bracket()
 }
 
 // vertical has only 10mm
-module vertical_bracket()
+module vertical_bracket(depth)
 {
 	rotate([0,0,-360/sides/2])
 	render() difference() {
-		translate([-16,0,]) cube([16,8,10]);
-		translate([-10,15,5]) rotate([90,0,0]) cylinder(r=2,h=20, $fs=1);
+		translate([-16,0,]) cube([16,depth,10]);
+		translate([-10,1+depth,5]) rotate([90,0,0]) cylinder(r=3/2+0.4,h=depth+2, $fs=1);
 	}
 
 	rotate([0,0,+360/sides/2])
 	render() difference() {
-		translate([0,0,]) cube([16,8,10]);
-		translate([10,15,5]) rotate([90,0,0]) cylinder(r=2,h=20, $fs=1);
+		translate([0,0,]) cube([16,depth,10]);
+		translate([10,1+depth,5]) rotate([90,0,0]) cylinder(r=3/2+0.4,h=depth+2, $fs=1);
 	}
 }
 
@@ -59,19 +59,35 @@ module vertical_bracket2()
 }
 
 
+// bracket 3 has the normal vertical bracket, with an additional
+// bit to secure the 15mm extrusion.
 module vertical_bracket3()
 {
-	linear_extrude(height=8) polygon([
-		[0,0],
-		//[20,cos(360/sides/2)*10],
-		[-20,10],
-		[20,10],
-		//[-cos(360/sides/2)*10,10],
-	]);
+	vertical_bracket(12);
+
+	render() difference() {
+		union() {
+			rotate([0,0,+360/sides/2]) translate([0,0,9.9]) cube([16,12,13+5+15-10]);
+			rotate([0,0,-360/sides/2]) translate([-16,0,10]) cube([16,12,13+5+15-10]);
+		}
+
+		// subtract the extrusion
+		translate([-15/2,-10,5+13]) cube([15,50,25]);
+
+		// m3 screw holes to secure the extrusion to the bracket
+		translate([+18,7,13+15/2+5]) rotate([0,90,180]) union() {
+			cylinder(r=3/2+0.4, h=12, $fs=1);
+			cylinder(r=6/2+0.4, h=4, $fs=1);
+		}
+		translate([-18,7,13+15/2+5]) rotate([0,90,0]) union() {
+			cylinder(r=3/2+0.4, h=12, $fs=1);
+			cylinder(r=6/2+0.4, h=4, $fs=1);
+		}
+	}
 }
 
 
-if (1)
+if (0)
 {
 for (i = [0:3])
 {
@@ -83,6 +99,6 @@ for (i = [0:3])
 	}
 }
 } else {
-	vertical_bracket2();
-	//vertical_bracket3();
+	//vertical_bracket2();
+	vertical_bracket3();
 }
