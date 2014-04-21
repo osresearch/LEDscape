@@ -21,8 +21,8 @@
 #define DELTA_G 30
 #define DELTA_B 80
 
-#define WIDTH 256
-#define HEIGHT 128
+#define WIDTH 512
+#define HEIGHT 64
 
 typedef struct
 {
@@ -208,16 +208,19 @@ main(
 	const char ** argv
 )
 {
-	ledscape_matrix_config_t * config = &ledscape_matrix_default;
+	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
 	{
-		config = ledscape_matrix_config(argv[1]);
+		config = ledscape_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
 	}
 
-	config->width = WIDTH;
-	config->height = HEIGHT;
+	if (config->type == LEDSCAPE_MATRIX)
+	{
+		config->matrix_config.width = WIDTH;
+		config->matrix_config.height = HEIGHT;
+	}
 
 	ledscape_t * const leds = ledscape_init(config);
 	printf("init done\n");
@@ -225,7 +228,7 @@ main(
 	unsigned last_i = 0;
 
 	unsigned i = 0;
-	uint32_t * const p = calloc(config->width*config->height,4);
+	uint32_t * const p = calloc(WIDTH*HEIGHT,4);
 
 	srand(getpid());
 
@@ -243,7 +246,7 @@ main(
 			play_game(&board);
 		}
 
-		copy_to_fb(p, config->width, config->height, &board);
+		copy_to_fb(p, WIDTH, HEIGHT, &board);
 
 		ledscape_draw(leds, p);
 		usleep(1000);
