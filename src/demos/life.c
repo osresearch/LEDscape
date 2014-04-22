@@ -89,6 +89,15 @@ get_space(
 	if (x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT)
 		return b->board[y][x] & 1;
 
+	if (y < 0 || y >= HEIGHT)
+		return 0;
+
+	// map the x to a cylinder
+	if (x < 0)
+		return b->board[y][WIDTH - x] & 1;
+	if (x >= WIDTH)
+		return b->board[y][x - WIDTH] & 1;
+
 	return 0;
 }
 
