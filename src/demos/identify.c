@@ -45,25 +45,31 @@ main(
 	int scroll_x = 128;
 	memset(p, 0x10, width*height*4);
 
-	for (int x = 0 ; x < width ; x += 32)
+	for (int i = 0 ; i < 8 ; i++)
 	{
-		for (int y = 0 ; y < height ; y += 16)
+		for (int j = 0 ; j < 8 ; j++)
 		{
 			ledscape_printf(
-				&p[x + width*y],
+				&p[8+j*32 + width*i*16],
+				width,
+				0xFF0000, // red
+				"%d-%d",
+				i,
+				j
+			);
+			ledscape_printf(
+				&p[1+j*32 + width*i*16],
 				width,
 				0x00FF00, // green
-				"x=%d",
-				x
+				"^"
 			);
-
 			ledscape_printf(
-				&p[x + width*(y+8)],
+				&p[1+j*32 + width*(i*16+8)],
 				width,
-				0xFF00FF, // red
-				"y=%d",
-				y
+				0x0000FF, // blue
+				"|"
 			);
+			p[j*32+width*i*16] = 0xFFFF00;
 		}
 	}
 
