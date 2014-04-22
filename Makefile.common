@@ -119,7 +119,7 @@ $(foreach O,$(LIB-y),\
 .PHONY: clean
 
 # Include all of the generated dependency files
--include .*.o.d
+-include $(OBJDIR)/.*.o.d
 
 clean:
 	rm -rf \
