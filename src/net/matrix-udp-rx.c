@@ -57,21 +57,36 @@ main(
 	if (sock < 0)
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
-	const unsigned width = 256;
+	const unsigned width = 512;
 	const unsigned height = 64;
-	const unsigned leds_width = 256;
-	const unsigned leds_height = 128;
 	const size_t image_size = width * height * 3;
 
 	// largest possible UDP packet
-	uint8_t buf[65536];
+	uint8_t buf[width*height*4];
+#if 0
 	if (sizeof(buf) < image_size + 1)
 		die("%u x %u too large for UDP\n", width, height);
+#endif
 
 	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
 
 	ledscape_config_t * config = &ledscape_matrix_default;
+	if (argc > 1)
+	{
+		config = ledscape_config(argv[1]);
+		if (!config)
+			return EXIT_FAILURE;
+	}
+
+	if (config->type == LEDSCAPE_MATRIX)
+	{
+		config->matrix_config.width = width;
+		config->matrix_config.height = height;
+	}
+
 	ledscape_t * const leds = ledscape_init(config);
+	if (!leds)
+		return EXIT_FAILURE;
 
 	const unsigned report_interval = 10;
 	unsigned last_report = 0;
@@ -79,8 +94,7 @@ main(
 	unsigned frames = 0;
 
 	uint32_t * const fb = calloc(width*height,4);
-	uint32_t * const leds_fb = calloc(leds_width*leds_height,4);
-	ledscape_draw(leds, leds_fb);
+	ledscape_draw(leds, fb);
 
 	while (1)
 	{
@@ -89,6 +103,7 @@ main(
 			die("recv failed: %s\n", strerror(errno));
 		warn_once("received %zu bytes\n", rlen);
 
+		/*
 		if (buf[0] == 2)
 		{
 			// image type
@@ -108,6 +123,7 @@ main(
 			);
 			continue;
 		}
+		*/
 
 		if ((size_t) rlen != image_size + 1)
 		{
@@ -126,31 +142,17 @@ main(
 		// and turn onto the side
 		for (unsigned x = 0 ; x < width ; x++) // 256
 		{
-			for (unsigned y = 0 ; y < height ; y++) // 64
+			for (unsigned y = 0 ; y < 32 ; y++) // 64
 			{
-				uint8_t * out = (void*) &fb[y*2*leds_width + x];
-				const uint8_t * const in = &buf[1 + 3*(x*height + (width - y - 1))];
+				uint8_t * out = (void*) &fb[(y+16)*width + x];
+				const uint8_t * const in = &buf[1 + 3*(y*width + x)];
 				out[0] = in[0];
 				out[1] = in[1];// / 2;
 				out[2] = in[2];// / 2;
-
-				if (0) {
-					// double the pixels?
-					out += leds_width * 4;
-					out[0] = in[0];
-					out[1] = in[1] / 2;
-					out[2] = in[2] / 2;
-				}
 			}
 		}
 
-#if 0
-		// the panel is 256x128, the pyramid was 256x64.
-		framebuffer_flip(leds_fb, fb + width*0, leds_width, leds_height, width, height-16);
-		ledscape_draw(leds, leds_fb);
-#else
 		ledscape_draw(leds, fb);
-#endif
 
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);
