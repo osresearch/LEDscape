@@ -124,6 +124,12 @@ main(
 			continue;
 		}
 		*/
+		const unsigned frame_part = buf[0];
+		if (frame_part != 0 && frame_part != 1)
+		{
+			printf("bad type %d\n", frame_part);
+			continue;
+		}
 
 		if ((size_t) rlen != image_size + 1)
 		{
@@ -144,15 +150,18 @@ main(
 		{
 			for (unsigned y = 0 ; y < 32 ; y++) // 64
 			{
-				uint8_t * out = (void*) &fb[(y+16)*width + x];
+				uint32_t * out = (void*) &fb[(y+32*frame_part)*width + x];
 				const uint8_t * const in = &buf[1 + 3*(y*width + x)];
-				out[0] = in[0];
-				out[1] = in[1];// / 2;
-				out[2] = in[2];// / 2;
+				uint32_t r = in[0];
+				uint32_t g = in[1];
+				uint32_t b = in[2];
+				*out = (r << 16) | (g << 8) | (b << 0);
 			}
 		}
 
-		ledscape_draw(leds, fb);
+		// only draw after the second frame
+		if (frame_part == 1)
+			ledscape_draw(leds, fb);
 
 		gettimeofday(&stop_tv, NULL);
 		timersub(&stop_tv, &start_tv, &delta_tv);
