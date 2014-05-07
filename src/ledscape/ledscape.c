@@ -586,7 +586,7 @@ ledscape_printf(
 	(void) len;
 	uint32_t * start = px;
 
-	printf("%p => '%s'\n", px, buf);
+	//printf("%p => '%s'\n", px, buf);
 	for (unsigned i = 0 ; i < sizeof(buf) ; i++)
 	{
 		char c = buf[i];
