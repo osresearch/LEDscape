@@ -47,6 +47,21 @@ udp_socket(
 	return sock;
 }
 
+
+static int
+wait_socket(
+	int fd,
+	int msec_timeout
+)
+{
+	struct timeval tv = { msec_timeout / 1000, msec_timeout % 1000 };
+	fd_set fds;
+	FD_ZERO(&fds);
+	FD_SET(fd, &fds);
+	return select(fd+1, &fds, NULL, NULL, &tv);
+}
+
+
 static struct option long_options[] =
 {
 	/* These options set a flag. */
@@ -166,6 +181,25 @@ main(
 
 	while (1)
 	{
+		int rc = wait_socket(sock, timeout*1000);
+		if (rc < 0)
+		{
+			// something failed
+			memset(fb, 0, width*height*4);
+			ledscape_printf(fb, width, 0xFF0000, "read failed?");
+			ledscape_draw(leds, fb);
+			exit(EXIT_FAILURE);
+		}
+
+		if (rc == 0)
+		{
+			// go into timeout mode
+			memset(fb, 0, width*height*4);
+			ledscape_printf(fb, width, 0xFF0000, "timeout");
+			ledscape_draw(leds, fb);
+			continue;
+		}
+
 		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
