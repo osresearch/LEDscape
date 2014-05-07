@@ -92,6 +92,8 @@ fire_draw(
 	uint32_t * const frame
 )
 {
+    static int rotate_offset = 0;
+
     memset(frame, 0, WIDTH*HEIGHT*sizeof(*frame));
 
     angle = angle + 0.05;
@@ -134,10 +136,12 @@ fire_draw(
 		frame[y - (HEIGHT - leds_width) + x*leds_width] = c;
 #endif
 */
-	frame[WIDTH*y + x] = c;
+	frame[WIDTH*y + (x + rotate_offset / 16) % WIDTH] = c;
 	//frame[counter++] = c;
       }
     }
+
+    rotate_offset++;
 }
 
 
