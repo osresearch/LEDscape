@@ -584,13 +584,20 @@ ledscape_printf(
 	int len = vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 	(void) len;
+	uint32_t * start = px;
 
-	//printf("%p => '%s'\n", px, buf);
+	printf("%p => '%s'\n", px, buf);
 	for (unsigned i = 0 ; i < sizeof(buf) ; i++)
 	{
 		char c = buf[i];
 		if (!c)
 			break;
+		if (c == '\n')
+		{
+			px = start = start + 8 * width;
+			continue;
+		}
+
 		ledscape_draw_char(px, width, color, c);
 		px += 6;
 	}
