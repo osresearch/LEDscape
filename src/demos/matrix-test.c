@@ -209,7 +209,7 @@ main(
 		config->matrix_config.height = height;
 	}
 
-	ledscape_t * const leds = ledscape_init(config);
+	ledscape_t * const leds = ledscape_init(config, 0);
 
 
 	printf("init done\n");

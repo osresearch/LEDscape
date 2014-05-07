@@ -72,6 +72,7 @@ static struct option long_options[] =
 	{"config",  required_argument, 0, 'c'},
 	{"timeout", required_argument, 0, 't'},
 	{"message", required_argument, 0, 'm'},
+	{"noinit",  no_argument,       0, 'n'},
 	{0, 0, 0, 0}
 };
 
@@ -97,13 +98,14 @@ main(
 	int timeout = 60;
 	unsigned width = 512;
 	unsigned height = 64;
+	int no_init = 0;
 
 	while (1)
 	{
 		const int c = getopt_long(
 			argc,
 			argv,
-			"vp:c:t:W:H:m:",
+			"vp:c:t:W:H:m:n",
 			long_options,
 			&option_index
 		);
@@ -114,6 +116,9 @@ main(
 		{
 		case 'v':
 			verbose++;
+			break;
+		case 'n':
+			no_init++;
 			break;
 		case 'c':
 			config_file = optarg;
@@ -165,7 +170,7 @@ main(
 		config->matrix_config.height = height;
 	}
 
-	ledscape_t * const leds = ledscape_init(config);
+	ledscape_t * const leds = ledscape_init(config, no_init);
 	if (!leds)
 		return EXIT_FAILURE;
 
