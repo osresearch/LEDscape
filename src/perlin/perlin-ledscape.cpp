@@ -116,7 +116,7 @@ int main (int argc, char *argv[])
 
     config->matrix_config.width = DISPLAY_WIDTH;
     config->matrix_config.height = DISPLAY_HEIGHT;
-    leds = ledscape_init(config);
+    leds = ledscape_init(config, 0);
 
     ledscape_printf((uint32_t*)(uintptr_t)gLevels, DISPLAY_WIDTH, 0xFF0000, "Perlin noise by Glen Akins");
     ledscape_draw(leds, gLevels);

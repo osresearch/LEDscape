@@ -91,7 +91,8 @@ extern ledscape_config_t ledscape_matrix_default;
 
 extern ledscape_t *
 ledscape_init(
-	ledscape_config_t * config
+	ledscape_config_t * config,
+	int no_init_pru
 );
 
 
