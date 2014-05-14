@@ -84,6 +84,8 @@ static void usage(void)
 }
 
 
+const unsigned int packets_per_frame = 2;
+
 int
 main(
 	int argc,
@@ -146,9 +148,10 @@ main(
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const size_t image_size = width * height * 3;
+	const size_t buf_size = (width*height*4)/packets_per_frame + 1;
 
 	// largest possible UDP packet
-	uint8_t *buf = calloc(width*height,4);
+	uint8_t *buf = malloc(buf_size);
 #if 0
 	if (sizeof(buf) < image_size + 1)
 		die("%u x %u too large for UDP\n", width, height);
@@ -205,7 +208,7 @@ main(
 			continue;
 		}
 
-		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
+		const ssize_t rlen = recv(sock, buf, buf_size, 0);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
 		warn_once("received %zu bytes\n", rlen);
