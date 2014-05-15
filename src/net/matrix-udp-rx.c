@@ -222,11 +222,12 @@ main(
 				packets_per_frame = buf[1];
 			}
 			continue;
-		} else if (frame_page >= packets_per_frame) {
+		} else if (frame_part >= packets_per_frame) {
 			printf("frame part out of range: %d (max %d)\n", frame_part, packets_per_frame);
 			continue;
 		}
-
+		const unsigned int pixels_per_packet = (width * height)/packets_per_frame;
+		const unsigned image_part_size = pixels_per_packet * 3;
 		if ((size_t) rlen != image_part_size + 1)
 		{
 			warn_once("WARNING: Received packet %zu bytes, expected %zu\n",
@@ -242,7 +243,6 @@ main(
 
 		// copy the 3-byte values into the 4-byte framebuffer
 		// and turn onto the side
-		unsigned int pixels_per_packet = (width * height)/packets_per_frame;
 		unsigned fb_offset = pixels_per_packet * frame_part;
 
 		for (unsigned i = 0 ; i < pixels_per_packet ; i++) {
