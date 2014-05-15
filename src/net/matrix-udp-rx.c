@@ -84,7 +84,7 @@ static void usage(void)
 }
 
 
-const unsigned int packets_per_frame = 2;
+unsigned int packets_per_frame = 2;
 
 int
 main(
@@ -213,39 +213,26 @@ main(
 			die("recv failed: %s\n", strerror(errno));
 		warn_once("received %zu bytes\n", rlen);
 
-		/*
-		if (buf[0] == 2)
-		{
-			// image type
-			printf("image type: %.*s\n",
-				(int) rlen - 1,
-				&buf[1]
-			);
-			continue;
-		}
-
-		if (buf[0] != 1)
-		{
-			// What is it?
-			warn_once("Unknown image type '%c' (%02x)\n",
-				buf[0],
-				buf[0]
-			);
-			continue;
-		}
-		*/
 		const unsigned frame_part = buf[0];
-		if (frame_part != 0 && frame_part != 1)
-		{
-			printf("bad type %d\n", frame_part);
+		if (frame_part == 0xff) {
+			// Set packets_per_frame
+			if ((size_t)rlen != 2) {
+				warn("WARNING: Recieved PPF packet of %zu bytes, expected 2
+n",rlen);
+			} else {
+				packets_per_frame = buf[1];
+			}
+			continue;
+		} else if (frame_page >= packets_per_frame) {
+			printf("frame part out of range: %d (max %d)\n", frame_part, packets_per_frame);
 			continue;
 		}
 
-		if ((size_t) rlen != image_size + 1)
+		if ((size_t) rlen != image_part_size + 1)
 		{
 			warn_once("WARNING: Received packet %zu bytes, expected %zu\n",
 				rlen,
-				image_size + 1
+				image_part_size + 1
 			);
 		}
 
@@ -256,21 +243,19 @@ main(
 
 		// copy the 3-byte values into the 4-byte framebuffer
 		// and turn onto the side
-		for (unsigned x = 0 ; x < width ; x++) // 256
-		{
-			for (unsigned y = 0 ; y < 32 ; y++) // 64
-			{
-				uint32_t * out = (void*) &fb[(y+32*frame_part)*width + x];
-				const uint8_t * const in = &buf[1 + 3*(y*width + x)];
-				uint32_t r = in[0];
-				uint32_t g = in[1];
-				uint32_t b = in[2];
-				*out = (r << 16) | (g << 8) | (b << 0);
-			}
+		unsigned int pixels_per_packet = (width * height)/packets_per_frame;
+		unsigned fb_offset = pixels_per_packet * frame_part;
+
+		for (unsigned i = 0 ; i < pixels_per_packet ; i++) {
+			const uint8_t * const in = buf + 1 + 3*i;
+			uint32_t r = in[0];
+			uint32_t g = in[1];
+			uint32_t b = in[2];
+			fb[fb_offset+i] = (r << 16) | (g << 8) | (b << 0);
 		}
 
 		// only draw after the second frame
-		if (frame_part == 1)
+		if (frame_part == packets_per_frame-1)
 			ledscape_draw(leds, fb);
 
 		gettimeofday(&stop_tv, NULL);
