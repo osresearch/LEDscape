@@ -217,8 +217,7 @@ main(
 		if (frame_part == 0xff) {
 			// Set packets_per_frame
 			if ((size_t)rlen != 2) {
-				warn("WARNING: Recieved PPF packet of %zu bytes, expected 2
-n",rlen);
+				warn("WARNING: Recieved PPF packet of %zu bytes, expected 2\n",rlen);
 			} else {
 				packets_per_frame = buf[1];
 			}
