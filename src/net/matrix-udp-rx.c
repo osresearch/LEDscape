@@ -148,10 +148,10 @@ main(
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const size_t image_size = width * height * 3;
-	const size_t buf_size = (width*height*4)/packets_per_frame + 1;
+	const size_t buf_size = (width*height*3)/packets_per_frame + 1;
 
 	// largest possible UDP packet
-	uint8_t *buf = malloc(buf_size);
+	uint8_t *buf = calloc(buf_size,1);
 #if 0
 	if (sizeof(buf) < image_size + 1)
 		die("%u x %u too large for UDP\n", width, height);
