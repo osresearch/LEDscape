@@ -67,20 +67,27 @@ read_thread(
 	char line[128];
 	float new_size;
 	printf("read thread waiting\n");
+	int old_p0 = -1;
+	int old_p1 = -1;
+	int old_p2 = -1;
+	int old_p3 = -1;
 
 	while (1)
 	{
 		if (fgets(line, sizeof(line), stdin) == NULL)
 			break;
-		printf("read '%s'\n", line);
-		int rc = sscanf(line, "%f", &new_size);
-		if (rc != 1)
+		//printf("read '%s'\n", line);
+		int p0, p1, p2, p3;
+		int rc = sscanf(line, "%d %d %d %d", &p0, p1, p2, p3);
+		if (rc != 4)
 		{
-			printf("scanf failed: %d\n", rc);
+			printf("scanf failed: %d: '%s'\n", rc, line);
 			continue;
 		}
-		printf("old size %f new size %f\n", gPattern->getZStep(), new_size);
-		gPattern->setZStep(new_size);
+
+		if (p0 != old_p0)
+			gPattern->setScale(p0 / 1024.0);
+		old_p0 = p0;
 	}
 
 	fprintf(stderr, "read thread exiting\n");
@@ -109,7 +116,7 @@ int main (int argc, char *argv[])
 
     config->matrix_config.width = DISPLAY_WIDTH;
     config->matrix_config.height = DISPLAY_HEIGHT;
-    leds = ledscape_init(config);
+    leds = ledscape_init(config, 0);
 
     ledscape_printf((uint32_t*)(uintptr_t)gLevels, DISPLAY_WIDTH, 0xFF0000, "Perlin noise by Glen Akins");
     ledscape_draw(leds, gLevels);

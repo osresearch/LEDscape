@@ -22,8 +22,8 @@
 #ifndef __globals_h_
 #define __globals_h_
 
-#define DISPLAY_WIDTH  256
-#define DISPLAY_HEIGHT 128
+#define DISPLAY_WIDTH  512
+#define DISPLAY_HEIGHT 64
 
 extern uint32_t gLevels[DISPLAY_HEIGHT][DISPLAY_WIDTH];
 
