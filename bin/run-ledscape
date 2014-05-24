@@ -5,4 +5,4 @@ cd "$DIRNAME/.."
 echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr.8/slots
 sleep 10
 
-exec ./bin/matrix-test
+exec ./bin/matrix-test >/dev/null
