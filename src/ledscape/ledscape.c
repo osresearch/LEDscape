@@ -376,7 +376,8 @@ ledscape_wait(
 
 static ledscape_t *
 ledscape_matrix_init(
-	ledscape_config_t * const config_union
+	ledscape_config_t * const config_union,
+	int no_pru_init
 )
 {
 	ledscape_matrix_config_t * const config = &config_union->matrix_config;
@@ -404,7 +405,8 @@ ledscape_matrix_init(
 	ledscape_gpio_init();
 
 	// Initiate the PRU program
-	pru_exec(pru, "./lib/matrix.bin");
+	if (!no_pru_init)
+		pru_exec(pru, "./lib/matrix.bin");
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
@@ -419,7 +421,8 @@ ledscape_matrix_init(
 
 static ledscape_t *
 ledscape_strip_init(
-	ledscape_config_t * const config_union
+	ledscape_config_t * const config_union,
+	int no_pru_init
 )
 {
 	ledscape_strip_config_t * const config = &config_union->strip_config;
@@ -459,7 +462,8 @@ ledscape_strip_init(
 	ledscape_gpio_init();
 
 	// Initiate the PRU program
-	pru_exec(pru, "./lib/ws281x.bin");
+	if (!no_pru_init)
+		pru_exec(pru, "./lib/ws281x.bin");
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
@@ -474,15 +478,16 @@ ledscape_strip_init(
 
 ledscape_t *
 ledscape_init(
-	ledscape_config_t * const config
+	ledscape_config_t * const config,
+	int no_pru_init
 )
 {
 	switch (config->type)
 	{
 		case LEDSCAPE_MATRIX:
-			return ledscape_matrix_init(config);
+			return ledscape_matrix_init(config, no_pru_init);
 		case LEDSCAPE_STRIP:
-			return ledscape_strip_init(config);
+			return ledscape_strip_init(config, no_pru_init);
 		default:
 			fprintf(stderr, "unknown config type %d\n", config->type);
 			return NULL;
@@ -579,6 +584,7 @@ ledscape_printf(
 	int len = vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 	(void) len;
+	uint32_t * start = px;
 
 	//printf("%p => '%s'\n", px, buf);
 	for (unsigned i = 0 ; i < sizeof(buf) ; i++)
@@ -586,6 +592,12 @@ ledscape_printf(
 		char c = buf[i];
 		if (!c)
 			break;
+		if (c == '\n')
+		{
+			px = start = start + 8 * width;
+			continue;
+		}
+
 		ledscape_draw_char(px, width, color, c);
 		px += 6;
 	}

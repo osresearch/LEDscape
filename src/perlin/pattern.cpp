@@ -57,6 +57,9 @@ uint32_t Pattern::translateHue (int32_t hue)
     //r = gammaLut[r] << 3;
     //g = gammaLut[g] << 3;
     //b = gammaLut[b] << 3;
+    r /= 2;
+    b /= 2;
+    g /= 2;
 #else
 	b = hue;
 	r = 0;
