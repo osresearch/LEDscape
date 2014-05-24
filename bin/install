@@ -20,13 +20,19 @@ fi
 
 BOOT=/media/BEAGLEBONE
 UENV="$BOOT/uEnv.txt"
-mount -t vfat /dev/mmcblk0p1 "$BOOT" || die "Failed to mount $BOOT"
+
+if ! mount | grep -q "$BOOT"; then
+	mkdir "$BOOT"
+	mount -t vfat /dev/mmcblk0p1 "$BOOT" || die "Failed to mount $BOOT"
+fi
+
 cp "$UENV" "$UENV.backup"
 
 cat <<END > "$UENV"
 optargs=quiet capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN
 END
 
+sync
 umount "$BOOT"
 
 cp bin/ledscape.service /etc/systemd/system/
