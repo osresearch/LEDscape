@@ -147,8 +147,11 @@ main(
 
 	const size_t image_size = width * height * 3;
 
-	// largest possible UDP packet
-	uint8_t *buf = calloc(width*height,4);
+	// Each frame is composed of two subframes, containing half of the
+	// image data and a 1-byte header. Note that the image size must be
+	// evenly divisible by 2 for this to work.
+	unsigned buffer_size = image_size/2 + 1;
+	uint8_t *buf = calloc(buffer_size,1);
 #if 0
 	if (sizeof(buf) < image_size + 1)
 		die("%u x %u too large for UDP\n", width, height);
@@ -205,7 +208,7 @@ main(
 			continue;
 		}
 
-		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
+		const ssize_t rlen = recv(sock, buf, buffer_size, 0);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
 		warn_once("received %zu bytes\n", rlen);
@@ -248,8 +251,6 @@ main(
 
 		struct timeval start_tv, stop_tv, delta_tv;
 		gettimeofday(&start_tv, NULL);
-
-		const unsigned frame_num = 0;
 
 		// copy the 3-byte values into the 4-byte framebuffer
 		// and turn onto the side
