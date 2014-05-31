@@ -192,8 +192,8 @@ main(
 	const char ** argv
 )
 {
-	int width = 512;
-	int height = 64;
+	int width = 256;
+	int height = 128;
 
 	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)

@@ -101,9 +101,9 @@ uint32_t Pattern::translateHueValue (int32_t hue, float value)
     g = ((float)g + 0.5) * value;
     b = ((float)b + 0.5) * value;
 
-    r = gammaLut[r] << 4;
-    g = gammaLut[g] << 4;
-    b = gammaLut[b] << 4;
+    //r = gammaLut[r] << 4;
+    //g = gammaLut[g] << 4;
+    //b = gammaLut[b] << 4;
 
     return MAKE_COLOR (r,g,b);
 }
