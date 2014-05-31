@@ -1,9 +1,15 @@
+#
+# Copy this file to /etc/systemd/system/ and run:
+#   systemctl enable ledscape.service
+# to enable LEDscape to start on each boot.
+#
+
 [Unit]
 Description=BeagleBone LED matrix driver
 
 [Service]
 WorkingDirectory=/home/root/LEDscape/
-ExecStart=/home/root/LEDscape/run-ledscape
+ExecStart=/home/root/LEDscape/bin/run-ledscape
 KillMode=process
 
 [Install]
