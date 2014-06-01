@@ -1,0 +1,101 @@
+#!/usr/bin/python
+import Image, ImageFont, ImageDraw
+import socket
+import time, datetime
+import pickle
+import tweepy
+import time
+import thread
+from botomatic import TBot
+from colorsys import hsv_to_rgb
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+dest = ("localhost", 9999)
+
+#print im.format, im.size, im.mode
+# use a truetype font
+font = ImageFont.truetype("fonts/spincycle.ttf", 32)
+font_sm = ImageFont.truetype("fonts/spincycle.ttf", 24)
+
+i = 0
+width = 512
+height = 64
+disp = Image.new("RGB", (width,height), "black")
+im = Image.new("RGB", (width,height), "black")
+im_draw = ImageDraw.Draw(im)
+disp_draw = ImageDraw.Draw(disp)
+
+tweets = []
+seen = {}
+
+
+class Searcher(TBot):
+    debug_mode = True
+
+    def __init__(self):
+        handle = "searcher"
+        super(Searcher, self).__init__(handle)
+
+    def run(self):
+        while True:
+            results = self.search('"I"')
+            for result in results:
+                if result.id in seen:
+                    continue
+		tweets.append(str(result.text))
+		seen[result.id] = 1
+
+                #print "-----\n" + str(result.text) + "\n"
+                #try:
+                    #result.retweet()
+                #except tweepy.error.TweepError: # private status update?
+                    #continue
+            time.sleep(10)
+
+
+        self.wrap_up()
+
+def start_bot():
+    p = Searcher()
+
+thread.start_new_thread(start_bot, ())
+
+
+while True:
+	if len(tweets) == 0:
+		time.sleep(1)
+		continue
+	tweet = tweets.pop()
+	print "---\n" + tweet + "\n"
+	continue
+
+	im.paste("black", (0,0,width,height))
+	now = datetime.datetime.now()
+	d = now.strftime("%a %d %b")
+	t = now.strftime("%H:%M:%S")
+
+	# Draw the date 
+	im_draw.text((60, 4), d, font=font, fill=rainbow(i))
+	im_draw.text((90, 32), t, font=font_sm, fill=rainbow(i))
+	im_draw.text((256+60, 4), d, font=font, fill=rainbow(i))
+	im_draw.text((256+90, 32), t, font=font_sm, fill=rainbow(i))
+
+	im.paste(logo, (0,8))
+	im.paste(logo, (256,8))
+
+	# Make it scroll
+	disp.paste(im.crop((0,0,i,height)), (width-i,0))
+	disp.paste(im.crop((i+1,0,width-1,height)), (0,0))
+
+	# draw the time on each face
+	#for x in range(0,7):
+		#disp_draw.text((4+x*32, 8-3), t, font=font_sm)
+
+	# Split it into two pieces and send it to the drawing server
+	s = disp.tostring()
+	s1 = s[:(width*height*3/2)]
+	s2 = s[(width*height*3/2):]
+	sock.sendto(chr(0) + s1, dest)
+	sock.sendto(chr(1) + s2, dest)
+	i = (i+1) % width
+	time.sleep(0.025)
