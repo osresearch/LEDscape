@@ -35,7 +35,7 @@ Next, set up LEDscape:
 
 Use git to download the repository:
 
-    git clone http://@github.com:osresearch/LEDscape.git
+    git clone hhttp://github.com/Blinkinlabs/LEDscape.git
     cd LEDscape
     git checkout -b videoplayer origin/videoplayer
     make
