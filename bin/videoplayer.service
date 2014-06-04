@@ -10,7 +10,7 @@ Requires=ledscape
 After=ledscape
 
 [Service]
-WorkingDirectory=/opt/LEDscape/
+WorkingDirectory=/opt/LEDscape/bin
 ExecStart=/opt/LEDscape/bin/run-videoplayer
 KillMode=process
 

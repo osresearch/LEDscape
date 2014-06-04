@@ -4,11 +4,25 @@ cd "$DIRNAME"
 
 USBMOUNT="/media/usb0"
 
+# Wait for a USB drive to be inserted
+while true
+do 
+  grep -qs $USBMOUNT /proc/mounts
+  if [ $? -eq 0 ]; then
+    echo "Mount success!"
+    break
+  fi
+
+  sleep 1
+done
+
+
 # Turn on extended filename globbing
 shopt -s extglob
 
 # Play the first video we find, on a loop.
-for video in "$USBMOUNT/"*+(.mp4|.MP4|.avi|.AVI); do
+for video in "$USBMOUNT/"*+(.mp4|.MP4|.avi|.AVI)
+do
     exec ./video_player.py -l -w 112 "$video"
     break
 done

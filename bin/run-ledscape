@@ -2,12 +2,14 @@
 DIRNAME="`dirname "$0"`"
 cd "$DIRNAME/.."
 
+# Enable the octoscroller overlay
+# Note that we can't do this at boot because it won't load then, for some reason
 echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr*/slots
 
-sleep 2
+# Wait for unknown and unimaginable things to happen
+sleep 10
 
 CONFIGFILE="$DIRNAME/default.config"
-
 USBMOUNT="/media/usb0"
 
 # If a USB stick is mounted, try to load the config file from it
