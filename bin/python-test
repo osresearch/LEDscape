@@ -31,18 +31,32 @@ def rainbow(i):
 	rgb = [int(x*256) for x in hsv_to_rgb(i/256.0,0.8,0.8)]
 	return (rgb[0],rgb[1],rgb[2])
 
+def internet_time():
+	"Swatch Internet Time. Biel meridian."
+	"More granular Swatch time. Courtesy https://github.com/gcohen55/pebble-beapoch"
+	return (((time.time() + 3600) % 86400) * 1000) / 86400
+	#h, m, s = time.gmtime()[3:6]
+	#h += 1 # Biel time zone: UTC+1
+	#seconds = s + (60.0*m) + (60.0*60.0*h)
+	#beats = seconds * 1000.0 / (60.0*60.0*24.0)
+	#beats = beats % 1000.0
+	#return beats
+
+
 
 while True:
 	im.paste("black", (0,0,width,height))
 	now = datetime.datetime.now()
 	d = now.strftime("%a %d %b")
-	t = now.strftime("%H:%M:%S")
+	t1 = now.strftime("%H:%M:%S")
+	t2 = "%07.3f" % (internet_time())
 
 	# Draw the date 
 	im_draw.text((60, 4), d, font=font, fill=rainbow(i))
-	im_draw.text((90, 32), t, font=font_sm, fill=rainbow(i))
+	im_draw.text((90, 32), t1, font=font_sm, fill=rainbow(i))
 	im_draw.text((256+60, 4), d, font=font, fill=rainbow(i))
-	im_draw.text((256+90, 32), t, font=font_sm, fill=rainbow(i))
+	im_draw.text((256+80, 32), t2, font=font_sm, fill=rainbow(i))
+	im_draw.text((256+180, 32), ".beats", font=font_sm, fill=rainbow(i))
 
 	im.paste(logo, (0,8))
 	im.paste(logo, (256,8))
