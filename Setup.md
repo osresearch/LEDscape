@@ -35,10 +35,11 @@ Next, set up LEDscape:
 
 Use git to download the repository:
 
-    git clone hhttp://github.com/Blinkinlabs/LEDscape.git
+    cd /opt
+    sudo git clone http://github.com/Blinkinlabs/LEDscape.git
     cd LEDscape
-    git checkout -b videoplayer origin/videoplayer
-    make
+    sudo git checkout -b videoplayer origin/videoplayer
+    sudo make
     
 Copy the device tree file into place, and add it to the slots:
 
@@ -125,6 +126,15 @@ There are a bunch of command line arguments, and the whole thing seems to be in 
 | -H      | LEDscape virtual screen height      | 128 |
 | -m      | Message to display at startup      | |
 
+
+Run the UDP listener automatically at system boot
+=================================================
+
+    sudo cp ledscape.service /etc/systemd/system
+    sudo systemctl enable ledscape.service
+
+    sudo cp videoplayer.service /etc/systemd/system
+    sudo systemctl enable videoplayer.service
 
 Video playback
 ==============

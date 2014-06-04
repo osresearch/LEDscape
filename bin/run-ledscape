@@ -1,8 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 DIRNAME="`dirname "$0"`"
 cd "$DIRNAME/.."
 
-echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr.8/slots
-sleep 10
+echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr*/slots
 
-exec ./bin/matrix-test >/dev/null
+sleep 2
+
+CONFIGFILE="$DIRNAME/default.config"
+
+USBMOUNT="/media/usb0"
+
+# If a USB stick is mounted, try to load the config file from it
+if [ -e "$USBMOUNT/ledscape.config" ]
+then
+    CONFIGFILE="$USBMOUNT/ledscape.config"
+fi
+
+#exec ./bin/matrix-test "$CONFIGFILE" >/dev/null
+exec ./bin/matrix-udp-rx -m "Starting LEDscape" -c "$CONFIGFILE" >/dev/null

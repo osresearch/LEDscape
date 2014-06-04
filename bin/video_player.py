@@ -14,8 +14,15 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "-s", "--screenGeometry",
     dest="screenGeometry",
-    help="LEDscape screen size (ex: 256x32)",
-    default="256x32",
+    help="LEDscape screen size (ex: 256x128)",
+    default="256x128",
+    )
+parser.add_argument(
+    "-w", "--scaleWidth",
+    dest="scaleWidth",
+    help="Width to scale video to during playback (ex: 256)",
+    default="256",
+    type=int,
     )
 parser.add_argument(
     "-a", "--address",
@@ -107,10 +114,10 @@ while cap.isOpened():
     originalWidth = frame.shape[1]
     originalAspect = float(originalWidth)/originalHeight
     
-    desiredWidth = 32*5
-    desiredHeight = int(desiredWidth/originalAspect)
+    scaleWidth = config.scaleWidth
+    scaleHeight = int(scaleWidth/originalAspect)
 
-    smaller = cv2.resize(frame,(desiredWidth, desiredHeight))
+    smaller = cv2.resize(frame,(scaleWidth, scaleHeight))
     frame = smaller
 
     # Copy the image data into the LEDscape format

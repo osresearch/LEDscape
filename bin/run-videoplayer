@@ -1,0 +1,14 @@
+#!/bin/bash
+DIRNAME="`dirname "$0"`"
+cd "$DIRNAME"
+
+USBMOUNT="/media/usb0"
+
+# Turn on extended filename globbing
+shopt -s extglob
+
+# Play the first video we find, on a loop.
+for video in "$USBMOUNT/"*+(.mp4|.MP4|.avi|.AVI); do
+    exec ./video_player.py -l -w 112 "$video"
+    break
+done
