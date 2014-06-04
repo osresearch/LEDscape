@@ -130,10 +130,10 @@ There are a bunch of command line arguments, and the whole thing seems to be in 
 Run the UDP listener automatically at system boot
 =================================================
 
-    sudo cp ledscape.service /etc/systemd/system
+    sudo cp bin/ledscape.service /etc/systemd/system
     sudo systemctl enable ledscape.service
 
-    sudo cp videoplayer.service /etc/systemd/system
+    sudo cp bin/videoplayer.service /etc/systemd/system
     sudo systemctl enable videoplayer.service
 
 Video playback
