@@ -96,8 +96,8 @@ main(
 	const char * config_file = NULL;
 	const char * startup_message = "";
 	int timeout = 60;
-	unsigned width = 512;
-	unsigned height = 64;
+	unsigned width = 256;
+	unsigned height = 128;
 	int no_init = 0;
 
 	while (1)
@@ -147,8 +147,19 @@ main(
 
 	const size_t image_size = width * height * 3;
 
-	// largest possible UDP packet
-	uint8_t *buf = calloc(width*height,4);
+        // Calculate subframe geometry (each frame is divided into subframes)
+        const unsigned subframe_count = 2;
+        const unsigned subframe_height = height/subframe_count;
+
+        // TODO: Test that the height is even
+        if(height %2)
+                return EXIT_FAILURE;
+
+	// Each frame is composed of two subframes, containing half of the
+	// image data and a 1-byte header. Note that the image size must be
+	// evenly divisible by subframe_count for this to work.
+	const unsigned buffer_size = image_size/subframe_count + 1;
+	uint8_t *buf = calloc(buffer_size,1);
 #if 0
 	if (sizeof(buf) < image_size + 1)
 		die("%u x %u too large for UDP\n", width, height);
@@ -205,7 +216,7 @@ main(
 			continue;
 		}
 
-		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
+		const ssize_t rlen = recv(sock, buf, buffer_size, 0);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
 		warn_once("received %zu bytes\n", rlen);
@@ -232,32 +243,31 @@ main(
 		}
 		*/
 		const unsigned frame_part = buf[0];
+
 		if (frame_part != 0 && frame_part != 1)
 		{
 			printf("bad type %d\n", frame_part);
 			continue;
 		}
 
-		if ((size_t) rlen != image_size + 1)
+		if ((size_t) rlen != buffer_size)
 		{
 			warn_once("WARNING: Received packet %zu bytes, expected %zu\n",
 				rlen,
-				image_size + 1
+			        buffer_size	
 			);
 		}
 
 		struct timeval start_tv, stop_tv, delta_tv;
 		gettimeofday(&start_tv, NULL);
 
-		const unsigned frame_num = 0;
-
 		// copy the 3-byte values into the 4-byte framebuffer
 		// and turn onto the side
 		for (unsigned x = 0 ; x < width ; x++) // 256
 		{
-			for (unsigned y = 0 ; y < 32 ; y++) // 64
+			for (unsigned y = 0 ; y < subframe_height ; y++) // 64
 			{
-				uint32_t * out = (void*) &fb[(y+32*frame_part)*width + x];
+				uint32_t * out = (void*) &fb[(y+subframe_height*frame_part)*width + x];
 				const uint8_t * const in = &buf[1 + 3*(y*width + x)];
 				uint32_t r = in[0];
 				uint32_t g = in[1];
@@ -283,7 +293,7 @@ main(
 		printf("%6u usec avg, max %.2f fps, actual %.2f fps (over %u frames)\n",
 			delta_avg,
 			report_interval * 1.0e6 / delta_avg,
-			frames * 1.0 / report_interval,
+			frames * 1.0 / report_interval / subframe_count,
 			frames
 		);
 

@@ -1,0 +1,18 @@
+#
+# Copy this file to /etc/systemd/system/ and run:
+#   systemctl enable videoplayer.service
+# to enable videoplayer to start on each boot.
+#
+
+[Unit]
+Description=LEDscape video player
+Requires=ledscape
+After=ledscape
+
+[Service]
+WorkingDirectory=/opt/LEDscape/bin
+ExecStart=/opt/LEDscape/bin/run-videoplayer
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

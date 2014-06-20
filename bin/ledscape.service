@@ -8,8 +8,8 @@
 Description=BeagleBone LED matrix driver
 
 [Service]
-WorkingDirectory=/home/root/LEDscape/
-ExecStart=/home/root/LEDscape/bin/run-ledscape
+WorkingDirectory=/opt/LEDscape/
+ExecStart=/opt/LEDscape/bin/run-ledscape
 KillMode=process
 
 [Install]
