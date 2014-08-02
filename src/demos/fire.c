@@ -12,11 +12,8 @@
 #include "ledscape.h"
 
 // sideways pyramid; 256 height, but 128 wide
-#define WIDTH 128
-#define HEIGHT 256
-
-static const int leds_width = 256;
-static const int leds_height = 128;
+#define WIDTH 512
+#define HEIGHT 64
 
 
 // Borrowed by OctoWS2811 rainbow test
@@ -78,7 +75,7 @@ hsv2rgb(
 		green = h2rgb(var1, var2, hue) * 255 / 600000;
 		blue = h2rgb(var1, var2, (hue >= 120) ? hue - 120 : hue + 240) * 255 / 600000;
 	}
-	return (blue << 16) | (green << 8) | red;
+	return (red << 16) | (green << 8) | (blue << 0);
 }
 
 
@@ -95,6 +92,8 @@ fire_draw(
 	uint32_t * const frame
 )
 {
+    static int rotate_offset = 0;
+
     memset(frame, 0, WIDTH*HEIGHT*sizeof(*frame));
 
     angle = angle + 0.05;
@@ -128,6 +127,7 @@ fire_draw(
           fire[x][y] = 128;
 
 	// skip the bottom few rows
+	/*
 #if 1
 	if (y > HEIGHT - leds_width)
 		frame[y - (HEIGHT - leds_width) + x*leds_width] = c;
@@ -135,10 +135,13 @@ fire_draw(
 	if (x > HEIGHT - leds_width)
 		frame[y - (HEIGHT - leds_width) + x*leds_width] = c;
 #endif
-	//frame[(leds_width-x-1) + y*leds_height] = c;
+*/
+	frame[WIDTH*y + (x + rotate_offset / 16) % WIDTH] = c;
 	//frame[counter++] = c;
       }
     }
+
+    rotate_offset++;
 }
 
 
@@ -207,7 +210,7 @@ main(
 
 	config->width = WIDTH;
 	config->height = HEIGHT;
-	ledscape_t * const leds = ledscape_init(config);
+	ledscape_t * const leds = ledscape_init(config, 0);
 
 	printf("init done\n");
 	time_t last_time = time(NULL);

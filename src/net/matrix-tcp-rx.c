@@ -1,5 +1,5 @@
 /** \file
- *  UDP image packet receiver.
+ *  TCP image packet receiver.
  *
  * Based on the HackRockCity LED Display code:
  * https://github.com/agwn/pyramidTransmitter/blob/master/LEDDisplay.pde
@@ -28,11 +28,11 @@
 static int verbose;
 
 static int
-udp_socket(
+tcp_socket(
 	const int port
 )
 {
-	const int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	const int sock = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in addr = {
 		.sin_family = AF_INET,
 		.sin_port = htons(port),
@@ -42,6 +42,12 @@ udp_socket(
 	if (sock < 0)
 		return -1;
 	if (bind(sock, (const struct sockaddr*) &addr, sizeof(addr)) < 0)
+		return -1;
+	if (listen(sock, 5) , 0)
+		return -1;
+
+	int yes = 1;
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
 		return -1;
 
 	return sock;
@@ -59,6 +65,30 @@ wait_socket(
 	FD_ZERO(&fds);
 	FD_SET(fd, &fds);
 	return select(fd+1, &fds, NULL, NULL, &tv);
+}
+
+
+static ssize_t
+recv_all(
+	const int sock,
+	void * const buf_out,
+	size_t len
+)
+{
+	uint8_t * buf = buf_out;
+	size_t off = 0;
+
+	while (off < len)
+	{
+		const ssize_t rlen = recv(sock, buf+off, len-off, 0);
+		if (rlen < 0)
+			return rlen;
+		if (rlen == 0)
+			break;
+		off += rlen;
+	}
+
+	return off;
 }
 
 
@@ -83,6 +113,8 @@ static void usage(void)
 	exit(EXIT_FAILURE);
 }
 
+
+const unsigned int packets_per_frame = 2;
 
 int
 main(
@@ -141,23 +173,23 @@ main(
 		}
 	}
 
-	const int sock = udp_socket(port);
+	const int sock = tcp_socket(port);
 	if (sock < 0)
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const size_t image_size = width * height * 3;
+	const size_t buf_size = (width*height*4)/packets_per_frame + 1;
 
 	// largest possible UDP packet
-	uint8_t *buf = calloc(width*height,4);
+	uint8_t *buf = malloc(buf_size);
 #if 0
 	if (sizeof(buf) < image_size + 1)
 		die("%u x %u too large for UDP\n", width, height);
 #endif
 
-	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
+	fprintf(stderr, "%u x %u, TCP port %u\n", width, height, port);
 
 	ledscape_config_t * config = &ledscape_matrix_default;
-
 	if (config_file)
 	{
 		config = ledscape_config(config_file);
@@ -181,7 +213,6 @@ main(
 	unsigned frames = 0;
 
 	uint32_t * const fb = calloc(width*height,4);
-
 	ledscape_printf(fb, width, 0xFF0000, "%s", startup_message);
 	ledscape_printf(fb+16*width, width, 0x00FF00, "%dx%d UDP port %d", width, height, port);
 	ledscape_draw(leds, fb);
@@ -207,9 +238,28 @@ main(
 			continue;
 		}
 
-		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
+		const int new_sock = accept(sock, NULL, NULL);
+		if (new_sock < 0)
+		{
+			perror("accept");
+			continue;
+		}
+
+		while (1)
+		{
+			int rc = wait_socket(new_sock, timeout*1000);
+			if (rc < 0)
+				break;
+			if (rc == 0)
+				continue;
+
+		const size_t packet_size = 1 + 3*512*32;
+		const ssize_t rlen = recv_all(new_sock, buf, packet_size);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
+		if ((size_t) rlen != packet_size)
+			break;
+
 		warn_once("received %zu bytes\n", rlen);
 
 		/*
@@ -290,6 +340,11 @@ main(
 		);
 
 		frames = delta_sum = 0;
+		}
+
+		// this socket was closed
+		fprintf(stderr, "socket closed, waiting for new conncetion\n");
+		close(new_sock);
 	}
 
 	return 0;

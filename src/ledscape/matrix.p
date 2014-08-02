@@ -24,7 +24,7 @@
 
 // higher constants == brighter.
 // 4 is a ok brightness, 5 is bright, 6 is powerful
-#define BRIGHT_SHIFT 4
+#define BRIGHT_SHIFT 5
 
 
 #define r11_gpio 2

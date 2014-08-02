@@ -21,8 +21,8 @@
 #define DELTA_G 30
 #define DELTA_B 80
 
-#define WIDTH 256
-#define HEIGHT 128
+#define WIDTH 512
+#define HEIGHT 64
 
 typedef struct
 {
@@ -88,6 +88,15 @@ get_space(
 {
 	if (x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT)
 		return b->board[y][x] & 1;
+
+	if (y < 0 || y >= HEIGHT)
+		return 0;
+
+	// map the x to a cylinder
+	if (x < 0)
+		return b->board[y][WIDTH - x] & 1;
+	if (x >= WIDTH)
+		return b->board[y][x - WIDTH] & 1;
 
 	return 0;
 }
@@ -208,24 +217,27 @@ main(
 	const char ** argv
 )
 {
-	ledscape_matrix_config_t * config = &ledscape_matrix_default;
+	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
 	{
-		config = ledscape_matrix_config(argv[1]);
+		config = ledscape_config(argv[1]);
 		if (!config)
 			return EXIT_FAILURE;
 	}
 
-	config->width = WIDTH;
-	config->height = HEIGHT;
+	if (config->type == LEDSCAPE_MATRIX)
+	{
+		config->matrix_config.width = WIDTH;
+		config->matrix_config.height = HEIGHT;
+	}
 
-	ledscape_t * const leds = ledscape_init(config);
+	ledscape_t * const leds = ledscape_init(config, 0);
 	printf("init done\n");
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
 
 	unsigned i = 0;
-	uint32_t * const p = calloc(config->width*config->height,4);
+	uint32_t * const p = calloc(WIDTH*HEIGHT,4);
 
 	srand(getpid());
 
@@ -243,7 +255,7 @@ main(
 			play_game(&board);
 		}
 
-		copy_to_fb(p, config->width, config->height, &board);
+		copy_to_fb(p, WIDTH, HEIGHT, &board);
 
 		ledscape_draw(leds, p);
 		usleep(1000);

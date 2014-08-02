@@ -4,9 +4,7 @@
  * Horizontal or vertical connections are possible.
  * The spacing between the holes differs for each.
  */
-sides = 16;
-orientation = 1;
-
+sides = 32;
 
 // horizontal has 13 mm from edge to center of hole.
 module horizontal_bracket()
@@ -24,29 +22,113 @@ module horizontal_bracket()
 	}
 }
 
-// vetical has only 10mm
-module vertical_bracket()
+// vertical has only 10mm
+module vertical_bracket(depth)
 {
 	rotate([0,0,-360/sides/2])
 	render() difference() {
-		translate([-16,0,]) cube([16,8,10]);
-		translate([-10,15,5]) rotate([90,0,0]) cylinder(r=2,h=20, $fs=1);
+		translate([-16,0,]) cube([16,depth,10]);
+		translate([-10,1+depth,5]) rotate([90,0,0]) cylinder(r=3/2+0.4,h=depth+2, $fs=1);
 	}
 
 	rotate([0,0,+360/sides/2])
 	render() difference() {
-		translate([0,0,]) cube([16,8,10]);
-		translate([10,15,5]) rotate([90,0,0]) cylinder(r=2,h=20, $fs=1);
+		translate([0,0,]) cube([16,depth,10]);
+		translate([10,1+depth,5]) rotate([90,0,0]) cylinder(r=3/2+0.4,h=depth+2, $fs=1);
+	}
+}
+
+// combo bracket has only 10mm, with 13*2 mm spacing
+module vertical_bracket2()
+{
+	rotate([0,0,-360/sides/2])
+	render() difference() {
+		translate([-16,0,]) cube([16,8,26+5+5]);
+		translate([-10,15,5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+		translate([-10,15,26+5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+	}
+
+	rotate([0,0,+360/sides/2])
+	render() difference() {
+		translate([0,0,]) cube([16,8,26+5+5]);
+		translate([10,15,5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+		translate([10,15,26+5]) rotate([90,0,0]) cylinder(r=3.5/2,h=20, $fs=1);
+	}
+
+	translate([-7,3.5,0]) cube([14,5,26+5+5]);
+}
+
+
+// bracket 3 has the normal vertical bracket, with an additional
+// bit to secure the 15mm extrusion.
+module vertical_bracket3()
+{
+	vertical_bracket(12);
+
+	render() difference() {
+		union() {
+			rotate([0,0,+360/sides/2]) translate([0,0,9.9]) cube([16,12,13+5+15-10]);
+			rotate([0,0,-360/sides/2]) translate([-16,0,10]) cube([16,12,13+5+15-10]);
+		}
+
+		// subtract the extrusion
+		translate([-15/2,-10,5+13]) cube([15,50,25]);
+
+		// m3 screw holes to secure the extrusion to the bracket
+		translate([+18,7,13+15/2+5]) rotate([0,90,180]) union() {
+			cylinder(r=3/2+0.4, h=12, $fs=1);
+			cylinder(r=6/2+0.4, h=4, $fs=1);
+		}
+		translate([-18,7,13+15/2+5]) rotate([0,90,0]) union() {
+			cylinder(r=3/2+0.4, h=12, $fs=1);
+			cylinder(r=6/2+0.4, h=4, $fs=1);
+		}
 	}
 }
 
 
+// the T-bracket is for securing the center struts
+module t_bracket()
+{
+	render() difference()
+	{
+		translate([0,0,5/2])
+		union() {
+		intersection() {
+			rotate([0,0,45]) cube([50,50,5], center=true);
+			cube([50,50,5], center=true);
+		}
+		rotate([0,0,0]) translate([0,0,10]) cube([21,50,20], center=true);
+		rotate([0,0,90]) translate([0,0,10]) cube([21,50,20], center=true);
+		rotate([0,0,45]) translate([0,0,10]) cube([35,35,20], center=true);
+		}
+
+	translate([0,0,20/2+5]) rotate([0,0,90]) cube([100,15,20], center=true);
+	translate([0,0,20/2+5]) rotate([0,0,0]) cube([100,15,20], center=true);
+
+	// and the screw holes
+	translate([-20,+20,15/2+5]) rotate([0,90,0]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	translate([-20,-20,15/2+5]) rotate([0,90,0]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	translate([-20,-20,15/2+5]) rotate([0,90,90]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	translate([+20,-20,15/2+5]) rotate([0,90,90]) cylinder(r=3/2+0.4, h=40, $fs=1);
+	}
+
+}
+
+
+if (0)
+{
 for (i = [0:3])
 {
 	for (j = [0:3])
 	{
-		translate([i*21, j*37,0])
+		translate([i*15, j*37,0])
 		rotate([0,0,90])
-		vertical_bracket();
+		vertical_bracket2();
 	}
+}
+} else {
+	//vertical_bracket2();
+	//vertical_bracket3();
+	t_bracket();
 }

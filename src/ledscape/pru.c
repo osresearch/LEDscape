@@ -94,7 +94,8 @@ pru_init(
 		.ddr_size	= ddr_size,
 	};
     
-	printf("%s: PRU %d: data %p @ %zu bytes,  DMA %p / %"PRIxPTR" @ %zu bytes\n",
+	fprintf(stderr,
+		"%s: PRU %d: data %p @ %zu bytes, DMA %p / %"PRIxPTR" @ %zu bytes\n",
 		__func__,
 		pru_num,
 		pru->data_ram,

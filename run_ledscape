@@ -1,4 +1,0 @@
-#!/bin/bash
-
-echo "CAPE-BONE-OCTO" > /sys/devices/bone_capemgr.9/slots
-./bin/matrix-test strips.config

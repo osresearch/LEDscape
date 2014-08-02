@@ -1,11 +1,12 @@
 #!/usr/bin/python
-# Draw images with PIL and send them to the display.
-# Dual scrolling example with fixed time on each side and
-# the date scrolling around.
-#
 import Image, ImageFont, ImageDraw
 import socket
 import time, datetime
+import pickle
+import tweepy
+import time
+import thread
+from botomatic import TBot
 from colorsys import hsv_to_rgb
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -15,9 +16,6 @@ dest = ("localhost", 9999)
 # use a truetype font
 font = ImageFont.truetype("fonts/spincycle.ttf", 32)
 font_sm = ImageFont.truetype("fonts/spincycle.ttf", 24)
-#font_sm = ImageFont.truetype("fonts/pf_tempesta_seven.ttf", 8)
-logo = Image.open("fonts/nycr.png")
-#logo.resize((64,64))
 
 i = 0
 width = 512
@@ -27,36 +25,60 @@ im = Image.new("RGB", (width,height), "black")
 im_draw = ImageDraw.Draw(im)
 disp_draw = ImageDraw.Draw(disp)
 
-def rainbow(i):
-	rgb = [int(x*256) for x in hsv_to_rgb(i/256.0,0.8,0.8)]
-	return (rgb[0],rgb[1],rgb[2])
+tweets = []
+seen = {}
 
-def internet_time():
-	"Swatch Internet Time. Biel meridian."
-	"More granular Swatch time. Courtesy https://github.com/gcohen55/pebble-beapoch"
-	return (((time.time() + 3600) % 86400) * 1000) / 86400
-	#h, m, s = time.gmtime()[3:6]
-	#h += 1 # Biel time zone: UTC+1
-	#seconds = s + (60.0*m) + (60.0*60.0*h)
-	#beats = seconds * 1000.0 / (60.0*60.0*24.0)
-	#beats = beats % 1000.0
-	#return beats
 
+class Searcher(TBot):
+    debug_mode = True
+
+    def __init__(self):
+        handle = "searcher"
+        super(Searcher, self).__init__(handle)
+
+    def run(self):
+        while True:
+            results = self.search('"I"')
+            for result in results:
+                if result.id in seen:
+                    continue
+		tweets.append(str(result.text))
+		seen[result.id] = 1
+
+                #print "-----\n" + str(result.text) + "\n"
+                #try:
+                    #result.retweet()
+                #except tweepy.error.TweepError: # private status update?
+                    #continue
+            time.sleep(10)
+
+
+        self.wrap_up()
+
+def start_bot():
+    p = Searcher()
+
+thread.start_new_thread(start_bot, ())
 
 
 while True:
+	if len(tweets) == 0:
+		time.sleep(1)
+		continue
+	tweet = tweets.pop()
+	print "---\n" + tweet + "\n"
+	continue
+
 	im.paste("black", (0,0,width,height))
 	now = datetime.datetime.now()
 	d = now.strftime("%a %d %b")
-	t1 = now.strftime("%H:%M:%S")
-	t2 = "%07.3f" % (internet_time())
+	t = now.strftime("%H:%M:%S")
 
 	# Draw the date 
 	im_draw.text((60, 4), d, font=font, fill=rainbow(i))
-	im_draw.text((90, 32), t1, font=font_sm, fill=rainbow(i))
+	im_draw.text((90, 32), t, font=font_sm, fill=rainbow(i))
 	im_draw.text((256+60, 4), d, font=font, fill=rainbow(i))
-	im_draw.text((256+80, 32), t2, font=font_sm, fill=rainbow(i))
-	im_draw.text((256+180, 32), ".beats", font=font_sm, fill=rainbow(i))
+	im_draw.text((256+90, 32), t, font=font_sm, fill=rainbow(i))
 
 	im.paste(logo, (0,8))
 	im.paste(logo, (256,8))
