@@ -73,7 +73,7 @@ main(
 	fprintf(stderr, "%u x %u, TCP port %u\n", width, height, port);
 
 	ledscape_config_t * config = &ledscape_matrix_default;
-	ledscape_t * const leds = ledscape_init(config);
+	ledscape_t * const leds = ledscape_init(config, 0);
 
 	const unsigned report_interval = 10;
 	unsigned last_report = 0;

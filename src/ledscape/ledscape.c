@@ -191,19 +191,19 @@ ledscape_remap(
  * If rot == 0, rotate -90, else rotate +90.
  */
 static void
-ledscape_matrix_panel_copy_half(
+ledscape_matrix_panel_copy(
 	uint8_t * const out,
 	const uint32_t * const in,
 	const ledscape_matrix_config_t * const config,
 	const int rot
 )
 {
-	const size_t row_stride = LEDSCAPE_MATRIX_OUTPUTS*2*3;
+	const size_t row_stride = LEDSCAPE_MATRIX_OUTPUTS*3*2;
 	const size_t row_len = config->leds_width*row_stride;
 
 	for (int x = 0 ; x < config->panel_width ; x++)
 	{
-		for (int y = 0 ; y < config->panel_height/2 ; y++)
+		for (int y = 0 ; y < config->panel_height ; y++)
 		{
 			int ix, iy;
 			if (rot == 0)
@@ -237,7 +237,12 @@ ledscape_matrix_panel_copy_half(
 
 			const uint32_t * const col_ptr = &in[ix + config->width*iy];
 			const uint32_t col = *col_ptr;
-			uint8_t * const pix = &out[x*row_stride + y*row_len];
+
+			// the top half and bottom half of the panels
+			// are squished together in the output since
+			// they are drawn simultaneously.
+			uint8_t * const pix = &out[x*row_stride + (y/8)*3 + (y%8)*row_len];
+
 			pix[0] = (col >> 16) & 0xFF; // red
 			pix[1] = (col >>  8) & 0xFF; // green
 			pix[2] = (col >>  0) & 0xFF; // blue
@@ -289,19 +294,9 @@ ledscape_matrix_draw(
 			uint8_t * const op = &out[6*i + j*panel_stride];
 		
 			// copy the top half of this matrix
-			ledscape_matrix_panel_copy_half(
+			ledscape_matrix_panel_copy(
 				op,
 				ip,
-				config,
-				panel->rot
-			);
-
-			// and the bottom half, which is stored next in
-			// the output bitstream, but occurs half a panel
-			// height later in the input image.
-			ledscape_matrix_panel_copy_half(
-				op + 3,
-				ip + config->width*config->panel_height/2,
 				config,
 				panel->rot
 			);
@@ -384,7 +379,8 @@ ledscape_wait(
 
 static ledscape_t *
 ledscape_matrix_init(
-	ledscape_config_t * const config_union
+	ledscape_config_t * const config_union,
+	int no_pru_init
 )
 {
 	ledscape_matrix_config_t * const config = &config_union->matrix_config;
@@ -412,7 +408,8 @@ ledscape_matrix_init(
 	ledscape_gpio_init();
 
 	// Initiate the PRU program
-	pru_exec(pru, "./lib/matrix.bin");
+	if (!no_pru_init)
+		pru_exec(pru, "./lib/matrix.bin");
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
@@ -427,7 +424,8 @@ ledscape_matrix_init(
 
 static ledscape_t *
 ledscape_strip_init(
-	ledscape_config_t * const config_union
+	ledscape_config_t * const config_union,
+	int no_pru_init
 )
 {
 	ledscape_strip_config_t * const config = &config_union->strip_config;
@@ -467,7 +465,8 @@ ledscape_strip_init(
 	ledscape_gpio_init();
 
 	// Initiate the PRU program
-	pru_exec(pru, "./lib/ws281x.bin");
+	if (!no_pru_init)
+		pru_exec(pru, "./lib/ws281x.bin");
 
 	// Watch for a done response that indicates a proper startup
 	// \todo timeout if it fails
@@ -482,15 +481,16 @@ ledscape_strip_init(
 
 ledscape_t *
 ledscape_init(
-	ledscape_config_t * const config
+	ledscape_config_t * const config,
+	int no_pru_init
 )
 {
 	switch (config->type)
 	{
 		case LEDSCAPE_MATRIX:
-			return ledscape_matrix_init(config);
+			return ledscape_matrix_init(config, no_pru_init);
 		case LEDSCAPE_STRIP:
-			return ledscape_strip_init(config);
+			return ledscape_strip_init(config, no_pru_init);
 		default:
 			fprintf(stderr, "unknown config type %d\n", config->type);
 			return NULL;
@@ -587,6 +587,7 @@ ledscape_printf(
 	int len = vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 	(void) len;
+	uint32_t * start = px;
 
 	//printf("%p => '%s'\n", px, buf);
 	for (unsigned i = 0 ; i < sizeof(buf) ; i++)
@@ -594,6 +595,12 @@ ledscape_printf(
 		char c = buf[i];
 		if (!c)
 			break;
+		if (c == '\n')
+		{
+			px = start = start + 8 * width;
+			continue;
+		}
+
 		ledscape_draw_char(px, width, color, c);
 		px += 6;
 	}
