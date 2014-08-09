@@ -15,11 +15,10 @@
  //*  Reset is 50 usec
  //
  // Pins are not contiguous.
- // 16 pins on GPIO0:  2  3  4  5  7 12 13 14 15 20 22 23 26 27 30 31
- // 10 pins on GPIO1: 12 13 14 15 16 17 18 19 28 29
- //  5 pins on GPIO2:  1  2  3  4  5
- //  8 pins on GPIO3: 14 15 16 17 18 19 20 21
- //
+ // 18 pins on GPIO0:   2  3  4  5  7  8  9 10 11 14 15 20 22 23 26 27 30 31
+ //  3 pins on GPIO01: 16 17 18
+ // 18 pins on GPIO02:  1  4  6  7  8  9 10 11 12 13 14 15 16 17 22 23 24 25
+ //  6 pins on GPIO03: 14 15 16 17 19 21
  // each pixel is stored in 4 bytes in the order GRBA (4th byte is ignored)
  //
  // while len > 0:
@@ -85,7 +84,7 @@
 #define g32_gpio	0
 #define g32_pin		3
 #define b32_gpio	0
-#define b32_pin 	5
+#define b32_pin		5
 
 #define r41_gpio	0
 #define r41_pin		2
@@ -221,6 +220,32 @@ lab:
 #endif
 .endm
 
+///** Macro to generate the mask of which bits are zero.
+// * For each of these registers, set the
+// * corresponding bit in the gpio0_zeros register if
+// * the current bit is set in the strided register.
+// */
+//#define TEST_BIT(regN,gpioN,bitN) \
+//	QBBS	gpioN##_##regN##_skip, regN, bit_num; \
+//	SET	gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
+//	gpioN##_##regN##_skip: ; \
+
+#define CAT3(X,Y,Z) X##Y##Z
+
+#define GPIO_MASK(X) CAT3(gpio,X,_led_mask)
+
+#define GPIO(R)	CAT3(gpio,R,_zeros)
+
+#define OUTPUT_ROW(N,reg_r,reg_g,reg_b)		\
+	QBBS	skip_r##N, reg_r, bit_num;	\
+	SET	GPIO(r##N##_gpio), r##N##_pin;	\
+	skip_r##N:				\
+	QBBS	skip_g##N, reg_g, bit_num;	\
+	SET	GPIO(g##N##_gpio), g##N##_pin;	\
+	skip_g##N:				\
+	QBBS	skip_b##N, reg_b, bit_num;	\
+	SET	GPIO(b##N##_gpio), b##N##_pin;	\
+	skip_b##N:				\
 
 START:
 	// Enable OCP master port
@@ -249,11 +274,6 @@ START:
 	MOV	r2, #0x1
 	SBCO	r2, CONST_PRUDRAM, 12, 4
 
-#define CAT3(X,Y,Z) X##Y##Z
-
-#define GPIO_MASK(X) CAT3(gpio,X,_led_mask)
-
-	SET	GPIO_MASK(r11_gpio), r11_pin
 	SET	GPIO_MASK(g11_gpio), g11_pin
 	SET	GPIO_MASK(b11_gpio), b11_pin
 	SET	GPIO_MASK(r12_gpio), r12_pin
@@ -335,134 +355,113 @@ _LOOP:
 	ADD	r2, data_len, data_len
 	ADD	data_len, data_len, r2
 
-WORD_LOOP:
-	// for bit in 8 to 0; one color at a time
-	MOV	bit_num, 8
+	WORD_LOOP:
+		// for bit in 8 to 0; one color at a time
+		MOV	bit_num, 8
 
-	BIT_LOOP:
-		SUB	bit_num, bit_num, 1
-		// The idle period is 650 ns, but this is where
-		// we do all of our work to read the RGB data and
-		// repack it into bit slices.  Read the current counter
-		// and then wait until 650 ns have passed once we complete
-		// our work.
-		// Disable the counter and clear it, then re-enable it
-		MOV	r8, 0x22000 // control register
-		LBBO	r9, r8, 0, 4
-		CLR	r9, r9, 3 // disable counter bit
-		SBBO	r9, r8, 0, 4 // write it back
+		BIT_LOOP:
+			SUB	bit_num, bit_num, 1
+			// The idle period is 650 ns, but this is where
+			// we do all of our work to read the RGB data and
+			// repack it into bit slices.  Read the current counter
+			// and then wait until 650 ns have passed once we complete
+			// our work.
+			// Disable the counter and clear it, then re-enable it
+			MOV	r8, 0x22000 // control register
+			LBBO	r9, r8, 0, 4
+			CLR	r9, r9, 3 // disable counter bit
+			SBBO	r9, r8, 0, 4 // write it back
 
-		MOV	r10, 0
-		SBBO	r10, r8, 0xC, 4 // clear the timer
+			MOV	r10, 0
+			SBBO	r10, r8, 0xC, 4 // clear the timer
 
-		SET	r9, r9, 3 // enable counter bit
-		SBBO	r9, r8, 0, 4 // write it back
+			SET	r9, r9, 3 // enable counter bit
+			SBBO	r9, r8, 0, 4 // write it back
 
-		// Read the current counter value
-		// Should be zero.
-		LBBO	sleep_counter, r8, 0xC, 4
+			// Read the current counter value
+			// Should be zero.
+			LBBO	sleep_counter, r8, 0xC, 4
 
-/** Macro to generate the mask of which bits are zero.
- * For each of these registers, set the
- * corresponding bit in the gpio0_zeros register if
- * the current bit is set in the strided register.
- */
-#define TEST_BIT(regN,gpioN,bitN) \
-	QBBS	gpioN##_##regN##_skip, regN, bit_num; \
-	SET	gpioN##_zeros, gpioN##_zeros, gpioN##_##bitN ; \
-	gpioN##_##regN##_skip: ; \
 
-		// Load 48 bytes of data, starting at r10
-		// one byte for each of the outputs
-		LBBO	r10, r0, 0, 48
-		MOV	gpio0_zeros, 0
-		MOV	gpio1_zeros, 0
-		MOV	gpio2_zeros, 0
-		MOV	gpio3_zeros, 0
+			// Load 48 bytes of data, starting at r10
+			// one byte for each of the outputs
+			LBBO	r10, r0, 0, 48
+			MOV	gpio0_zeros, 0
+			MOV	gpio1_zeros, 0
+			MOV	gpio2_zeros, 0
+			MOV	gpio3_zeros, 0
 
-#define GPIO(R)	CAT3(gpio,R,_zeros)
-#define OUTPUT_ROW(N,reg_r,reg_g,reg_b) \
-	QBBS	skip_r##N, reg_r, bit_num; \
-	SET	GPIO(r##N##_gpio), r##N##_pin; \
-	skip_r##N: \
-	QBBS	skip_g##N, reg_g, bit_num; \
-	SET	GPIO(g##N##_gpio), g##N##_pin; \
-	skip_g##N: \
-	QBBS	skip_b##N, reg_b, bit_num; \
-	SET	GPIO(b##N##_gpio), b##N##_pin; \
-	skip_b##N: \
+			OUTPUT_ROW(11, r10.b0, r10.b1, r10.b2)
+			OUTPUT_ROW(12, r10.b3, r11.b0, r11.b1)
+			OUTPUT_ROW(21, r11.b2, r11.b3, r12.b0)
+			OUTPUT_ROW(22, r12.b1, r12.b2, r12.b3)
 
-	OUTPUT_ROW(11, r10.b0, r10.b1, r10.b2)
-	OUTPUT_ROW(12, r10.b3, r11.b0, r11.b1)
-	OUTPUT_ROW(21, r11.b2, r11.b3, r12.b0)
-	OUTPUT_ROW(22, r12.b1, r12.b2, r12.b3)
+			OUTPUT_ROW(31, r13.b0, r13.b1, r13.b2)
+			OUTPUT_ROW(32, r13.b3, r14.b0, r14.b1)
+			OUTPUT_ROW(41, r14.b2, r14.b3, r15.b0)
+			OUTPUT_ROW(42, r15.b1, r15.b2, r15.b3)
 
-	OUTPUT_ROW(31, r13.b0, r13.b1, r13.b2)
-	OUTPUT_ROW(32, r13.b3, r14.b0, r14.b1)
-	OUTPUT_ROW(41, r14.b2, r14.b3, r15.b0)
-	OUTPUT_ROW(42, r15.b1, r15.b2, r15.b3)
+			OUTPUT_ROW(51, r16.b0, r16.b1, r16.b2)
+			OUTPUT_ROW(52, r16.b3, r17.b0, r17.b1)
+			OUTPUT_ROW(61, r17.b2, r17.b3, r18.b0)
+			OUTPUT_ROW(62, r18.b1, r18.b2, r18.b3)
 
-	OUTPUT_ROW(51, r16.b0, r16.b1, r16.b2)
-	OUTPUT_ROW(52, r16.b3, r17.b0, r17.b1)
-	OUTPUT_ROW(61, r17.b2, r17.b3, r18.b0)
-	OUTPUT_ROW(62, r18.b1, r18.b2, r18.b3)
+			OUTPUT_ROW(71, r19.b0, r19.b1, r19.b2)
+			OUTPUT_ROW(72, r19.b3, r20.b0, r20.b1)
+			OUTPUT_ROW(81, r20.b2, r20.b3, r21.b0)
+			OUTPUT_ROW(82, r21.b1, r21.b2, r21.b3)
 
-	OUTPUT_ROW(71, r19.b0, r19.b1, r19.b2)
-	OUTPUT_ROW(72, r19.b3, r20.b0, r20.b1)
-	OUTPUT_ROW(81, r20.b2, r20.b3, r21.b0)
-	OUTPUT_ROW(82, r21.b1, r21.b2, r21.b3)
+			// Now that we have read all of the data,
+			// we can reuse the registers for the set/clear addresses
+			// and the masks of which pins are mapped to which LEDs.
+			MOV	r10, GPIO0 | GPIO_SETDATAOUT
+			MOV	r11, GPIO1 | GPIO_SETDATAOUT
+			MOV	r12, GPIO2 | GPIO_SETDATAOUT
+			MOV	r13, GPIO3 | GPIO_SETDATAOUT
 
-	// Now that we have read all of the data,
-	// we can reuse the registers for the set/clear addresses
-	// and the masks of which pins are mapped to which LEDs.
-	MOV	r10, GPIO0 | GPIO_SETDATAOUT
-	MOV	r11, GPIO1 | GPIO_SETDATAOUT
-	MOV	r12, GPIO2 | GPIO_SETDATAOUT
-	MOV	r13, GPIO3 | GPIO_SETDATAOUT
+			// Wait for 650 ns to have passed
+			WAITNS	650, wait_start_time
 
-	// Wait for 650 ns to have passed
-	WAITNS	650, wait_start_time
+			// Send all the start bits
+			SBBO	gpio0_led_mask, r10, 0, 4
+			SBBO	gpio1_led_mask, r11, 0, 4
+			SBBO	gpio2_led_mask, r12, 0, 4
+			SBBO	gpio3_led_mask, r13, 0, 4
 
-	// Send all the start bits
-	SBBO	gpio0_led_mask, r10, 0, 4
-	SBBO	gpio1_led_mask, r11, 0, 4
-	SBBO	gpio2_led_mask, r12, 0, 4
-	SBBO	gpio3_led_mask, r13, 0, 4
+			// Reconfigure r10-13 for clearing the bits
+			MOV	r10, GPIO0 | GPIO_CLEARDATAOUT
+			MOV	r11, GPIO1 | GPIO_CLEARDATAOUT
+			MOV	r12, GPIO2 | GPIO_CLEARDATAOUT
+			MOV	r13, GPIO3 | GPIO_CLEARDATAOUT
 
-	// Reconfigure r10-13 for clearing the bits
-	MOV	r10, GPIO0 | GPIO_CLEARDATAOUT
-	MOV	r11, GPIO1 | GPIO_CLEARDATAOUT
-	MOV	r12, GPIO2 | GPIO_CLEARDATAOUT
-	MOV	r13, GPIO3 | GPIO_CLEARDATAOUT
+			// wait for the length of the zero bits (250 ns)
+			WAITNS	650+250, wait_zero_time
+			//SLEEPNS 250, 1, wait_zero_time
 
-	// wait for the length of the zero bits (250 ns)
-	WAITNS	650+250, wait_zero_time
-	//SLEEPNS 250, 1, wait_zero_time
+			// turn off all the zero bits
+			SBBO	gpio0_zeros, r10, 0, 4
+			SBBO	gpio1_zeros, r11, 0, 4
+			SBBO	gpio2_zeros, r12, 0, 4
+			SBBO	gpio3_zeros, r13, 0, 4
 
-	// turn off all the zero bits
-	SBBO	gpio0_zeros, r10, 0, 4
-	SBBO	gpio1_zeros, r11, 0, 4
-	SBBO	gpio2_zeros, r12, 0, 4
-	SBBO	gpio3_zeros, r13, 0, 4
+			// Wait until the length of the one bits
+			// TODO: Fix WAITNS so it can incorporate both delays?
+			WAITNS	650+600, wait_one_time
+			SLEEPNS	500, 1, sleep_one_time  // Wait a little longer to fix the timing
 
-	// Wait until the length of the one bits
-	// TODO: Fix WAITNS so it can incorporate both delays?
-	WAITNS	650+600, wait_one_time
-	SLEEPNS	500, 1, sleep_one_time  // Wait a little longer to fix the timing
+			// Turn all the bits off
+			SBBO	gpio0_led_mask, r10, 0, 4
+			SBBO	gpio1_led_mask, r11, 0, 4
+			SBBO	gpio2_led_mask, r12, 0, 4
+			SBBO	gpio3_led_mask, r13, 0, 4
 
-	// Turn all the bits off
-	SBBO	gpio0_led_mask, r10, 0, 4
-	SBBO	gpio1_led_mask, r11, 0, 4
-	SBBO	gpio2_led_mask, r12, 0, 4
-	SBBO	gpio3_led_mask, r13, 0, 4
+			QBNE	BIT_LOOP, bit_num, 0
 
-	QBNE	BIT_LOOP, bit_num, 0
-
-	// The 48 RGB streams have been clocked out
-	// Move to the next color component for each pixel
-	ADD	data_addr, data_addr, 48
-	SUB	data_len, data_len, 1
-	QBNE	WORD_LOOP, data_len, #0
+		// The 48 RGB streams have been clocked out
+		// Move to the next color component for each pixel
+		ADD	data_addr, data_addr, 48
+		SUB	data_len, data_len, 1
+		QBNE	WORD_LOOP, data_len, #0
 
 	// Delay at least 50 usec; this is the required reset
 	// time for the LED strip to update with the new pixels.
