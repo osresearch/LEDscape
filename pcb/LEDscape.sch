@@ -618,18 +618,18 @@ Source: www.maxim-ic.com .. MAX3040-MAX3045.pdf</description>
 <package name="RJ45_8X2_BASE">
 <hole x="-54.61" y="0" drill="3.2"/>
 <hole x="54.61" y="0" drill="3.2"/>
-<wire x1="-57.45" y1="-10.85" x2="57.45" y2="-10.85" width="0.127" layer="51"/>
-<wire x1="57.45" y1="-10.85" x2="57.45" y2="6.35" width="0.127" layer="51"/>
-<wire x1="57.45" y1="6.35" x2="57.45" y2="17.35" width="0.127" layer="51"/>
-<wire x1="57.45" y1="17.35" x2="-57.45" y2="17.35" width="0.127" layer="51"/>
-<wire x1="-57.45" y1="17.35" x2="-57.45" y2="6.35" width="0.127" layer="51"/>
+<wire x1="-57.45" y1="-10.85" x2="57.45" y2="-10.85" width="0.2032" layer="21"/>
+<wire x1="57.45" y1="-10.85" x2="57.45" y2="6.35" width="0.2032" layer="21"/>
+<wire x1="57.45" y1="6.35" x2="57.45" y2="17.35" width="0.2032" layer="21"/>
+<wire x1="57.45" y1="17.35" x2="-57.45" y2="17.35" width="0.2032" layer="21"/>
+<wire x1="-57.45" y1="17.35" x2="-57.45" y2="6.35" width="0.2032" layer="21"/>
 <pad name="P$1" x="-57.4" y="15.5" drill="1.6"/>
 <pad name="P$2" x="-56.73" y="9.15" drill="1.6"/>
 <pad name="P$3" x="-57.4" y="-4.57" drill="1.6"/>
 <pad name="P$4" x="57.4" y="12.5" drill="1.6"/>
 <pad name="P$5" x="56.73" y="7.22" drill="1.6"/>
 <pad name="P$6" x="57.4" y="-4.57" drill="1.6"/>
-<wire x1="-57.45" y1="6.35" x2="-57.45" y2="-10.85" width="0.127" layer="51"/>
+<wire x1="-57.45" y1="6.35" x2="-57.45" y2="-10.85" width="0.2032" layer="21"/>
 <wire x1="-57.45" y1="6.35" x2="-48.895" y2="6.35" width="0.127" layer="51"/>
 <wire x1="-48.895" y1="6.35" x2="-34.925" y2="6.35" width="0.127" layer="51"/>
 <wire x1="-34.925" y1="6.35" x2="-20.955" y2="6.35" width="0.127" layer="51"/>
@@ -669,15 +669,15 @@ Source: www.maxim-ic.com .. MAX3040-MAX3045.pdf</description>
 <pad name="15" x="-3.175" y="9.14" drill="0.9"/>
 <pad name="9" x="4.445" y="9.14" drill="0.9"/>
 <pad name="11" x="1.905" y="9.14" drill="0.9"/>
-<wire x1="0" y1="0" x2="0" y2="3.81" width="0.127" layer="21"/>
-<wire x1="-3.175" y1="0" x2="3.175" y2="0" width="0.127" layer="21"/>
+<wire x1="0" y1="0" x2="0" y2="3.81" width="0.127" layer="51"/>
+<wire x1="-3.175" y1="0" x2="3.175" y2="0" width="0.127" layer="51"/>
 </package>
 <package name="BEAGLEBONE_SHIELD_NO_OUTLINE">
-<wire x1="54.61" y1="73.66" x2="54.61" y2="14.605" width="0.127" layer="21"/>
-<wire x1="54.61" y1="14.605" x2="54.61" y2="6.35" width="0.127" layer="21" style="shortdash"/>
-<wire x1="12.7" y1="86.36" x2="0" y2="73.66" width="0.127" layer="21" curve="90"/>
-<wire x1="54.61" y1="73.66" x2="41.91" y2="86.36" width="0.127" layer="21" curve="90"/>
-<wire x1="12.7" y1="86.36" x2="41.91" y2="86.36" width="0.127" layer="21"/>
+<wire x1="54.61" y1="73.66" x2="54.61" y2="14.605" width="0.127" layer="51"/>
+<wire x1="54.61" y1="14.605" x2="54.61" y2="6.35" width="0.127" layer="51" style="shortdash"/>
+<wire x1="12.7" y1="86.36" x2="0" y2="73.66" width="0.127" layer="51" curve="90"/>
+<wire x1="54.61" y1="73.66" x2="41.91" y2="86.36" width="0.127" layer="51" curve="90"/>
+<wire x1="12.7" y1="86.36" x2="41.91" y2="86.36" width="0.127" layer="51"/>
 <wire x1="5.08" y1="17.78" x2="5.715" y2="18.415" width="0.1524" layer="21"/>
 <wire x1="5.715" y1="18.415" x2="5.715" y2="19.685" width="0.1524" layer="21"/>
 <wire x1="5.715" y1="19.685" x2="5.08" y2="20.32" width="0.1524" layer="21"/>
@@ -1002,16 +1002,17 @@ Source: www.maxim-ic.com .. MAX3040-MAX3045.pdf</description>
 <wire x1="53.975" y1="74.295" x2="53.975" y2="75.565" width="0.1524" layer="21"/>
 <wire x1="53.975" y1="74.295" x2="53.34" y2="73.66" width="0.1524" layer="21"/>
 <wire x1="49.53" y1="76.2" x2="53.34" y2="76.2" width="0.1524" layer="21"/>
-<wire x1="0" y1="6.35" x2="6.35" y2="0" width="0.127" layer="21" style="shortdash" curve="90"/>
-<wire x1="0" y1="73.66" x2="0" y2="14.605" width="0.127" layer="21"/>
-<wire x1="48.26" y1="0" x2="54.61" y2="6.35" width="0.127" layer="21" style="shortdash" curve="90"/>
-<wire x1="6.35" y1="0" x2="48.26" y2="0" width="0.127" layer="21" style="shortdash"/>
-<wire x1="0" y1="14.605" x2="0" y2="6.35" width="0.127" layer="21" style="shortdash"/>
-<wire x1="0" y1="14.605" x2="12.7" y2="14.605" width="0.127" layer="21"/>
-<wire x1="41.91" y1="14.605" x2="54.61" y2="14.605" width="0.127" layer="21"/>
-<wire x1="18.415" y1="20.32" x2="36.195" y2="20.32" width="0.127" layer="21"/>
-<wire x1="18.415" y1="20.32" x2="12.7" y2="14.605" width="0.127" layer="21" curve="90"/>
-<wire x1="36.195" y1="20.32" x2="41.91" y2="14.605" width="0.127" layer="21" curve="-90"/>
+<wire x1="0" y1="6.35" x2="6.35" y2="0" width="0.127" layer="51" style="shortdash" curve="90"/>
+<wire x1="0" y1="73.66" x2="0" y2="14.605" width="0.127" layer="51"/>
+<wire x1="48.26" y1="0" x2="54.61" y2="6.35" width="0.127" layer="51" style="shortdash" curve="90"/>
+<wire x1="6.35" y1="0" x2="48.26" y2="0" width="0.127" layer="51" style="shortdash"/>
+<wire x1="0" y1="14.605" x2="0" y2="6.35" width="0.127" layer="51" style="shortdash"/>
+<wire x1="0" y1="14.605" x2="1.905" y2="14.605" width="0.127" layer="51"/>
+<wire x1="4.445" y1="14.605" x2="12.7" y2="14.605" width="0.127" layer="51"/>
+<wire x1="41.91" y1="14.605" x2="54.61" y2="14.605" width="0.127" layer="51"/>
+<wire x1="18.415" y1="20.32" x2="36.195" y2="20.32" width="0.127" layer="51"/>
+<wire x1="18.415" y1="20.32" x2="12.7" y2="14.605" width="0.127" layer="51" curve="90"/>
+<wire x1="36.195" y1="20.32" x2="41.91" y2="14.605" width="0.127" layer="51" curve="-90"/>
 <pad name="1" x="4.445" y="19.05" drill="1" shape="square" rot="R90"/>
 <pad name="2" x="1.905" y="19.05" drill="1" rot="R90"/>
 <pad name="3" x="4.445" y="21.59" drill="1" rot="R90"/>
@@ -1205,6 +1206,22 @@ Source: www.maxim-ic.com .. MAX3040-MAX3045.pdf</description>
 <rectangle x1="28.575" y1="69.215" x2="43.815" y2="86.36" layer="39"/>
 <rectangle x1="40.005" y1="0" x2="50.165" y2="11.43" layer="39"/>
 <rectangle x1="15.875" y1="0" x2="34.29" y2="17.78" layer="39"/>
+<wire x1="1.905" y1="14.605" x2="3.175" y2="14.605" width="0.2032" layer="51"/>
+<wire x1="4.445" y1="14.605" x2="3.175" y2="14.605" width="0.2032" layer="51"/>
+<wire x1="3.175" y1="14.605" x2="3.175" y2="15.875" width="0.2032" layer="51"/>
+<wire x1="3.175" y1="14.605" x2="3.175" y2="13.335" width="0.2032" layer="51"/>
+<wire x1="50.165" y1="14.605" x2="51.435" y2="14.605" width="0.2032" layer="51"/>
+<wire x1="52.705" y1="14.605" x2="51.435" y2="14.605" width="0.2032" layer="51"/>
+<wire x1="51.435" y1="14.605" x2="51.435" y2="15.875" width="0.2032" layer="51"/>
+<wire x1="51.435" y1="14.605" x2="51.435" y2="13.335" width="0.2032" layer="51"/>
+<wire x1="5.08" y1="80.645" x2="6.35" y2="80.645" width="0.2032" layer="51"/>
+<wire x1="6.35" y1="81.915" x2="6.35" y2="80.645" width="0.2032" layer="51"/>
+<wire x1="6.35" y1="80.645" x2="7.62" y2="80.645" width="0.2032" layer="51"/>
+<wire x1="6.35" y1="80.645" x2="6.35" y2="79.375" width="0.2032" layer="51"/>
+<wire x1="46.99" y1="80.645" x2="48.26" y2="80.645" width="0.2032" layer="51"/>
+<wire x1="48.26" y1="81.915" x2="48.26" y2="80.645" width="0.2032" layer="51"/>
+<wire x1="48.26" y1="80.645" x2="49.53" y2="80.645" width="0.2032" layer="51"/>
+<wire x1="48.26" y1="80.645" x2="48.26" y2="79.375" width="0.2032" layer="51"/>
 </package>
 </packages>
 <symbols>
@@ -5347,7 +5364,6 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <part name="GND22" library="supply1" deviceset="GND" device=""/>
 <part name="P+21" library="supply1" deviceset="+5V" device=""/>
 <part name="U$12" library="SparkFun-Connectors" deviceset="M08X2" device=""/>
-<part name="P+22" library="supply1" deviceset="+5V" device=""/>
 <part name="GND23" library="supply1" deviceset="GND" device=""/>
 <part name="JP5" library="SparkFun-Connectors" deviceset="M04" device="1X04_NO_SILK"/>
 <part name="JP2" library="SparkFun-Connectors" deviceset="M04" device="1X04_NO_SILK"/>
@@ -5442,7 +5458,6 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <instance part="GND22" gate="1" x="38.1" y="106.68"/>
 <instance part="P+21" gate="1" x="38.1" y="124.46"/>
 <instance part="U$12" gate="G$1" x="83.82" y="129.54"/>
-<instance part="P+22" gate="1" x="91.44" y="147.32"/>
 <instance part="GND23" gate="1" x="91.44" y="114.3"/>
 <instance part="JP5" gate="G$1" x="43.18" y="116.84" rot="R180"/>
 <instance part="JP2" gate="G$1" x="256.54" y="152.4" rot="R180"/>
@@ -5628,14 +5643,6 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <pinref part="P+21" gate="1" pin="+5V"/>
 <wire x1="38.1" y1="119.38" x2="38.1" y2="121.92" width="0.1524" layer="91"/>
 <pinref part="JP5" gate="G$1" pin="1"/>
-</segment>
-<segment>
-<pinref part="U$12" gate="G$1" pin="1"/>
-<pinref part="U$12" gate="G$1" pin="2"/>
-<wire x1="76.2" y1="139.7" x2="91.44" y2="139.7" width="0.1524" layer="91"/>
-<wire x1="91.44" y1="144.78" x2="91.44" y2="139.7" width="0.1524" layer="91"/>
-<pinref part="P+22" gate="1" pin="+5V"/>
-<junction x="91.44" y="139.7"/>
 </segment>
 <segment>
 <pinref part="JP13" gate="G$1" pin="1"/>
@@ -5902,6 +5909,13 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="91.44" y1="116.84" x2="91.44" y2="121.92" width="0.1524" layer="91"/>
 <pinref part="GND23" gate="1" pin="GND"/>
 <junction x="91.44" y="121.92"/>
+<pinref part="U$12" gate="G$1" pin="1"/>
+<pinref part="U$12" gate="G$1" pin="2"/>
+<wire x1="76.2" y1="139.7" x2="91.44" y2="139.7" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="139.7" x2="93.98" y2="139.7" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="139.7" x2="93.98" y2="121.92" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="121.92" x2="91.44" y2="121.92" width="0.1524" layer="91"/>
+<junction x="91.44" y="139.7"/>
 </segment>
 <segment>
 <pinref part="JP13" gate="G$1" pin="2"/>
@@ -5995,14 +6009,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="99.06" y="88.9" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="TIMER4"/>
-<wire x1="25.4" y1="88.9" x2="10.16" y2="88.9" width="0.1524" layer="91"/>
-<label x="10.16" y="88.9" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="251.46" y1="154.94" x2="246.38" y2="154.94" width="0.1524" layer="91"/>
 <label x="246.38" y="154.94" size="1.778" layer="95"/>
 <pinref part="JP2" gate="G$1" pin="1"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="TIMER7"/>
+<wire x1="81.28" y1="88.9" x2="91.44" y2="88.9" width="0.1524" layer="91"/>
+<label x="86.36" y="88.9" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S1" class="0">
@@ -6012,14 +6026,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="99.06" y="78.74" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="TIMER7"/>
-<wire x1="81.28" y1="88.9" x2="91.44" y2="88.9" width="0.1524" layer="91"/>
-<label x="86.36" y="88.9" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="251.46" y1="152.4" x2="246.38" y2="152.4" width="0.1524" layer="91"/>
 <label x="246.38" y="152.4" size="1.778" layer="95"/>
 <pinref part="JP2" gate="G$1" pin="2"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="TIMER4"/>
+<wire x1="25.4" y1="88.9" x2="10.16" y2="88.9" width="0.1524" layer="91"/>
+<label x="10.16" y="88.9" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S2" class="0">
@@ -6063,14 +6077,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="165.1" y="88.9" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="GPIO1_13"/>
-<wire x1="25.4" y1="83.82" x2="10.16" y2="83.82" width="0.1524" layer="91"/>
-<label x="10.16" y="83.82" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="274.32" y1="154.94" x2="269.24" y2="154.94" width="0.1524" layer="91"/>
 <label x="269.24" y="154.94" size="1.778" layer="95"/>
 <pinref part="JP6" gate="G$1" pin="1"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO1_12"/>
+<wire x1="81.28" y1="83.82" x2="91.44" y2="83.82" width="0.1524" layer="91"/>
+<label x="86.36" y="83.82" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S5" class="0">
@@ -6080,14 +6094,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="165.1" y="78.74" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="GPIO1_12"/>
-<wire x1="81.28" y1="83.82" x2="91.44" y2="83.82" width="0.1524" layer="91"/>
-<label x="86.36" y="83.82" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="269.24" y1="152.4" x2="274.32" y2="152.4" width="0.1524" layer="91"/>
 <label x="269.24" y="152.4" size="1.778" layer="95"/>
 <pinref part="JP6" gate="G$1" pin="2"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO1_13"/>
+<wire x1="25.4" y1="83.82" x2="10.16" y2="83.82" width="0.1524" layer="91"/>
+<label x="10.16" y="83.82" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -6452,14 +6466,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="246.38" y="88.9" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="GPIO1_15"/>
-<wire x1="25.4" y1="78.74" x2="10.16" y2="78.74" width="0.1524" layer="91"/>
-<label x="10.16" y="78.74" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="294.64" y1="154.94" x2="299.72" y2="154.94" width="0.1524" layer="91"/>
 <label x="294.64" y="154.94" size="1.778" layer="95"/>
 <pinref part="JP7" gate="G$1" pin="1"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO1_14"/>
+<wire x1="81.28" y1="78.74" x2="91.44" y2="78.74" width="0.1524" layer="91"/>
+<label x="86.36" y="78.74" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S9" class="0">
@@ -6469,14 +6483,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="246.38" y="78.74" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="GPIO1_14"/>
-<wire x1="81.28" y1="78.74" x2="91.44" y2="78.74" width="0.1524" layer="91"/>
-<label x="86.36" y="78.74" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="299.72" y1="152.4" x2="294.64" y2="152.4" width="0.1524" layer="91"/>
 <label x="294.64" y="152.4" size="1.778" layer="95"/>
 <pinref part="JP7" gate="G$1" pin="2"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO1_15"/>
+<wire x1="25.4" y1="78.74" x2="10.16" y2="78.74" width="0.1524" layer="91"/>
+<label x="10.16" y="78.74" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S10" class="0">
@@ -6673,14 +6687,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="165.1" y="10.16" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="I2C2_SCL"/>
-<wire x1="25.4" y1="7.62" x2="10.16" y2="7.62" width="0.1524" layer="91"/>
-<label x="10.16" y="7.62" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="269.24" y1="127" x2="274.32" y2="127" width="0.1524" layer="91"/>
 <label x="269.24" y="127" size="1.778" layer="95"/>
 <pinref part="JP10" gate="G$1" pin="2"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO2_24"/>
+<wire x1="81.28" y1="63.5" x2="91.44" y2="63.5" width="0.1524" layer="91"/>
+<label x="86.36" y="63.5" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S22" class="0">
@@ -6690,14 +6704,14 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="165.1" y="0" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U$1" gate="G$1" pin="I2C2_SDA"/>
-<wire x1="81.28" y1="7.62" x2="93.98" y2="7.62" width="0.1524" layer="91"/>
-<label x="88.9" y="7.62" size="1.778" layer="95"/>
-</segment>
-<segment>
 <wire x1="274.32" y1="124.46" x2="269.24" y2="124.46" width="0.1524" layer="91"/>
 <label x="269.24" y="124.46" size="1.778" layer="95"/>
 <pinref part="JP10" gate="G$1" pin="3"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO2_22"/>
+<wire x1="25.4" y1="63.5" x2="10.16" y2="63.5" width="0.1524" layer="91"/>
+<label x="10.16" y="63.5" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="S23" class="0">
@@ -7190,9 +7204,9 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <approved hash="101,1,124.46,134.62,U$2,SHIELD,,,,"/>
 <approved hash="204,1,25.4,27.94,U$1,VDD_3V3EXP,,,,"/>
 <approved hash="204,1,81.28,27.94,U$1,VDD_3V3EXP,,,,"/>
-<approved hash="204,1,25.4,25.4,U$1,VDD_5V,,,,"/>
-<approved hash="204,1,81.28,25.4,U$1,VDD_5V,,,,"/>
-<approved hash="104,1,25.4,22.86,U$1,SYS_5V,+5V,,,"/>
+<approved hash="104,1,25.4,25.4,U$1,VDD_5V,+5V,,,"/>
+<approved hash="104,1,81.28,25.4,U$1,VDD_5V,+5V,,,"/>
+<approved hash="204,1,25.4,22.86,U$1,SYS_5V,,,,"/>
 <approved hash="204,1,25.4,-17.78,U$1,AIN0,,,,"/>
 <approved hash="104,1,109.22,93.98,IC1,VCC,+5V,,,"/>
 <approved hash="104,1,175.26,93.98,IC2,VCC,+5V,,,"/>
@@ -7202,6 +7216,18 @@ Standard 1-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <approved hash="104,1,175.26,25.4,IC6,VCC,+5V,,,"/>
 <approved hash="104,1,256.54,25.4,IC7,VCC,+5V,,,"/>
 <approved hash="104,1,337.82,25.4,IC8,VCC,+5V,,,"/>
+<approved hash="113,1,10.8373,131.885,JP1,,,,,"/>
+<approved hash="113,1,38.7773,147.125,JP4,,,,,"/>
+<approved hash="113,1,41.3173,114.105,JP5,,,,,"/>
+<approved hash="113,1,254.677,149.665,JP2,,,,,"/>
+<approved hash="113,1,277.537,149.665,JP6,,,,,"/>
+<approved hash="113,1,302.937,149.665,JP7,,,,,"/>
+<approved hash="113,1,325.797,149.665,JP8,,,,,"/>
+<approved hash="113,1,254.677,124.265,JP9,,,,,"/>
+<approved hash="113,1,277.537,124.265,JP10,,,,,"/>
+<approved hash="113,1,302.937,124.265,JP11,,,,,"/>
+<approved hash="113,1,325.797,124.265,JP12,,,,,"/>
+<approved hash="113,1,56.5573,147.125,JP13,,,,,"/>
 </errors>
 </schematic>
 </drawing>
