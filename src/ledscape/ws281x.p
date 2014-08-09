@@ -1,26 +1,28 @@
 // \file
- //* WS281x LED strip driver for the BeagleBone Black.
- //*
- //* Drives up to 32 strips using the PRU hardware.  The ARM writes
- //* rendered frames into shared DDR memory and sets a flag to indicate
- //* how many pixels wide the image is.  The PRU then bit bangs the signal
- //* out the 32 GPIO pins and sets a done flag.
- //*
- //* To stop, the ARM can write a 0xFF to the command, which will
- //* cause the PRU code to exit.
- //*
- //* At 800 KHz:
- //*  0 is 0.25 usec high, 1 usec low
- //*  1 is 0.60 usec high, 0.65 usec low
- //*  Reset is 50 usec
- //
- // Pins are not contiguous.
- // 18 pins on GPIO0:   2  3  4  5  7  8  9 10 11 14 15 20 22 23 26 27 30 31
- //  3 pins on GPIO01: 16 17 18
- // 18 pins on GPIO02:  1  4  6  7  8  9 10 11 12 13 14 15 16 17 22 23 24 25
- //  6 pins on GPIO03: 14 15 16 17 19 21
- // each pixel is stored in 4 bytes in the order GRBA (4th byte is ignored)
- //
+ /* WS281x LED strip driver for the BeagleBone Black.
+ *
+ * Drives up to 32 strips using the PRU hardware.  The ARM writes
+ * rendered frames into shared DDR memory and sets a flag to indicate
+ * how many pixels wide the image is.  The PRU then bit bangs the signal
+ * out the 32 GPIO pins and sets a done flag.
+ *
+ * To stop, the ARM can write a 0xFF to the command, which will
+ * cause the PRU code to exit.
+ *
+ * At 800 KHz:
+ *  0 is 0.25 usec high, 1 usec low
+ *  1 is 0.60 usec high, 0.65 usec low
+ *  Reset is 50 usec
+ *
+ *  Pins are not contiguous.
+ *  18 pins on GPIO0:   2  3  4  5  7  8  9 10 11 14 15 20 22 23 26 27 30 31
+ *   3 pins on GPIO01: 16 17 18
+ *  21 pins on GPIO02:  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 22 23 24 25
+ *   6 pins on GPIO03: 14 15 16 17 19 21
+ *  each pixel is stored in 4 bytes in the order GRBA (4th byte is ignored)
+ * 
+ */
+ 
  // while len > 0:
 	 // for bit# = 24 down to 0:
 		 // delay 600 ns
@@ -44,117 +46,119 @@
  //* 
  //*/
 
-#define r11_gpio	2
-#define r11_pin		2
-#define g11_gpio	2
-#define g11_pin		3
+#define r11_gpio        2
+#define r11_pin		1
+#define g11_gpio	0
+#define g11_pin		27
 #define b11_gpio	2
-#define b11_pin		5
+#define b11_pin		2
 
-#define r12_gpio	0
-#define r12_pin		23
-#define g12_gpio	2
-#define g12_pin		4
-#define b12_gpio	0
-#define b12_pin		26
+#define r12_gpio	2
+#define r12_pin		3
+#define g12_gpio	0
+#define g12_pin		20
+#define b12_gpio	3
+#define b12_pin		16
 
-#define r21_gpio	0
-#define r21_pin		27
-#define g21_gpio	2
-#define g21_pin		1
-#define b21_gpio	0
-#define b21_pin		22
+#define r21_gpio	3
+#define r21_pin		19
+#define g21_gpio	0
+#define g21_pin		14
+#define b21_gpio	3
+#define b21_pin		21
 
-#define r22_gpio	2
-#define r22_pin		22
-#define g22_gpio	2
-#define g22_pin		23
-#define b22_gpio	2
-#define b22_pin		24
+#define r22_gpio	0
+#define r22_pin		15
+#define g22_gpio	1
+#define g22_pin		17
+#define b22_gpio	0
+#define b22_pin		2
 
-#define r31_gpio	0
-#define r31_pin		30
-#define g31_gpio	1
-#define g31_pin		18
-#define b31_gpio	0
-#define b31_pin		31
+#define r31_gpio	1
+#define r31_pin		15
+#define g31_gpio	0
+#define g31_pin		3
+#define b31_gpio	2
+#define b31_pin		22
 
-#define r32_gpio	1
-#define r32_pin		16
+#define r32_gpio	2
+#define r32_pin		24
 #define g32_gpio	0
-#define g32_pin		3
+#define g32_pin		4
 #define b32_gpio	0
 #define b32_pin		5
 
-#define r41_gpio	0
-#define r41_pin		2
-#define g41_gpio	0
-#define g41_pin		15
+#define r41_gpio	1
+#define r41_pin		19
+#define g41_gpio	1
+#define g41_pin		16
 #define b41_gpio	1
-#define b41_pin		17
+#define b41_pin		18
 
-#define r42_gpio	3
-#define r42_pin		21
-#define g42_gpio	3
-#define g42_pin		19
-#define b42_gpio	0
-#define b42_pin		4
+#define r42_gpio	0
+#define r42_pin		31
+#define g42_gpio	1
+#define g42_pin		28
+#define b42_gpio	1
+#define b42_pin		14
 
-#define r51_gpio	2
-#define r51_pin		25
-#define g51_gpio	0
-#define g51_pin		11
+#define r51_gpio	0
+#define r51_pin		30
+#define g51_gpio	1
+#define g51_pin		29
 #define b51_gpio	0
-#define b51_pin		10
+#define b51_pin		26
 
 #define r52_gpio	0
-#define r52_pin		9
-#define g52_gpio	0
-#define g52_pin		8
-#define b52_gpio	2
-#define b52_pin		17
+#define r52_pin		23
+#define g52_gpio	1
+#define g52_pin		13
+#define b52_gpio	1
+#define b52_pin		12
 
 #define r61_gpio	2
-#define r61_pin		16
+#define r61_pin		4
 #define g61_gpio	2
-#define g61_pin		15
-#define b61_gpio	2
-#define b61_pin		14
+#define g61_pin		5
 
-#define r62_gpio	2
-#define r62_pin		13
-#define g62_gpio	2
-#define g62_pin		10
-#define b62_gpio	2
-#define b62_pin		12
+// Note: From here down, these are garbage, we only have 32 outputs.
+#define b61_gpio	0
+#define b61_pin		1
 
-#define r71_gpio	2
-#define r71_pin		11
-#define g71_gpio	2
-#define g71_pin		9
-#define b71_gpio	2
-#define b71_pin		8
+#define r62_gpio	0
+#define r62_pin		1
+#define g62_gpio	0
+#define g62_pin		1
+#define b62_gpio	0
+#define b62_pin		1
 
-#define r72_gpio	2
-#define r72_pin		6
+#define r71_gpio	0
+#define r71_pin		1
+#define g71_gpio	0
+#define g71_pin		1
+#define b71_gpio	0
+#define b71_pin		1
+
+#define r72_gpio	0
+#define r72_pin		1
 #define g72_gpio	0
-#define g72_pin		7
-#define b72_gpio	2
-#define b72_pin		7
+#define g72_pin		1
+#define b72_gpio	0
+#define b72_pin		1
 
-#define r81_gpio	3
-#define r81_pin		17
-#define g81_gpio	3
-#define g81_pin		16
-#define b81_gpio	3
-#define b81_pin		15
+#define r81_gpio	0
+#define r81_pin		1
+#define g81_gpio	0
+#define g81_pin		1
+#define b81_gpio	0
+#define b81_pin		1
 
-#define r82_gpio	3
-#define r82_pin		14
+#define r82_gpio	0
+#define r82_pin		1
 #define g82_gpio	0
-#define g82_pin		14
+#define g82_pin		1
 #define b82_gpio	0
-#define b82_pin		20
+#define b82_pin		1
 
 
 .origin 0
