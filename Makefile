@@ -8,6 +8,7 @@ SUBDIR-y += src/demos
 SUBDIR-y += src/perlin
 SUBDIR-y += src/mta
 SUBDIR-y += src/net
+SUBDIR-y += src/script
 
 all: 
 	for dir in $(SUBDIR-y); do \
