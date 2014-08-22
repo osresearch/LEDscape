@@ -23,19 +23,19 @@
  * 
  */
  
- // while len > 0:
-	 // for bit# = 24 down to 0:
-		 // delay 600 ns
-		 // read 16 registers of data, build zero map for gpio0
-		 // read 10 registers of data, build zero map for gpio1
-		 // read  5 registers of data, build zero map for gpio3
-		 //
-		 // Send start pulse on all pins on gpio0, gpio1 and gpio3
-		 // delay 250 ns
-		 // bring zero pins low
-		 // delay 300 ns
-		 // bring all pins low
-	 // increment address by 32
+// while len > 0:
+// for bit# = 24 down to 0:
+// delay 600 ns
+// read 16 registers of data, build zero map for gpio0
+// read 10 registers of data, build zero map for gpio1
+// read  5 registers of data, build zero map for gpio3
+//
+// Send start pulse on all pins on gpio0, gpio1 and gpio3
+// delay 250 ns
+// bring zero pins low
+// delay 300 ns
+// bring all pins low
+// increment address by 32
 
  //*
  //* So to clock this out:
@@ -46,80 +46,80 @@
  //* 
  //*/
 
-#define r11_gpio        2
-#define r11_pin		1
-#define g11_gpio	0
-#define g11_pin		27
-#define b11_gpio	2
-#define b11_pin		2
+#define r11_gpio        0
+#define r11_pin		27
+#define g11_gpio	2
+#define g11_pin		1
+#define b11_gpio	1
+#define b11_pin		14
 
-#define r12_gpio	2
-#define r12_pin		3
+#define r12_gpio	1
+#define r12_pin		15
 #define g12_gpio	0
-#define g12_pin		20
-#define b12_gpio	3
-#define b12_pin		16
+#define g12_pin		23
+#define b12_gpio	0
+#define b12_pin		26
 
-#define r21_gpio	3
-#define r21_pin		19
-#define g21_gpio	0
-#define g21_pin		14
-#define b21_gpio	3
-#define b21_pin		21
+#define r21_gpio	1
+#define r21_pin		12
+#define g21_gpio	1
+#define g21_pin		13
+#define b21_gpio	2
+#define b21_pin		5
 
-#define r22_gpio	0
-#define r22_pin		15
-#define g22_gpio	1
-#define g22_pin		17
-#define b22_gpio	0
+#define r22_gpio	2
+#define r22_pin		4
+#define g22_gpio	2
+#define g22_pin		3
+#define b22_gpio	2
 #define b22_pin		2
 
-#define r31_gpio	1
-#define r31_pin		15
+#define r31_gpio	3
+#define r31_pin		16
 #define g31_gpio	0
-#define g31_pin		3
-#define b31_gpio	2
-#define b31_pin		22
+#define g31_pin		20
+#define b31_gpio	0
+#define b31_pin		14
 
-#define r32_gpio	2
-#define r32_pin		24
+#define r32_gpio	3
+#define r32_pin		19
 #define g32_gpio	0
-#define g32_pin		4
-#define b32_gpio	0
-#define b32_pin		5
+#define g32_pin		15
+#define b32_gpio	3
+#define b32_pin		21
 
-#define r41_gpio	1
-#define r41_pin		19
+#define r41_gpio	0
+#define r41_pin		2
 #define g41_gpio	1
-#define g41_pin		16
-#define b41_gpio	1
-#define b41_pin		18
+#define g41_pin		17
+#define b41_gpio	2
+#define b41_pin		22
 
 #define r42_gpio	0
-#define r42_pin		31
-#define g42_gpio	1
-#define g42_pin		28
-#define b42_gpio	1
-#define b42_pin		14
+#define r42_pin		3
+#define g42_gpio	0
+#define g42_pin		4
+#define b42_gpio	2
+#define b42_pin		24
 
-#define r51_gpio	0
-#define r51_pin		30
-#define g51_gpio	1
-#define g51_pin		29
-#define b51_gpio	0
-#define b51_pin		26
+#define r51_gpio	1
+#define r51_pin		19
+#define g51_gpio	0
+#define g51_pin		5
+#define b51_gpio	1
+#define b51_pin		18
 
-#define r52_gpio	0
-#define r52_pin		23
+#define r52_gpio	1
+#define r52_pin		16
 #define g52_gpio	1
-#define g52_pin		13
-#define b52_gpio	1
-#define b52_pin		12
+#define g52_pin		28
+#define b52_gpio	0
+#define b52_pin		31
 
-#define r61_gpio	2
-#define r61_pin		4
-#define g61_gpio	2
-#define g61_pin		5
+#define r61_gpio	1
+#define r61_pin		29
+#define g61_gpio	0
+#define g61_pin		30
 
 // Note: From here down, these are garbage, we only have 32 outputs.
 #define b61_gpio	0
@@ -240,6 +240,17 @@ lab:
 
 #define GPIO(R)	CAT3(gpio,R,_zeros)
 
+// Output the current bit for three LED strip outputs
+// Note that this nomenclature was ported from the matrix code, and is
+// mostly nonsense when applied to the strip code.
+// Parameters:
+// N: Output group to consider (11, 12, 21, ... 82)
+// reg_r: register byte to read first strip data from  (ex: r10.b0)
+// reg_g: register byte to read second strip data from (ex: r10.b1)
+// reg_b: register byte to read third strip data from  (ex: r10.b2)
+//
+// Parameters from the environment:
+// bit_num: current bit we're reading from
 #define OUTPUT_ROW(N,reg_r,reg_g,reg_b)		\
 	QBBS	skip_r##N, reg_r, bit_num;	\
 	SET	GPIO(r##N##_gpio), r##N##_pin;	\
@@ -278,6 +289,7 @@ START:
 	MOV	r2, #0x1
 	SBCO	r2, CONST_PRUDRAM, 12, 4
 
+	SET	GPIO_MASK(r11_gpio), r11_pin
 	SET	GPIO_MASK(g11_gpio), g11_pin
 	SET	GPIO_MASK(b11_gpio), b11_pin
 	SET	GPIO_MASK(r12_gpio), r12_pin

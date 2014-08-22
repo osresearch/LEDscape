@@ -131,6 +131,9 @@ main(
 			break;
 		case 'H':
 			height = atoi(optarg);
+			if(height%2) {
+				die("Height must be even!\n");
+			}
 			break;
 		case 'm':
 			startup_message = optarg;
@@ -146,13 +149,11 @@ main(
 		die("socket port %d failed: %s\n", port, strerror(errno));
 
 	const size_t image_size = width * height * 3;
+	const size_t frame_size = 1 + image_size/2;
 
 	// largest possible UDP packet
-	uint8_t *buf = calloc(width*height,4);
-#if 0
-	if (sizeof(buf) < image_size + 1)
-		die("%u x %u too large for UDP\n", width, height);
-#endif
+	// 1 header byte + width*height/2 for a half frame
+	uint8_t *buf = calloc(frame_size,1);
 
 	fprintf(stderr, "%u x %u, UDP port %u\n", width, height, port);
 
@@ -185,6 +186,7 @@ main(
 	ledscape_printf(fb, width, 0xFF0000, "%s", startup_message);
 	ledscape_printf(fb+16*width, width, 0x00FF00, "%dx%d UDP port %d", width, height, port);
 	ledscape_draw(leds, fb);
+	ledscape_draw(leds, fb);	// TODO: Why do we have to do this twice?
 
 	while (1)
 	{
@@ -207,32 +209,11 @@ main(
 			continue;
 		}
 
-		const ssize_t rlen = recv(sock, buf, sizeof(buf), 0);
+		const ssize_t rlen = recv(sock, buf, frame_size, 0);
 		if (rlen < 0)
 			die("recv failed: %s\n", strerror(errno));
 		warn_once("received %zu bytes\n", rlen);
 
-		/*
-		if (buf[0] == 2)
-		{
-			// image type
-			printf("image type: %.*s\n",
-				(int) rlen - 1,
-				&buf[1]
-			);
-			continue;
-		}
-
-		if (buf[0] != 1)
-		{
-			// What is it?
-			warn_once("Unknown image type '%c' (%02x)\n",
-				buf[0],
-				buf[0]
-			);
-			continue;
-		}
-		*/
 		const unsigned frame_part = buf[0];
 		if (frame_part != 0 && frame_part != 1)
 		{
@@ -240,30 +221,28 @@ main(
 			continue;
 		}
 
-		if ((size_t) rlen != image_size + 1)
+		if ((size_t) rlen != frame_size)
 		{
-			warn_once("WARNING: Received packet %zu bytes, expected %zu\n",
+			printf("WARNING: Received packet %zu bytes, expected %zu\n",
 				rlen,
-				image_size + 1
+				frame_size
 			);
 		}
 
 		struct timeval start_tv, stop_tv, delta_tv;
 		gettimeofday(&start_tv, NULL);
 
-		const unsigned frame_num = 0;
-
 		// copy the 3-byte values into the 4-byte framebuffer
-		// and turn onto the side
 		for (unsigned x = 0 ; x < width ; x++) // 256
 		{
-			for (unsigned y = 0 ; y < 32 ; y++) // 64
+			for (unsigned y = 0 ; y < height ; y++) // 64
 			{
-				uint32_t * out = (void*) &fb[(y+32*frame_part)*width + x];
-				const uint8_t * const in = &buf[1 + 3*(y*width + x)];
-				uint32_t r = in[0];
-				uint32_t g = in[1];
-				uint32_t b = in[2];
+				uint32_t * out = &fb[(height*frame_part + y)*width + x];
+				const uint8_t * in = &buf[1 + 3*(y*width + x)];
+
+				uint8_t r = in[0];
+				uint8_t g = in[1];
+				uint8_t b = in[2];
 				*out = (r << 16) | (g << 8) | (b << 0);
 			}
 		}

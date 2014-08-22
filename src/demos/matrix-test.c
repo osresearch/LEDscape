@@ -98,7 +98,11 @@ rainbow(
 )
 {
 	const unsigned color = cycle % 180;
-	const unsigned dim = 127;
+	const unsigned dim = 128;
+
+	static unsigned count = 0;
+
+	count += 1;
 
 	for (unsigned x=0; x < width; x++) {
 		for (unsigned y=0; y < height; y++) {
@@ -110,12 +114,16 @@ rainbow(
                         out[1] = ((in >> 8) & 0xFF) * dim / 128; // * y / 16;
                         out[2] = ((in >> 16) & 0xFF) * dim / 128; // * y / 16;
 #else
-                        //out[0] = ((in >> 0) & 0xFF);
-                        //out[1] = ((in >> 8) & 0xFF);
-                        //out[2] = ((in >> 16) & 0xFF);
-                        out[0] = y + 3*x + cycle;
-                        out[1] = y + 3*x + cycle;
-                        out[2] = y + 3*x + cycle;
+			if(y==((count >> 3) & 0x1F) && x<20) {
+				out[0] = 0xff;
+				out[1] = 0xff;
+				out[2] = 0x00;
+			}
+			else {
+				out[0] = 0x00;
+				out[1] = 0x00;
+				out[2] = 0xff;
+			}
 #endif
 		}
 	}
@@ -194,8 +202,8 @@ main(
 {
 //	int width = 240; // 256;
 //	int height = 64; //128;
-	int width = 256;
-	int height = 128;
+	int width = 135;
+	int height = 32;
 
 	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)

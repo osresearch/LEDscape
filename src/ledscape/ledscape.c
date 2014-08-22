@@ -335,12 +335,9 @@ ledscape_strip_draw(
 			uint8_t * const row_out
 				= ledscape_remap(leds, out, x, y);
 			uint32_t p = row_in[x];
-			row_out[0*pru_stride] = 0xFF; // green
-			row_out[1*pru_stride] = 0x00; // red
-			row_out[2*pru_stride] = 0x00; // blue
 			row_out[0*pru_stride] = (p >>  8) & 0xFF; // green
-			row_out[1*pru_stride] = (p >>  0) & 0xFF; // red
-			row_out[2*pru_stride] = (p >> 16) & 0xFF; // blue
+			row_out[1*pru_stride] = (p >> 16) & 0xFF; // red
+			row_out[2*pru_stride] = (p >>  0) & 0xFF; // blue
 		}
 	}
 	
