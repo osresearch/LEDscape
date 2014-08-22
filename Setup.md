@@ -1,10 +1,8 @@
-Getting Started
-===============
+# Getting Started
 
 This is a quick introduction on how to set up LEDscape on a Debian-based image
 
-Setting up the BBB environment
-==============================
+# Setting up the BBB environment
 
 To develop for LEDscape on a Debian environment, Start by copying the latest BBB image to an SD card. These instructions were made using version bone-debian-7.5-2014-05-14-2gb.img. The latest version can be found at:
 
@@ -30,8 +28,7 @@ Note: These packages used to be required, but now are included in the default im
 
     sudo apt-get install git build-essential
 
-Next, set up LEDscape:
-======================
+# Next, set up LEDscape:
 
 Use git to download the repository:
 
@@ -49,13 +46,11 @@ Then run the identification program to test if all is well:
 
     sudo bin/identify
 
-Make a configuration file for your screen
-=========================================
+# Make a configuration file for your screen
 
 The configuration file is what tells LEDscape how to draw it's virtual screen onto your matrix tiles or LED strips. There are two basic formats:
 
-Matrix screen
--------------
+## Matrix screen
 
 Let's look at a sample matrix configuration. Here's one for a small display consisting of 4 LED matricies, arranged in a square:
 
@@ -82,8 +77,7 @@ The rotation is any one of the following values: N, U, L, R. 'N' and 'U' are use
 The Virtual screen offset is the top-left position in the LEDscape virtual screen that will be drawn to this matrix panel. Normally you will want to map sections of the screen into contigouos regions, so the top-left panel in your display should have a virtual screen offset of 0,0, then the panel to the right of that one should be offset by the width of the first panel, either 16,0 or 32,0, and so on.
 
 
-WS2812 strips
--------------
+## WS2812 strips
 
 Let's look at a sample WS2812 strip configuration. Here's one that can control a single strip output:
 
@@ -98,16 +92,14 @@ The first line of the configuration file describes the type of matrix. Here are 
 
 TODO: What do the next numbers here mean?
 
-Testing your configuration
---------------------------
+## Testing your configuration
 
 For matricies, there is a handy identification program to draw some text that identifies each panel. Run it to test your new configuration:
 
     sudo bin/identify myconfig.config
 
 
-Set up the UDP listener to display incoming packets
-===================================================
+# Set up the UDP listener to display incoming packets
     
 To run the matrix listener:
     
@@ -130,23 +122,38 @@ There are a bunch of command line arguments, and the whole thing seems to be in 
 | -m      | Message to display at startup      | |
 
 
-Run the UDP listener automatically at system boot
-=================================================
+# Run the UDP listener automatically at system boot
+
+There's a handy script for starting LEDscape at boot. It should listen on the ethernet interface on port 9999 automatically.
+
+## Ubuntu
+
+Ubuntu appears to use upstart. Do this:
+
+    sudo cp ubuntu/ledscape.conf /etc/init
+    sudo start ledscape
+	
+## Debian / Angstrom
+
+Debian and Angstrom appear to be able to use systemd. Do this:
 
     sudo cp bin/ledscape.service /etc/systemd/system
     sudo systemctl enable ledscape.service
 
+Extra: for video playback
+
     sudo cp bin/videoplayer.service /etc/systemd/system
     sudo systemctl enable videoplayer.service
+
 
 Video playback
 ==============
 
 Playing a video is as simple as running the video player (after running the UDP listener):
 
-    bin/video_player.py -s 256x32 -l ../Daft\ Punk\ -\ Around\ The\ World.avi
+    bin/video_player -s 256x32 -l ../Daft\ Punk\ -\ Around\ The\ World.avi
     
-Note: These packages used to be required, but now are included in the default image. You might need to install them if you're using a different Debian system.
+Note: These packages used to be required, but now are included in the default Debian image. You might need to install them if you're using a different system.
 
     sudo apt-get install libavformat-dev x264 v4l-utils ffmpeg
     sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv opencv-doc libcv-dev libcvaux-dev libhighgui-dev
