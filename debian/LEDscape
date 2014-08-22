@@ -18,7 +18,7 @@ case "$1" in
   start)
     echo "Starting LEDscape"
     # run application you want to start
-    bash -c 'cd /home/ubuntu/LEDscape/; ./run_ledscape'
+    bash -c 'cd /home/ubuntu/LEDscape/debian; ./run_ledscape'
     ;;
   stop)
     echo "Stopping LEDscape"
