@@ -18,15 +18,21 @@ Next, update the the Debian environment:
 
     sudo apt-get update
     sudo apt-get install usbmount
+    sudo apt-get install git build-essential
     
 Disable the HDMI output:
+
+If you are using a Debian image from 2014.8.13 or newer, do this:
+
+    sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN'/g /boot/uEnv.txt
+    sudo reboot
+
+If you are using an older Debian image, do this:
 
     sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN'/g /boot/uboot/uEnv.txt
     sudo reboot
 
-Note: These packages used to be required, but now are included in the default image. You might need to install them if you're using a different Debian system.
-
-    sudo apt-get install git build-essential
+Otherwise, modify the uEnv boot file to disable HDMI and HDMIN overlays, then reboot.
 
 # Next, set up LEDscape:
 
@@ -40,7 +46,7 @@ Use git to download the repository:
 Copy the device tree file into place, and add it to the slots:
 
     sudo cp dts/CAPE-BONE-OCTO-00A0.dtbo /lib/firmware
-    echo 'CAPE-BONE-OCTO' | sudo tee -a /sys/devices/bone_capemgr.9/slots
+    echo 'CAPE-BONE-OCTO' | sudo tee -a /sys/devices/bone_capemgr.*/slots
     
 Then run the identification program to test if all is well:
 
