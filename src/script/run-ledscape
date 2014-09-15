@@ -18,5 +18,6 @@ then
     CONFIGFILE="$USBMOUNT/ledscape.config"
 fi
 
-exec ./bin/matrix-test "$CONFIGFILE" >/dev/null
+#exec ./bin/matrix-test "$CONFIGFILE" >/dev/null
 #exec ./bin/matrix-udp-rx -m "Starting LEDscape" -c "$CONFIGFILE" >/dev/null
+exec ./bin/matrix-udp-rx -W 120 -H 32 -c "$CONFIGFILE" >/dev/null

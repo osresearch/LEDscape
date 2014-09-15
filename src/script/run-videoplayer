@@ -23,6 +23,6 @@ shopt -s extglob
 # Play the first video we find, on a loop.
 for video in "$USBMOUNT/"*+(.mp4|.MP4|.avi|.AVI)
 do
-    exec ./video_player.py -l -w 112 "$video"
+    exec ./videoplayer --screenGeometry 120x32 -w 120 -l "$video"
     break
 done
