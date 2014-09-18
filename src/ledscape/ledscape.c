@@ -31,20 +31,40 @@
  *
  * \todo: Find a way to unify this with the defines in the .p file
  */
-static const uint8_t gpios0[] = {
-	23, 27, 22, 10, 9, 8, 26, 11, 30, 31, 5, 3, 20, 4, 2, 14, 7, 15
+static const uint8_t gpios_output1[] = {
+	2,2,2,3,2,5,0,23,2,4,0,26
 };
 
-static const uint8_t gpios1[] = {
-	13, 15, 12, 14, 29, 16, 17, 28, 18, 19,
+static const uint8_t gpios_output2[] = {
+	0,27,2,1,0,22,2,22,2,23,2,24
 };
 
-static const uint8_t gpios2[] = {
-	2, 5, 22, 23, 14, 12, 10, 8, 6, 3, 4, 1, 24, 25, 17, 16, 15, 13, 11, 9, 7,
+static const uint8_t gpios_output3[] = {
+	0,30,1,18,0,31,1,16,0,3,0,5
 };
 
-static const uint8_t gpios3[] = {
-	21, 19, 15, 14, 17, 16
+static const uint8_t gpios_output4[] = {
+	0,2,0,15,1,17,3,21,3,19,0,4,1,19
+};
+
+static const uint8_t gpios_output5[] = {
+	2,25,0,11,0,10,0,9,0,8,2,17
+};
+
+static const uint8_t gpios_output6[] = {
+	2,16,2,15,2,14,2,13,2,10,2,12
+};
+
+static const uint8_t gpios_output7[] = {
+	2,11,2,9,2,8,2,6,0,7,2,7
+};
+
+static const uint8_t gpios_output8[] = {
+	3,17,3,16,3,15,3,14,0,14,0,20
+};
+
+static const uint8_t gpios_output_all[] = {
+	1,12,1,13,1,14,1,15,1,28,1,29,1,19
 };
 
 #define ARRAY_COUNT(a) ((sizeof(a) / sizeof(*a)))
@@ -59,14 +79,38 @@ static const uint8_t gpios3[] = {
 static void
 ledscape_gpio_init(void)
 {
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios0) ; i++)
-		pru_gpio(0, gpios0[i], 1, 0);
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios1) ; i++)
-		pru_gpio(1, gpios1[i], 1, 0);
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios2) ; i++)
-		pru_gpio(2, gpios2[i], 1, 0);
-	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios3) ; i++)
-		pru_gpio(3, gpios3[i], 1, 0);
+	for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output1) ; i+=2)
+		pru_gpio(gpios_output1[i], gpios_output1[i+1], 1, 0);
+#if LEDSCAPE_MATRIX_OUTPUTS > 1
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output2) ; i+=2)
+                pru_gpio(gpios_output2[i], gpios_output2[i+1], 1, 0);
+#endif 
+#if LEDSCAPE_MATRIX_OUTPUTS > 2
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output3) ; i+=2)
+                pru_gpio(gpios_output3[i], gpios_output3[i+1], 1, 0);
+#endif 
+#if LEDSCAPE_MATRIX_OUTPUTS > 3
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output4) ; i+=2)
+                pru_gpio(gpios_output4[i], gpios_output4[i+1], 1, 0);
+#endif 
+#if LEDSCAPE_MATRIX_OUTPUTS > 4
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output5) ; i+=2)
+                pru_gpio(gpios_output5[i], gpios_output5[i+1], 1, 0);
+#endif 
+#if LEDSCAPE_MATRIX_OUTPUTS > 5
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output6) ; i+=2)
+                pru_gpio(gpios_output6[i], gpios_output6[i+1], 1, 0);
+#endif 
+#if LEDSCAPE_MATRIX_OUTPUTS > 6
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output7) ; i+=2)
+                pru_gpio(gpios_output7[i], gpios_output7[i+1], 1, 0);
+#endif 
+#if LEDSCAPE_MATRIX_OUTPUTS > 7
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output8) ; i+=2)
+                pru_gpio(gpios_output8[i], gpios_output8[i+1], 1, 0);
+#endif
+        for (unsigned i = 0 ; i < ARRAY_COUNT(gpios_output_all) ; i+=2)
+                pru_gpio(gpios_output_all[i], gpios_output_all[i+1], 1, 0);
 }
 
 
@@ -241,7 +285,7 @@ ledscape_matrix_panel_copy(
 			// the top half and bottom half of the panels
 			// are squished together in the output since
 			// they are drawn simultaneously.
-			uint8_t * const pix = &out[x*row_stride + (y/8)*3 + (y%8)*row_len];
+			uint8_t * const pix = &out[x*row_stride + (y/(config->panel_height/2))*3 + (y%(config->panel_height/2))*row_len];
 
 			pix[0] = (col >> 16) & 0xFF; // red
 			pix[1] = (col >>  8) & 0xFF; // green
@@ -397,7 +441,7 @@ ledscape_matrix_init(
 
 	*(leds->ws281x) = (ws281x_command_t) {
 		.pixels_dma	= 0, // will be set in draw routine
-		.num_pixels	= (config->leds_width * 3) * 16,
+		.num_pixels	= (config->leds_width * 3) * (LEDSCAPE_MATRIX_OUTPUTS * 2),
 		.command	= 0,
 		.response	= 0,
 	};
