@@ -4,7 +4,11 @@ cd "$DIRNAME/.."
 
 # Enable the octoscroller overlay
 # Note that we can't do this at boot because it won't load then, for some reason
+echo GPIO > /sys/devices/bone_capemgr*/slots
 echo CAPE-BONE-OCTO > /sys/devices/bone_capemgr*/slots
+
+amixer sset PCM 100
+aplay /root/bach.wav &
 
 # Wait for unknown and unimaginable things to happen
 sleep 10
@@ -18,5 +22,5 @@ then
     CONFIGFILE="$USBMOUNT/ledscape.config"
 fi
 
-exec ./bin/matrix-test "$CONFIGFILE" >/dev/null
+exec ./bin/breakout > /dev/null
 #exec ./bin/matrix-udp-rx -m "Starting LEDscape" -c "$CONFIGFILE" >/dev/null

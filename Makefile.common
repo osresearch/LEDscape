@@ -38,7 +38,7 @@ GENERIC_CFLAGS += \
 	-Wp,-MT,$@ \
 	-I. \
 	-I$(TOP)/src/ledscape \
-	-O2 \
+	-O0 \
 	-mtune=cortex-a8 \
 	-march=armv7-a \
 
@@ -48,6 +48,7 @@ CFLAGS += \
 
 CPPFLAGS += \
 	$(GENERIC_CFLAGS) \
+	-std=c++11
 
 LDFLAGS += \
 
@@ -56,8 +57,12 @@ LDLIBS += \
 	-lledscape \
 	-lpthread \
 	-lm \
+	-lpng \
+	-lSDL \
+	-lSDL_mixer
 
 COMPILE.c-o = $(CROSS_COMPILE)gcc $(CFLAGS) -c -o $@ $< 
+COMPILE.cc-o = $(CROSS_COMPILE)g++ $(CPPFLAGS) -c -o $@ $< 
 COMPILE.cpp-o = $(CROSS_COMPILE)g++ $(CPPFLAGS) -c -o $@ $< 
 COMPILE.a = $(CROSS_COMPILE)ar crv $@ $^ 
 COMPILE.link = $(CROSS_COMPILE)g++ $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -66,6 +71,8 @@ $(OBJDIR)/%.o: %.c
 	$(COMPILE.c-o)
 $(OBJDIR)/%.o: %.cpp
 	$(COMPILE.cpp-o)
+$(OBJDIR)/%.o: %.cc
+	$(COMPILE.cc-o)
 
 $(LIBDIR)/%.a:
 	$(RM) $@
