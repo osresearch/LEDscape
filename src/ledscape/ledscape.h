@@ -27,8 +27,8 @@ typedef struct {
 	int rot; // 0 == none, 1 == left, 2 == right, 3 == flip
 } ledscape_matrix_panel_t;
 
-#define LEDSCAPE_MATRIX_OUTPUTS 8 // number of outputs on the cape
-#define LEDSCAPE_MATRIX_PANELS 8 // number of panels chained per output
+#define LEDSCAPE_MATRIX_OUTPUTS 1 // number of outputs on the cape
+#define LEDSCAPE_MATRIX_PANELS 4 // number of panels chained per output
 
 typedef struct {
 	int type;
@@ -144,7 +144,6 @@ ledscape_printf(
 	const char * fmt,
 	...
 );
-
 
 /** Parse a config file */
 ledscape_config_t *
