@@ -9,6 +9,7 @@ SUBDIR-y += src/perlin
 SUBDIR-y += src/mta
 SUBDIR-y += src/net
 SUBDIR-y += src/script
+SUBDIR-y += src/ledgames
 
 all: 
 	for dir in $(SUBDIR-y); do \
