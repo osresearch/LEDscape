@@ -26,15 +26,20 @@
 
 static controls_t *player_controls[3];
 static int player_score[2];
+static int player_lives[2];
 static int number_players;
-static int serving_player;
+static int current_player;
 
-static sprite_t paddle_sprite[2];
+static sprite_t paddle_sprite;
 static ball_sprite_t ball_sprite;
-static png_t sprite_sheet;
+static std::vector<sprite_t> invader_sprites[2];
 
 static Mix_Chunk *startup_bong;
+static Mix_Chunk *wall_blip;
+static Mix_Chunk *block_blip[3];
 static Mix_Chunk *paddle_blip;
+
+static png_t sprite_sheet;
 
 enum class game_state_t {
   Attract,
@@ -58,19 +63,29 @@ static float ball_horizontal_speeds[] = {
 };
 
 uint32_t ball_data[] = {0x00808000, 0x00808000, 0x00808000, 0x00808000};
+uint32_t paddle_data[] = {0x0000FFFF, 0x0000FFFF, 0x0000FFFF, 0x0000FFFF, 0x0000FFFF, 0x0000FFFF, 0x0000FFFF, 0x0000FFFF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF};
+
+static void reset_invaders(int for_player) {
+  invader_sprites[for_player].clear();
+  for (int row_counter = 0; row_counter < 4; row_counter++) {
+    for (int column_counter = 0; column_counter < 6; column_counter++) {
+      brick_sprite_t invader_sprite;
+      invader_sprite.set_active(true);
+      invader_sprite.set_position(column_counter * 10, 10 + (row_counter * 8));
+	  invader_sprite.set_image(row_counter * 28,0,7,7,&sprite_sheet);
+      invader_sprites[for_player].push_back(invader_sprite);
+    }
+  }
+}
 
 static bool reset_round(void) {
-  if ((player_score[0] == 7) || (player_score[1] == 7)) {
+  current_player = (current_player + 1) % number_players;
+  if (player_lives[current_player] == 0) {
     return false;
   }
-
-  if (serving_player == 0) {
-    ball_sprite.set_position(paddle_sprite[0].x_+4,58);
-    ball_sprite.set_speed(ball_horizontal_speeds[rand()%7], -0.5f);
-  } else {
-    ball_sprite.set_position(paddle_sprite[1].x_+4,6);
-    ball_sprite.set_speed(ball_horizontal_speeds[rand()%7], 0.5f);
-  }
+  
+  ball_sprite.set_position(32,32);
+  ball_sprite.set_speed(0.3f, 0.5f);
   ball_sprite.set_image(1,1,ball_data);
   
   game_state = game_state_t::Serving;
@@ -79,20 +94,21 @@ static bool reset_round(void) {
 }
 
 static void reset_game(int with_number_players) {
-  paddle_sprite[0].set_active(true);
-  paddle_sprite[0].set_position(28, 32);
-  paddle_sprite[0].set_image(0,0,7,7,&sprite_sheet);
+  paddle_sprite.set_active(true);
+  paddle_sprite.set_position(28, 60);
+  paddle_sprite.set_image(8,2,paddle_data);
   
-  paddle_sprite[1].set_active(true);
-  paddle_sprite[1].set_position(28, 2);
-  paddle_sprite[1].set_image(28,0,7,7,&sprite_sheet);
+  reset_invaders(0);
+  reset_invaders(1);
   
   player_score[0] = 0;
   player_score[1] = 0;
-
-  serving_player = 0;
+  
+  player_lives[0] = 3;
+  player_lives[1] = 3;
   
   number_players = with_number_players;
+  current_player = 1;
   
   reset_round();
 
@@ -100,41 +116,51 @@ static void reset_game(int with_number_players) {
 }
 
 void init_attract(void) {
-  paddle_sprite[0].set_active(false);
-  paddle_sprite[1].set_active(false);
+  paddle_sprite.set_active(false);
   
   ball_sprite.set_position(32,32);
   ball_sprite.set_speed(0.5f, 0.5f);
   ball_sprite.set_image(1,1,ball_data);
 
+  current_player = 0;
+  reset_invaders(0);
+  
   game_state = game_state_t::Attract;
 }
 
 void render_game(Screen *screen) {
-  screen->set_flip(false);
-
+  if (current_player == 1) {
+    screen->set_flip(true);
+  } else {
+    screen->set_flip(false);
+  }
   screen->set_background_color(0x00000010);
   screen->draw_start();
+
+  paddle_sprite.draw_onto(screen);
+  ball_sprite.draw_onto(screen);
+
+  for (auto &invader_sprite : invader_sprites[current_player]) {
+    invader_sprite.draw_onto(screen);
+  }
 
   if (game_state == game_state_t::Attract) {
     screen->draw_text(32,2,0x00808080,"GAME OVER!");
     screen->draw_text(40,2,0x00808080,"PRESS PLYR");
     screen->draw_text(48,2,0x00808080,"  1 OR 2  ");
-  }
-  char score[7];
-  sprintf(score, "%1d", player_score[1]);
-  screen->draw_text(0,59,0x00808080,score,number_players==2);
-  sprintf(score, "%1d", player_score[0]);
-  screen->draw_text(57,59,0x00808080,score);
-  
-  paddle_sprite[0].draw_onto(screen);
-  paddle_sprite[1].draw_onto(screen);
-  ball_sprite.draw_onto(screen);
+  } else {
+    char score[7];
+    char lives[1];
+    sprintf(score, "%06d", player_score[current_player]);
+    screen->draw_text(0,2,0x00808080,score);
+    sprintf(lives, "%01d", player_lives[current_player]);
+    screen->draw_text(0,48,0x00808080,lives);
 
+  }
+  
   screen->draw_end();
   
-  player_controls[0]->refresh_status();
-  player_controls[1]->refresh_status();
+  player_controls[current_player]->refresh_status();
   
   if (game_state == game_state_t::Attract) {
     player_controls[2]->refresh_status();
@@ -145,34 +171,21 @@ void render_game(Screen *screen) {
     }
     return;
   } else {
-    for (int player = 0; player < number_players; player++) {
-      if (player_controls[player]->is_pressed(joystick_left)) {
-	if (paddle_sprite[player].x_ > 0) {
-	  paddle_sprite[player].x_--;
-	}
+    if (player_controls[current_player]->is_pressed(joystick_left)) {
+      if (paddle_sprite.x_ > 0) {
+	paddle_sprite.x_--;
       }
+    }
     
-      if (player_controls[player]->is_pressed(joystick_right)) {
-	if (paddle_sprite[player].x_ < 56) {
-	  paddle_sprite[player].x_++;
-	}
+    if (player_controls[current_player]->is_pressed(joystick_right)) {
+      if (paddle_sprite.x_ < 56) {
+	paddle_sprite.x_++;
       }
     }
     if (game_state == game_state_t::Serving) {
-      ball_sprite.x_ = paddle_sprite[serving_player].x_ + 4;
-      if (player_controls[serving_player]->is_pressed(button_a)) {
+      if (player_controls[current_player]->is_pressed(button_a)) {
 	game_state = game_state_t::Playing;
       }
-    }
-
-    if (number_players == 1) {
-      float computer_paddle_x_target = ball_sprite.x_ - 4;
-
-      if (computer_paddle_x_target > paddle_sprite[1].x_) paddle_sprite[1].x_ += 0.8f;
-      if (computer_paddle_x_target < paddle_sprite[1].x_) paddle_sprite[1].x_ -= 0.8f;
-
-      if (paddle_sprite[1].x_ < 0) { paddle_sprite[1].x_ = 0; }
-      if (paddle_sprite[1].x_ > 56) { paddle_sprite[1].x_ = 56; }
     }
   }
 
@@ -181,30 +194,16 @@ void render_game(Screen *screen) {
     ball_sprite.move_sprite();
   }
   
-  if (ball_sprite.test_collision(paddle_sprite[0])) {
+  if (ball_sprite.test_collision(paddle_sprite)) {
     ball_sprite.y_ = 59.0f;
-    ball_sprite.dy_ = -ball_sprite.dy_ * 1.1f;
-    if (ball_sprite.dy_ < -2.0f) ball_sprite.dy_ = -2.0f;
-    ball_sprite.dx_ = ball_horizontal_speeds[(int)(ball_sprite.x_ - (paddle_sprite[0].x_ - 1))];
-    Mix_PlayChannel(-1, paddle_blip, 0);
-  }
-
-  if (ball_sprite.test_collision(paddle_sprite[1])) {
-    ball_sprite.y_ = 5.0f;
-    ball_sprite.dy_ = -ball_sprite.dy_ * 1.1f;
-    if (ball_sprite.dy_ > 2.0f) ball_sprite.dy_ = 2.0f;
-    ball_sprite.dx_ = ball_horizontal_speeds[(int)(ball_sprite.x_ - (paddle_sprite[1].x_ - 1))];
+    ball_sprite.dy_ = -ball_sprite.dy_;
+    ball_sprite.dx_ = ball_horizontal_speeds[(int)(ball_sprite.x_ - (paddle_sprite.x_ - 1))];
     Mix_PlayChannel(-1, paddle_blip, 0);
   }
 
   if (ball_sprite.y_ >= 63.0f) {
     if (game_state != game_state_t::Attract) {
-      player_score[1]++;
-      if (number_players == 2) {
-	serving_player = 1;
-      } else {
-	serving_player = 0;
-      }
+      player_lives[current_player]--;
       if (!reset_round()) {
 	init_attract();
       }
@@ -215,17 +214,19 @@ void render_game(Screen *screen) {
     }
   }
 
-  if (ball_sprite.y_ <= 0.0f) {
+  if (game_state == game_state_t::Playing) {
+    bool active_invaders = false;
+    for (auto &invader_sprite : invader_sprites[current_player]) {
+    	active_invaders |= invader_sprite.is_active();
+	}
+    if (!active_invaders) {
+      reset_invaders(current_player);
+    }
+  } else {
     if (game_state != game_state_t::Attract) {
-      player_score[0]++;
-      serving_player = 0;
-      if (!reset_round()) {
-	init_attract();
+      if ((ball_sprite.y_ < 9) || (ball_sprite.y_ > 32)) {
+		  game_state = game_state_t::Playing;
       }
-      return;
-    } else {
-      ball_sprite.dy_ = -ball_sprite.dy_;
-      ball_sprite.dx_ = ball_horizontal_speeds[rand()%7];
     }
   }
 }
@@ -279,11 +280,11 @@ main(
     }
 
   ledscape_t * const leds = ledscape_init(config, 0);
-  
+
   sprite_sheet.read_file("/root/Invaders.png");
 
   player_controls[0] = new controls_t(1);
-  player_controls[1] = new controls_t(2, true);
+  player_controls[1] = new controls_t(2);
   player_controls[2] = new controls_t(3);
   
   init_attract();
@@ -295,7 +296,11 @@ main(
   
   init_sdl();
 
+  wall_blip = Mix_LoadWAV("/root/blip1.wav");
   paddle_blip = Mix_LoadWAV("/root/blip2.wav");
+  block_blip[0] = Mix_LoadWAV("/root/blip3.wav");
+  block_blip[1] = Mix_LoadWAV("/root/blip4.wav");
+  block_blip[2] = Mix_LoadWAV("/root/blip5.wav");
   
   while (1)
     {
