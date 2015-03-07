@@ -237,7 +237,7 @@ main(
 		{
 			for (unsigned y = 0 ; y < height ; y++) // 64
 			{
-				uint32_t * out = &fb[(height*frame_part + y)*width + x];
+				uint32_t * out = &fb[(height*frame_part/2 + y)*width + x];
 				const uint8_t * in = &buf[1 + 3*(y*width + x)];
 
 				uint8_t r = in[0];
