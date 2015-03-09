@@ -3,6 +3,7 @@
 # Top level Makefile.
 # Mostly just recurse into subdirectories.
 
+SUBDIR-y += dts
 SUBDIR-y += src/ledscape
 SUBDIR-y += src/demos
 SUBDIR-y += src/perlin

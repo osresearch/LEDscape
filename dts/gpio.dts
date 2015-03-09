@@ -1,0 +1,95 @@
+/dts-v1/;
+/plugin/;
+
+/{
+  compatible = "ti,beaglebone", "ti,beaglebone-black";
+  board-name = "CustomizeThis";
+  part-number = "CustomizeThis";
+  version = "00A0";
+
+  exclusive-use =
+    "P8.45" /* gpio2_6 */,
+    "P8.46" /* gpio2_7 */,
+    "P8.43" /* gpio2_8 */,
+    "P8.44" /* gpio2_9 */,
+    "P8.41" /* gpio2_10 */,
+    "P8.42" /* gpio2_11 */,
+    "P8.39" /* gpio2_12 */,
+    "P8.40" /* gpio2_13 */,
+    "P8.37" /* gpio2_14 */,
+    "P8.38" /* gpio2_15 */,
+    "P8.36" /* gpio2_16 */,
+    "P8.34" /* gpio2_17 */,
+    "P8.27" /* gpio2_22 */,
+    "P8.29" /* gpio2_23 */,
+    "P8.28" /* gpio2_24 */,
+    "P8.30" /* gpio2_25 */,
+    "P8.35" /* gpio0_8 */,
+    "P8.33" /* gpio0_9 */,
+    "P8.31" /* gpio0_10 */,
+    "P8.32" /* gpio0_11 */,
+    "gpio2_6",
+    "gpio2_7",
+    "gpio2_8",
+    "gpio2_9",
+    "gpio2_10",
+    "gpio2_11",
+    "gpio2_12",
+    "gpio2_13",
+    "gpio2_14",
+    "gpio2_15",
+    "gpio2_16",
+    "gpio2_17",
+    "gpio2_22",
+    "gpio2_23",
+    "gpio2_24",
+    "gpio2_25",
+    "gpio0_8",
+    "gpio0_9",
+    "gpio0_10",
+    "gpio0_11";
+
+  fragment@0 {
+    target = <&am33xx_pinmux>;
+
+    __overlay__ {
+      pinctrl_generated: RNS_Generated_Pins {
+	pinctrl-single,pins = <
+          0x0a0 0x37 /* P8_45 40 GPIO 70 in Mode: 7 */
+          0x0a4 0x37 /* P8_46 41 GPIO 71 in Mode: 7 */
+          0x0a8 0x37 /* P8_43 42 GPIO 72 in Mode: 7 */
+          0x0ac 0x37 /* P8_44 43 GPIO 73 in Mode: 7 */
+          0x0b0 0x37 /* P8_41 44 GPIO 74 in Mode: 7 */
+          0x0b4 0x37 /* P8_42 45 GPIO 75 in Mode: 7 */
+          0x0b8 0x37 /* P8_39 46 GPIO 76 in Mode: 7 */
+          0x0bc 0x37 /* P8_40 47 GPIO 77 in Mode: 7 */
+          0x0c0 0x37 /* P8_37 48 GPIO 78 in Mode: 7 */
+          0x0c4 0x37 /* P8_38 49 GPIO 79 in Mode: 7 */
+          0x0c8 0x37 /* P8_36 50 GPIO 80 in Mode: 7 */
+          0x0cc 0x37 /* P8_34 51 GPIO 81 in Mode: 7 */
+          0x0e0 0x37 /* P8_27 56 GPIO 86 in Mode: 7 */
+          0x0e4 0x37 /* P8_29 57 GPIO 87 in Mode: 7 */
+          0x0e8 0x37 /* P8_28 58 GPIO 88 in Mode: 7 */
+          0x0ec 0x37 /* P8_30 59 GPIO 89 in Mode: 7 */
+          0x0d0 0x37 /* P8_35 52 GPIO 8 in Mode: 7 */
+          0x0d4 0x37 /* P8_33 53 GPIO 9 in Mode: 7 */
+          0x0d8 0x37 /* P8_31 54 GPIO 10 in Mode: 7 */
+          0x0dc 0x37 /* P8_32 55 GPIO 11 in Mode: 7 */
+	>;
+      };
+    };
+  };
+
+  fragment@1 {
+    target = <&ocp>;
+    __overlay__ {
+      test_helper: helper {
+	compatible = "bone-pinmux-helper";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_generated>;
+	status = "okay";
+      };
+    };
+  };
+};
+

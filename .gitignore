@@ -12,3 +12,4 @@ am335x/pasm/pasm
 *~
 *~
 bin/*
+*.dtbo
