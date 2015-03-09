@@ -144,6 +144,8 @@ clean:
 SLOT_FILE=/sys/devices/bone_capemgr.9/slots
 DTS=CAPE-BONE-OCTO
 DTB=/lib/firmware/$(DTS)-00A0.dtbo
+GPIODTS=GPIO
+GPIODTB=/lib/firmware/$(GPIODTS)-00A0.dtbo
 
 dts: LEDscape.dts
 	@SLOT="`grep LEDSCAPE $(SLOT_FILE) | cut -d: -f1`"; \
@@ -156,11 +158,14 @@ dts: LEDscape.dts
 
 
 
-firmware: $(DTB)
-	echo $(DTS) > $(SLOT_FILE)
+firmware: $(DTB) $(GPIODTB)
 
 $(DTB): cape-bone-octo.dts FORCE
 	dtc -O dtb -o $@ -b 0 -@ $<
+
+$(GPIODTB): gpio.dts FORCE
+	dtc -O dtb -o $@ -b 0 -@ $<
+
 FORCE:
 
 ###########
