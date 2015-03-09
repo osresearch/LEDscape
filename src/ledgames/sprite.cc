@@ -5,6 +5,7 @@ sprite_t::sprite_t() :
   y_(0),
   dx_(0),
   dy_(0),
+  frame_(0),
   active_(true)
 {
 }
@@ -35,16 +36,16 @@ void sprite_t::move_sprite(void) {
   y_ += dy_;
 }
 
-void sprite_t::set_image(uint8_t width, uint8_t height, uint32_t *pixels) {
-  sprite_data_.resize(width * height);
-  sprite_data_.assign(pixels, pixels+(width * height));
+void sprite_t::set_image(uint8_t width, uint8_t height, uint32_t *pixels, uint8_t anim_frame) {
+  sprite_data_[anim_frame].resize(width * height);
+  sprite_data_[anim_frame].assign(pixels, pixels+(width * height));
 
   width_ = width;
   height_ = height;
 }
 
-void sprite_t::set_image(uint16_t x_offset, uint16_t y_offset, uint8_t width, uint8_t height, png_t *png_image) {
-  sprite_data_.resize(width * height);
+void sprite_t::set_image(uint16_t x_offset, uint16_t y_offset, uint8_t width, uint8_t height, png_t *png_image, uint8_t anim_frame) {
+  sprite_data_[anim_frame].resize(width * height);
 
   width_ = width;
   height_ = height;
@@ -52,7 +53,7 @@ void sprite_t::set_image(uint16_t x_offset, uint16_t y_offset, uint8_t width, ui
   for (uint8_t y = 0; y < height; y++) {
 	  png_byte* row = png_image->row(y + y_offset);
 	  for (uint8_t x = 0; x < width; x++) {
-		  uint8_t *sprite_pixel = (uint8_t*)&(sprite_data_[x + (y * width)]);
+		  uint8_t *sprite_pixel = (uint8_t*)&(sprite_data_[anim_frame][x + (y * width)]);
 		  uint8_t *png_pixel = (uint8_t*)&(row[(x + x_offset) * 4]);
 		  sprite_pixel[0] = png_pixel[2];
 		  sprite_pixel[1] = png_pixel[1];
@@ -66,7 +67,7 @@ void sprite_t::draw_onto(Screen *screen) {
   
   for (uint8_t pixel_y = 0; pixel_y < height_; pixel_y++) {
     for (uint8_t pixel_x = 0; pixel_x < width_; pixel_x++) {
-      screen->drawpixel(pixel_x + x_, pixel_y + y_, sprite_data_[(pixel_y * width_) + pixel_x]);
+      screen->drawpixel(pixel_x + x_, pixel_y + y_, sprite_data_[frame_][(pixel_y * width_) + pixel_x]);
     }
   }
 }
