@@ -84,3 +84,11 @@ bool sprite_t::test_collision(const sprite_t &other_sprite) {
 	   x_ > (other_visible_x + other_sprite.width_ - 1) ||
 	   y_ > (other_visible_y + other_sprite.height_ - 1) );
 }
+
+float sprite_t::get_x_position(void) {
+	return x_;
+}
+
+float sprite_t::get_y_position(void) {
+	return y_;
+}
