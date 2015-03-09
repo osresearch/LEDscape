@@ -116,8 +116,23 @@ void render_game(Screen *screen) {
 
 	ship_sprite.draw_onto(screen);
 
+	bool change_direction = false;
 	for (auto &invader_sprite : invader_sprites[current_player]) {
 		invader_sprite.move_sprite();
+		if (invader_sprite.is_active()) {
+			if ((invader_sprite.get_x_position() < 0) || (invader_sprite.get_x_position() > 50)) {
+				change_direction = true;
+			}
+		}
+	}
+	
+	if (change_direction) {
+		for (auto &invader_sprite : invader_sprites[current_player]) {
+			invader_sprite.set_speed(-0.05, 0);
+		}
+	}
+
+	for (auto &invader_sprite : invader_sprites[current_player]) {
 		invader_sprite.draw_onto(screen);
 	}
 

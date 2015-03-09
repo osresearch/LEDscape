@@ -21,7 +21,9 @@ public:
   virtual void set_active(bool active);
   virtual bool is_active(void);
   virtual bool test_collision(const sprite_t &other_sprite);
-
+  virtual float get_x_position(void);
+  virtual float get_y_position(void);
+  
   float x_;
   float y_;
   float dx_;
