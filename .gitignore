@@ -13,3 +13,4 @@ am335x/pasm/pasm
 *~
 bin/*
 *.dtbo
+.DS_Store
