@@ -30,6 +30,7 @@ static int number_players;
 static int current_player;
 
 static sprite_t ship_sprite;
+static sprite_t ship_missile_sprite;
 static std::vector<invader_sprite_t> invader_sprites[2];
 
 static Mix_Chunk *startup_bong;
@@ -47,9 +48,12 @@ enum class game_state_t {
 };
   
 static game_state_t game_state;
+static bool invaders_right;
+static bool shot_fired;
 
 static void reset_invaders(int for_player) {
 	invader_sprites[for_player].clear();
+	invaders_right = true;
 	for (int row_counter = 0; row_counter < 4; row_counter++) {
 		for (int column_counter = 0; column_counter < 6; column_counter++) {
 			invader_sprite_t invader_sprite;
@@ -69,6 +73,8 @@ static bool reset_round(void) {
 		return false;
 	}
   
+  	shot_fired = false;
+	ship_missile_sprite.set_active(false);
 	game_state = game_state_t::Serving;
 
 	return true;
@@ -93,6 +99,8 @@ static void reset_game(int with_number_players) {
   
 	reset_round();
 
+	game_state = game_state_t::Playing;
+
 	printf("\n\n\nGAME START\n\n\n");
 }
 
@@ -115,20 +123,39 @@ void render_game(Screen *screen) {
 	screen->draw_start();
 
 	ship_sprite.draw_onto(screen);
+	ship_missile_sprite.draw_onto(screen);
+	ship_missile_sprite.move_sprite();
+	if (ship_missile_sprite.get_y_position() < 0.0f) {
+		ship_missile_sprite.set_active(false);
+	}
 
 	bool change_direction = false;
 	for (auto &invader_sprite : invader_sprites[current_player]) {
 		invader_sprite.move_sprite();
 		if (invader_sprite.is_active()) {
-			if ((invader_sprite.get_x_position() < 0) || (invader_sprite.get_x_position() > 50)) {
+			if ((invaders_right && (invader_sprite.get_x_position() > 57)) || (!invaders_right && (invader_sprite.get_x_position() < 1))) {
 				change_direction = true;
 			}
 		}
 	}
 	
 	if (change_direction) {
-		for (auto &invader_sprite : invader_sprites[current_player]) {
-			invader_sprite.set_speed(-0.05, 0);
+		if (invaders_right) {
+			invaders_right = false;
+			for (auto &invader_sprite : invader_sprites[current_player]) {
+				invader_sprite.set_speed(-0.05, 0);
+				if (game_state == game_state_t::Playing) {
+					invader_sprite.set_position(invader_sprite.get_x_position(), invader_sprite.get_y_position()+1);
+				}
+			}			
+		} else {
+			invaders_right = true;
+			for (auto &invader_sprite : invader_sprites[current_player]) {
+				invader_sprite.set_speed(0.05, 0);
+				if (game_state == game_state_t::Playing) {
+					invader_sprite.set_position(invader_sprite.get_x_position(), invader_sprite.get_y_position()+1);
+				}
+			}			
 		}
 	}
 
@@ -174,12 +201,27 @@ void render_game(Screen *screen) {
 				ship_sprite.x_++;
 			}
 		}
+
+		if ((!shot_fired) && (player_controls[current_player]->is_pressed(button_a))) {
+			ship_missile_sprite.set_active(true);
+			ship_missile_sprite.set_position(ship_sprite.get_x_position(), 51);
+			ship_missile_sprite.set_image(196,0,7,7,&sprite_sheet);
+			ship_missile_sprite.set_speed(0.0f, -2.0f);
+			shot_fired = true;
+		} 
+		if (!player_controls[current_player]->is_pressed(button_a)) {
+			shot_fired = false;
+		}
 	}
 
 	if (game_state == game_state_t::Playing) {
 		bool active_invaders = false;
 		for (auto &invader_sprite : invader_sprites[current_player]) {
 			active_invaders |= invader_sprite.is_active();
+	        if (invader_sprite.test_collision(ship_missile_sprite)) {
+	  			invader_sprite.set_active(false);
+				ship_missile_sprite.set_active(false);
+			}
 		}
 		if (!active_invaders) {
 			reset_invaders(current_player);
@@ -196,7 +238,7 @@ static void init_sdl(void) {
 	int audio_rate = 44100;
 	Uint16 audio_format = AUDIO_S16SYS;
 	int audio_channels = 2;
-	int audio_buffers = 8192;
+	int audio_buffers = 16384;
 
 	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0) {
 		fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());

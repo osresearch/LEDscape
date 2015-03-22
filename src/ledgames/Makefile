@@ -3,7 +3,6 @@
 # Build the various demos
 #
 #
-BIN-y += robin-hood-test
 BIN-y += breakout
 BIN-y += black
 BIN-y += white
