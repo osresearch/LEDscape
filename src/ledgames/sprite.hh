@@ -19,7 +19,7 @@ public:
   virtual void set_image(uint16_t x_offset, uint16_t y_offset, uint8_t width, uint8_t height, png_t *png_image, uint8_t anim_frame = 0);
   virtual void draw_onto(Screen *screen);
   virtual void set_active(bool active);
-  virtual bool is_active(void);
+  virtual bool is_active(void) const;
   virtual bool test_collision(const sprite_t &other_sprite);
   virtual float get_x_position(void);
   virtual float get_y_position(void);
