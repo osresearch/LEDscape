@@ -7,6 +7,7 @@
 class Screen {
 public:
   Screen(ledscape_t * const leds, uint32_t *pixels);
+  ~Screen();
 
   void drawpixel(uint32_t x, uint32_t y, uint32_t color);
   void set_background_color(uint32_t color);

@@ -17,6 +17,14 @@ flip_(false)
 	sleep(1);
 }
 
+Screen::~Screen()
+{
+	set_background_color(0x00000000);
+	draw_start();
+	draw_end();
+	sleep(1);
+}
+
 void Screen::drawpixel(uint32_t x, uint32_t y, uint32_t color) {
 	if ((x > 63) || (y > 63)) {
 		return;
