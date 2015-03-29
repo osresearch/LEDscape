@@ -11,6 +11,7 @@ SUBDIR-y += src/mta
 SUBDIR-y += src/net
 SUBDIR-y += src/script
 SUBDIR-y += src/ledgames
+SUBDIR-y += src/ledgames/rsrc
 
 all: 
 	for dir in $(SUBDIR-y); do \
