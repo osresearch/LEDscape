@@ -281,7 +281,7 @@ void render_game(Screen *screen) {
 			}
 			invader_idx++;
 		}
-		invader_speed = 0.05f + ((24 - active_invaders) * 0.08f);
+		invader_speed = 0.05f + ((24 - active_invaders) * 0.07f);
 		if (active_invaders == 0) {
 			reset_invaders(current_player);
 		}

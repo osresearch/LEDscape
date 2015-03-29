@@ -30,6 +30,8 @@ typedef struct {
 #define LEDSCAPE_MATRIX_OUTPUTS 1 // number of outputs on the cape
 #define LEDSCAPE_MATRIX_PANELS 4 // number of panels chained per output
 
+#define LEDSCAPE_MATRIX_GB_INVERT 1 // Flips green and blue colors, as this is different panel to panel
+
 typedef struct {
 	int type;
 	int width;

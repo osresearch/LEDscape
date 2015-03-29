@@ -288,8 +288,13 @@ ledscape_matrix_panel_copy(
 			uint8_t * const pix = &out[x*row_stride + (y/(config->panel_height/2))*3 + (y%(config->panel_height/2))*row_len];
 
 			pix[0] = (col >> 16) & 0xFF; // red
+#if LEDSCAPE_MATRIX_GB_INVERT
+			pix[1] = (col >>  0) & 0xFF; // green
+			pix[2] = (col >>  8) & 0xFF; // blue
+#else
 			pix[1] = (col >>  8) & 0xFF; // green
 			pix[2] = (col >>  0) & 0xFF; // blue
+#endif
 			//printf("%d,%d => %p %p %08x\n", x, y, pix, col_ptr, col);
 		}
 	}
