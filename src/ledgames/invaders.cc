@@ -22,6 +22,7 @@
 #include "screen.hh"
 #include "sprite.hh"
 #include "invader_sprite.hh"
+#include "ship_sprite.hh"
 #include "png.hh"
 
 static controls_t *player_controls[3];
@@ -30,7 +31,7 @@ static int player_lives[2];
 static int number_players;
 static int current_player;
 
-static sprite_t ship_sprite;
+static ship_sprite_t ship_sprite;
 static sprite_t ship_missile_sprite;
 static std::vector<invader_sprite_t> invader_sprites[2];
 static sprite_t invader_missile_sprite;
@@ -60,6 +61,7 @@ static uint32_t frames_till_shot;
 
 static std::default_random_engine generator;
 static std::uniform_int_distribution<unsigned int> invader_distribution(0,5);
+static std::uniform_int_distribution<unsigned int> shot_distribution(45,75);
 
 static void reset_invaders(int for_player) {
 	invader_sprites[for_player].clear();
@@ -109,7 +111,10 @@ static bool reset_round(void) {
 static void reset_game(int with_number_players) {
 	ship_sprite.set_active(true);
 	ship_sprite.set_position(28, 55);
-	ship_sprite.set_image(168,0,7,7,&sprite_sheet);
+	ship_sprite.set_image(168,0,7,7,&sprite_sheet, 0);
+	ship_sprite.set_image(168+7,0,7,7,&sprite_sheet, 1);
+	ship_sprite.set_image(168+14,0,7,7,&sprite_sheet, 2);
+	ship_sprite.set_image(168+28,0,7,7,&sprite_sheet, 3);
   
 	reset_invaders(0);
 	reset_invaders(1);
@@ -203,8 +208,8 @@ void render_game(Screen *screen) {
 		sprite_t invader_sprite = invader_sprites[current_player][invader_column];
 		invader_missile_sprite.set_position(invader_sprite.get_x_position(), invader_sprite.get_y_position());
 		invader_missile_sprite.set_image(196,0,7,7,&sprite_sheet);
-		invader_missile_sprite.set_speed(0.0f, 2.0f);
-		frames_till_shot=30;
+		invader_missile_sprite.set_speed(0.0f, 1.0f);
+		frames_till_shot=shot_distribution(generator);
 	}
 
 	if (game_state == game_state_t::Attract) {
@@ -288,7 +293,7 @@ void render_game(Screen *screen) {
 		
 		if (ship_sprite.test_collision(invader_missile_sprite)) {
 			game_state = game_state_t::NewShip;
-			ship_sprite.set_active(false);
+			ship_sprite.destroy_sprite();
 			player_lives[current_player]--;
 			frames_in_state = 0;
 		}
@@ -338,7 +343,7 @@ static void init_sdl(void) {
 		exit(1);
 	}
 
-	startup_bong = Mix_LoadWAV("/root/startup.wav");
+	startup_bong = Mix_LoadWAV("bin/startup.wav");
 	if (startup_bong == NULL) {
 		fprintf(stderr, "Unable to load startup.wav: %s\n", Mix_GetError());
 		exit(1);
@@ -372,7 +377,7 @@ const char ** argv
 
 	ledscape_t * const leds = ledscape_init(config, 0);
 
-	sprite_sheet.read_file("/root/Invaders.png");
+	sprite_sheet.read_file("bin/Invaders.png");
 
 	player_controls[0] = new controls_t(1);
 	player_controls[1] = new controls_t(2);
