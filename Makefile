@@ -5,10 +5,6 @@
 
 SUBDIR-y += dts
 SUBDIR-y += src/ledscape
-SUBDIR-y += src/demos
-SUBDIR-y += src/perlin
-SUBDIR-y += src/mta
-SUBDIR-y += src/net
 SUBDIR-y += src/script
 SUBDIR-y += src/ledgames
 SUBDIR-y += src/ledgames/rsrc

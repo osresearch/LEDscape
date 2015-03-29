@@ -11,3 +11,8 @@ all: copy
 
 copy:
 	cp -f $(FILES) $(BINDIR)
+
+clean:
+	rm -rf $(BINDIR)*.wav
+	rm -rf $(BINDIR)Invaders.png
+
