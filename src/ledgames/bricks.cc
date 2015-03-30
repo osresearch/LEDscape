@@ -168,9 +168,9 @@ void render_game(Screen *screen) {
   screen->draw_end();
   
   player_controls[current_player]->refresh_status();
+  player_controls[2]->refresh_status();
   
   if (game_state == game_state_t::Attract) {
-    player_controls[2]->refresh_status();
     if (player_controls[2]->is_pressed(button_a)) {
       reset_game(1);
     } else if (player_controls[2]->is_pressed(button_b)) {
@@ -261,7 +261,7 @@ static void init_sdl(void) {
     exit(1);
   }
 
-  startup_bong = Mix_LoadWAV("/root/startup.wav");
+  startup_bong = Mix_LoadWAV("bin/startup.wav");
   if (startup_bong == NULL) {
     fprintf(stderr, "Unable to load startup.wav: %s\n", Mix_GetError());
     exit(1);
@@ -308,21 +308,24 @@ main(
   
   init_sdl();
 
-  wall_blip = Mix_LoadWAV("/root/blip1.wav");
-  paddle_blip = Mix_LoadWAV("/root/blip2.wav");
-  block_blip[0] = Mix_LoadWAV("/root/blip3.wav");
-  block_blip[1] = Mix_LoadWAV("/root/blip4.wav");
-  block_blip[2] = Mix_LoadWAV("/root/blip5.wav");
+  wall_blip = Mix_LoadWAV("bin/blip1.wav");
+  paddle_blip = Mix_LoadWAV("bin/blip2.wav");
+  block_blip[0] = Mix_LoadWAV("bin/blip3.wav");
+  block_blip[1] = Mix_LoadWAV("bin/blip4.wav");
+  block_blip[2] = Mix_LoadWAV("bin/blip5.wav");
   
-  while (1)
-    {
-      render_game(screen);
+try {
+	while (1)
+	{
+		render_game(screen);
 
-      usleep(20000);
+		usleep(20000);
 
-    }
-
-  ledscape_close(leds);
+	}
+}
+catch (control_exit_exception* ex) {
+	delete screen;
+}
 
   return EXIT_SUCCESS;
 }

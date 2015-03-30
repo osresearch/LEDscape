@@ -69,7 +69,7 @@ static void reset_invaders(int for_player) {
 	invader_speed = 0.05f;
 	for (int row_counter = 0; row_counter < 4; row_counter++) {
 		for (int column_counter = 0; column_counter < 6; column_counter++) {
-			invader_sprite_t invader_sprite;
+			invader_sprite_t invader_sprite((5 - row_counter) * 100);
 			invader_sprite.set_active(true);
 			invader_sprite.set_speed(invader_speed, 0.0);
 			invader_sprite.set_position(column_counter * 10, 10 + (row_counter * 8));
@@ -275,7 +275,7 @@ void render_game(Screen *screen) {
 		for (auto &invader_sprite : invader_sprites[current_player]) {
 			active_invaders += (invader_sprite.is_active() ? 1 : 0);
 			if (invader_sprite.test_collision(ship_missile_sprite)) {
-				invader_sprite.destroy_sprite();
+				player_score[current_player] += invader_sprite.destroy_sprite();
 				ship_missile_sprite.set_active(false);
 				for (uint8_t idx_ctr = 0; idx_ctr < 6; idx_ctr++) {
 					if (lowest_invaders[idx_ctr] == invader_idx) {

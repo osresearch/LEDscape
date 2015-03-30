@@ -134,9 +134,9 @@ void render_game(Screen *screen) {
   
   player_controls[0]->refresh_status();
   player_controls[1]->refresh_status();
+  player_controls[2]->refresh_status();
   
   if (game_state == game_state_t::Attract) {
-    player_controls[2]->refresh_status();
     if (player_controls[2]->is_pressed(button_a)) {
       reset_game(1);
     } else if (player_controls[2]->is_pressed(button_b)) {
@@ -245,7 +245,7 @@ static void init_sdl(void) {
     exit(1);
   }
 
-  startup_bong = Mix_LoadWAV("/root/startup.wav");
+  startup_bong = Mix_LoadWAV("bin/startup.wav");
   if (startup_bong == NULL) {
     fprintf(stderr, "Unable to load startup.wav: %s\n", Mix_GetError());
     exit(1);
@@ -278,11 +278,11 @@ main(
     }
 
   ledscape_t * const leds = ledscape_init(config, 0);
-
-  player_controls[0] = new controls_t(1);
-  player_controls[1] = new controls_t(2, true);
-  player_controls[2] = new controls_t(3);
   
+  player_controls[0] = new controls_t(1);
+  player_controls[1] = new controls_t(2);
+  player_controls[2] = new controls_t(3);
+
   init_attract();
   
   printf("init done\n");
@@ -292,17 +292,20 @@ main(
   
   init_sdl();
 
-  paddle_blip = Mix_LoadWAV("/root/blip2.wav");
+  paddle_blip = Mix_LoadWAV("bin/blip2.wav");
   
-  while (1)
-    {
-      render_game(screen);
+try {
+	while (1)
+	{
+		render_game(screen);
 
-      usleep(20000);
+		usleep(20000);
 
-    }
-
-  ledscape_close(leds);
+	}
+}
+catch (control_exit_exception* ex) {
+	delete screen;
+}
 
   return EXIT_SUCCESS;
 }

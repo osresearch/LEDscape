@@ -5,7 +5,8 @@ FILES = blip2.wav \
 	blip4.wav \
 	blip5.wav \
 	startup.wav \
-	Invaders.png
+	Invaders.png \
+	Menus.png
 
 all: copy
 

@@ -1,6 +1,6 @@
 /** \file
- * Test the matrix LCD PRU firmware with a multi-hue rainbow.
- */
+* Test the matrix LCD PRU firmware with a multi-hue rainbow.
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -25,10 +25,10 @@ void render_game(uint32_t *pixels) {
 }
 
 int
-main(
-	int argc,
-	const char ** argv
-)
+	main(
+		int argc,
+const char ** argv
+	)
 {
 	int width = 64;
 	int height = 64;
@@ -56,26 +56,26 @@ main(
 	unsigned i = 0;
 	uint32_t * const p = calloc(width*height,4);
 
-		render_game(p);
+	render_game(p);
 
-		i++;
-		ledscape_draw(leds, p);
+	i++;
+	ledscape_draw(leds, p);
 
-		usleep(20000);
+	usleep(20000);
 
-		// wait for the previous frame to finish;
-		//const uint32_t response = ledscape_wait(leds);
-		const uint32_t response = 0;
-		time_t now = time(NULL);
-		if (now != last_time)
-		{
-			printf("%d fps. starting %d previous %"PRIx32"\n",
-				i - last_i, i, response);
-			last_i = i;
-			last_time = now;
-		}
+	// wait for the previous frame to finish;
+	//const uint32_t response = ledscape_wait(leds);
+	const uint32_t response = 0;
+	time_t now = time(NULL);
+	if (now != last_time)
+	{
+		printf("%d fps. starting %d previous %"PRIx32"\n",
+		i - last_i, i, response);
+		last_i = i;
+		last_time = now;
+	}
 
-
+	printf("init done\n");
 	ledscape_close(leds);
 
 	return EXIT_SUCCESS;

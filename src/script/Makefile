@@ -10,7 +10,8 @@ FILES = bbb-network-setup \
 	run-videoplayer \
 	twitter-scroller \
 	videoplayer \
-	videoplayer.service
+	videoplayer.service \
+	run-menu
 
 all: copy
 
