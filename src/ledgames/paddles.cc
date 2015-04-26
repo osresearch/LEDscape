@@ -280,7 +280,7 @@ main(
   ledscape_t * const leds = ledscape_init(config, 0);
   
   player_controls[0] = new controls_t(1);
-  player_controls[1] = new controls_t(2);
+  player_controls[1] = new controls_t(2, true);
   player_controls[2] = new controls_t(3);
 
   init_attract();
