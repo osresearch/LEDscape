@@ -103,7 +103,7 @@ void render_game(Screen *screen) {
    
 		if (player_controls[0]->is_pressed(joystick_right)) {
 			game_sprites[current_option].set_active(false);
-			current_option = (current_option < 2) ? current_option+1 : 2;
+			current_option = (current_option < game_sprites.size()-1) ? current_option+1 : game_sprites.size()-1;
 			game_sprites[current_option].set_active(true);
 			game_state = game_state_t::Menu_Select;
 		}
@@ -182,17 +182,15 @@ const char ** argv
 
 	menu_blip = Mix_LoadWAV("bin/blip3.wav");
   
-	try {
-		while (1)
-		{
+	while (1)
+	{
+		try {
 			render_game(screen);
-
 			usleep(20000);
-
 		}
-	}
-	catch (control_exit_exception* ex) {
-		delete screen;
+		catch (control_exit_exception* ex) {
+			// Ignore the exception, as there is no useful exit program.
+		}
 	}
 
 	return EXIT_SUCCESS;
