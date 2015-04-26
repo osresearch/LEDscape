@@ -79,14 +79,21 @@ bool sprite_t::test_collision(const sprite_t &other_sprite) {
 	if (!active_) return false;
 	if (!other_sprite.is_active()) return false;
   
-	uint8_t visible_x = x_;
-	uint8_t visible_y = y_;
-	uint8_t other_visible_x = other_sprite.x_;
-	uint8_t other_visible_y = other_sprite.y_;
-  
-	return !((visible_x + width_ - 1) < other_visible_x || (visible_y + height_ - 1) < (other_visible_y) ||
-		x_ > (other_visible_x + other_sprite.width_ - 1) ||
-			y_ > (other_visible_y + other_sprite.height_ - 1) );
+	uint8_t top = std::max(y_, other_sprite.y_);
+	uint8_t bottom = std::min(y_+height_, other_sprite.y_ + other_sprite.height_);
+	uint8_t left = std::max(x_, other_sprite.x_);
+	uint8_t right = std::min(x_+width_, other_sprite.x_ + other_sprite.width_);
+	
+	for (uint8_t y = top ; y < bottom; y++) {
+		for (uint8_t x = left; x < right; x++) {
+			uint32_t this_color = sprite_data_[frame_][(x - x_) + (y - y_) * width_];
+			uint32_t other_color = other_sprite.sprite_data_[other_sprite.frame_][(x - other_sprite.x_) + (y - other_sprite.y_) * other_sprite.width_];
+			if ((this_color != 0x00000000) && (other_color != 0x00000000)) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 float sprite_t::get_x_position(void) {

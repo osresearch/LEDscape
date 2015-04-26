@@ -61,7 +61,7 @@ static uint32_t frames_till_shot;
 
 static std::default_random_engine generator;
 static std::uniform_int_distribution<unsigned int> invader_distribution(0,5);
-static std::uniform_int_distribution<unsigned int> shot_distribution(45,75);
+static std::uniform_int_distribution<unsigned int> shot_distribution(65,95);
 
 static void reset_invaders(int for_player) {
 	invader_sprites[for_player].clear();
@@ -208,7 +208,7 @@ void render_game(Screen *screen) {
 		sprite_t invader_sprite = invader_sprites[current_player][invader_column];
 		invader_missile_sprite.set_position(invader_sprite.get_x_position(), invader_sprite.get_y_position());
 		invader_missile_sprite.set_image(196,0,7,7,&sprite_sheet);
-		invader_missile_sprite.set_speed(0.0f, 1.0f);
+		invader_missile_sprite.set_speed(0.0f, 0.8f);
 		frames_till_shot=shot_distribution(generator);
 	}
 
