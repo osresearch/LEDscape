@@ -20,7 +20,7 @@ public:
   virtual void draw_onto(Screen *screen);
   virtual void set_active(bool active);
   virtual bool is_active(void) const;
-  virtual bool test_collision(const sprite_t &other_sprite);
+  virtual bool test_collision(const sprite_t &other_sprite, bool fast);
   virtual float get_x_position(void);
   virtual float get_y_position(void);
   

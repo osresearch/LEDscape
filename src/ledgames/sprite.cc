@@ -75,9 +75,20 @@ void sprite_t::draw_onto(Screen *screen) {
 	}
 }
 
-bool sprite_t::test_collision(const sprite_t &other_sprite) {
+bool sprite_t::test_collision(const sprite_t &other_sprite, bool fast) {
 	if (!active_) return false;
 	if (!other_sprite.is_active()) return false;
+	
+	if (fast) {
+		uint8_t visible_x = x_;
+		uint8_t visible_y = y_;
+		uint8_t other_visible_x = other_sprite.x_;
+		uint8_t other_visible_y = other_sprite.y_;
+		  
+		return !((visible_x + width_ - 1) < other_visible_x || (visible_y + height_ - 1) < (other_visible_y) ||
+			x_ > (other_visible_x + other_sprite.width_ - 1) ||
+			y_ > (other_visible_y + other_sprite.height_ - 1) );
+	}
   
 	uint8_t top = std::max(y_, other_sprite.y_);
 	uint8_t bottom = std::min(y_+height_, other_sprite.y_ + other_sprite.height_);

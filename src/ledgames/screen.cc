@@ -37,7 +37,7 @@ void Screen::set_background_color(uint32_t color) {
 	background_color_ = color;
 }
 
-void Screen::draw_char(uint8_t row, uint8_t column, const uint32_t color, char c, bool flip) {
+void Screen::draw_char(uint32_t row, uint32_t column, const uint32_t color, char c, bool flip) {
 	if (c < 0x20 || c > 127)
 		c = '?';
   
@@ -54,7 +54,7 @@ void Screen::draw_char(uint8_t row, uint8_t column, const uint32_t color, char c
 	}
 }
 
-void Screen::draw_text(uint8_t row, uint8_t column, uint32_t color, std::string output, bool flip) {
+void Screen::draw_text(uint32_t row, uint32_t column, uint32_t color, std::string output, bool flip) {
 	if (flip) {
 		column += (output.length() - 1) * 6;
 	}

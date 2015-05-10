@@ -13,11 +13,11 @@ public:
   void set_background_color(uint32_t color);
   void draw_start(void);
   void draw_end(void);
-  void draw_text(uint8_t row, uint8_t column, uint32_t color, std::string output, bool flip = false);
+  void draw_text(uint32_t row, uint32_t column, uint32_t color, std::string output, bool flip = false);
   void set_flip(bool do_flip);
   
 private:
-  void draw_char(uint8_t row, uint8_t column, const uint32_t color, char c, bool flip);
+  void draw_char(uint32_t row, uint32_t column, const uint32_t color, char c, bool flip);
 
   uint32_t *pixels_;
   ledscape_t * const leds_;

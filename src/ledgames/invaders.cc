@@ -1,5 +1,5 @@
 /** \file
-* Test the matrix LCD PRU firmware with a multi-hue rainbow.
+* Invaders sample game
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,9 +38,9 @@ static sprite_t invader_missile_sprite;
 static int32_t lowest_invaders[6];
 
 static Mix_Chunk *startup_bong;
-static Mix_Chunk *wall_blip;
-static Mix_Chunk *block_blip[3];
-static Mix_Chunk *paddle_blip;
+static Mix_Chunk *invader_explosion;
+static Mix_Chunk *ship_explosion;
+static Mix_Chunk *invader_march[4];
 
 static png_t sprite_sheet;
 
@@ -58,6 +58,9 @@ static bool shot_fired;
 static float invader_speed;
 static uint32_t frames_in_state;
 static uint32_t frames_till_shot;
+
+static uint32_t invader_march_state;
+static uint32_t invader_march_frames;
 
 static std::default_random_engine generator;
 static std::uniform_int_distribution<unsigned int> invader_distribution(0,5);
@@ -104,6 +107,9 @@ static bool reset_round(void) {
 	game_state = game_state_t::Playing;
 	
 	frames_till_shot = 60;
+	
+	invader_march_state = 0;
+	invader_march_frames = 0;
 
 	return true;
 }
@@ -182,6 +188,7 @@ void render_game(Screen *screen) {
 
 	if (invader_touchdown) {
 		game_state = game_state_t::Touchdown;
+		Mix_PlayChannel(-1, ship_explosion, 0);
 		frames_in_state = 0;
 		ship_sprite.set_active(false);
 		player_lives[current_player] = 0;
@@ -213,9 +220,9 @@ void render_game(Screen *screen) {
 	}
 
 	if (game_state == game_state_t::Attract) {
-		screen->draw_text(32,2,0x00808080,"GAME OVER!");
-		screen->draw_text(40,2,0x00808080,"PRESS PLYR");
-		screen->draw_text(48,2,0x00808080,"  1 OR 2  ");
+		screen->draw_text(0,2,0x00808080,"GAME OVER!");
+		screen->draw_text(48,2,0x00808080,"PRESS PLYR");
+		screen->draw_text(56,2,0x00808080,"  1 OR 2  ");
 	} else if ((game_state == game_state_t::Playing) || (game_state == game_state_t::NewShip)) {
 		char score[7];
 		char lives[1];
@@ -267,6 +274,7 @@ void render_game(Screen *screen) {
 		if (!player_controls[current_player]->is_pressed(button_a)) {
 			shot_fired = false;
 		}
+		
 	}
 
 	if ((game_state == game_state_t::Attract) || (game_state == game_state_t::Playing)) {
@@ -274,7 +282,8 @@ void render_game(Screen *screen) {
 		int32_t invader_idx = 0;
 		for (auto &invader_sprite : invader_sprites[current_player]) {
 			active_invaders += (invader_sprite.is_active() ? 1 : 0);
-			if (invader_sprite.test_collision(ship_missile_sprite)) {
+			if (invader_sprite.test_collision(ship_missile_sprite, false)) {
+				Mix_PlayChannel(-1, invader_explosion, 0);
 				player_score[current_player] += invader_sprite.destroy_sprite();
 				ship_missile_sprite.set_active(false);
 				for (uint8_t idx_ctr = 0; idx_ctr < 6; idx_ctr++) {
@@ -286,12 +295,23 @@ void render_game(Screen *screen) {
 			}
 			invader_idx++;
 		}
-		invader_speed = 0.05f + ((24 - active_invaders) * 0.07f);
+		invader_speed = 0.06f + ((24 - active_invaders) * 0.05f);
 		if (active_invaders == 0) {
 			reset_invaders(current_player);
 		}
 		
-		if (ship_sprite.test_collision(invader_missile_sprite)) {
+		if (game_state == game_state_t::Playing) {
+			if (invader_march_frames == 0) {
+				Mix_PlayChannel(-1, invader_march[invader_march_state], 0);
+				invader_march_state = (invader_march_state + 1) % 4;
+				invader_march_frames = 10 + (active_invaders/4);
+			} else {
+				invader_march_frames--;
+			}
+		}
+
+		if (ship_sprite.test_collision(invader_missile_sprite, false)) {
+			Mix_PlayChannel(-1, ship_explosion, 0);
 			game_state = game_state_t::NewShip;
 			ship_sprite.destroy_sprite();
 			player_lives[current_player]--;
@@ -392,11 +412,12 @@ const char ** argv
   
 	init_sdl();
 
-	wall_blip = Mix_LoadWAV("/root/blip1.wav");
-	paddle_blip = Mix_LoadWAV("/root/blip2.wav");
-	block_blip[0] = Mix_LoadWAV("/root/blip3.wav");
-	block_blip[1] = Mix_LoadWAV("/root/blip4.wav");
-	block_blip[2] = Mix_LoadWAV("/root/blip5.wav");
+	invader_explosion = Mix_LoadWAV("bin/invader_explosion.wav");
+	ship_explosion = Mix_LoadWAV("bin/ship_explosion.wav");
+	invader_march[0] = Mix_LoadWAV("bin/invader_march1.wav");
+	invader_march[1] = Mix_LoadWAV("bin/invader_march2.wav");
+	invader_march[2] = Mix_LoadWAV("bin/invader_march3.wav");
+	invader_march[3] = Mix_LoadWAV("bin/invader_march4.wav");
   
 	try {
 		while (1)

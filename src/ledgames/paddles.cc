@@ -1,5 +1,5 @@
 /** \file
- * Test the matrix LCD PRU firmware with a multi-hue rainbow.
+ * Paddles sample game
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -180,7 +180,7 @@ void render_game(Screen *screen) {
     ball_sprite.move_sprite();
   }
   
-  if (ball_sprite.test_collision(paddle_sprite[0])) {
+  if (ball_sprite.test_collision(paddle_sprite[0], true)) {
     ball_sprite.y_ = 59.0f;
     ball_sprite.dy_ = -ball_sprite.dy_ * 1.1f;
     if (ball_sprite.dy_ < -2.0f) ball_sprite.dy_ = -2.0f;
@@ -188,7 +188,7 @@ void render_game(Screen *screen) {
     Mix_PlayChannel(-1, paddle_blip, 0);
   }
 
-  if (ball_sprite.test_collision(paddle_sprite[1])) {
+  if (ball_sprite.test_collision(paddle_sprite[1], true)) {
     ball_sprite.y_ = 5.0f;
     ball_sprite.dy_ = -ball_sprite.dy_ * 1.1f;
     if (ball_sprite.dy_ > 2.0f) ball_sprite.dy_ = 2.0f;

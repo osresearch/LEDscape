@@ -1,5 +1,5 @@
 /** \file
- * Test the matrix LCD PRU firmware with a multi-hue rainbow.
+ * Bricks sample game
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -201,7 +201,7 @@ void render_game(Screen *screen) {
     ball_sprite.move_sprite();
   }
   
-  if (ball_sprite.test_collision(paddle_sprite)) {
+  if (ball_sprite.test_collision(paddle_sprite, true)) {
     ball_sprite.y_ = 59.0f;
     ball_sprite.dy_ = -ball_sprite.dy_;
     ball_sprite.dx_ = ball_horizontal_speeds[(int)(ball_sprite.x_ - (paddle_sprite.x_ - 1))];
@@ -225,7 +225,7 @@ void render_game(Screen *screen) {
     bool active_bricks = false;
     for (auto &brick_sprite : brick_sprites[current_player]) {
       active_bricks |= brick_sprite.is_active();
-      if (brick_sprite.test_collision(ball_sprite)) {
+      if (brick_sprite.test_collision(ball_sprite, true)) {
 	brick_sprite.set_active(false);
 	game_state = game_state_t::Resetting;
 	ball_sprite.dy_ = -ball_sprite.dy_;
