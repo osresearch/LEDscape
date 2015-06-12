@@ -23,27 +23,26 @@ Note: If using a RevC or lower BBB, the EMMC is only 2GB so this isn't necessica
 Next, update the the Debian environment:
 
     sudo apt-get update
-    sudo apt-get upgrade
-    sudo apt-get install usbmount
-    sudo apt-get install git build-essential vim
+    sudo apt-get install usbmount -y
+    sudo apt-get install git build-essential vim -y
     
 Disable the HDMI output:
 
 If you are using a Debian image from 2014.8.13 or newer, do this:
 
     sudo cp /boot/uEnv.txt /boot/uEnv.txt.backup
-    sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/g' /boot/uEnv.txt
-    sudo reboot
+    sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN$/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/g' /boot/uEnv.txt
 
-Note: This is messed up on recent versions of Debian, need to hand edit.
 
-Otherwise, modify the uEnv boot file to disable HDMI and HDMIN overlays, then reboot.
+Otherwise, modify the uEnv boot file by hand to disable HDMI and HDMIN overlays.
 
 Enable a larger shared memory space (8MB) with the PRU:
 
 	echo 'options uio_pruss extram_pool_sz=0x800000' | sudo tee -a /etc/modprobe.d/ledscape.conf
 	
-and reboot again.
+Finally, reboot to apply these changs:
+
+    sudo reboot
 
 # Next, set up LEDscape:
 
@@ -167,9 +166,26 @@ Extra: for video playback
 
 ## Make the filesystem read-only
 
-To help prevent the configuration from breaking, it's helpful to configure the system as read only. Here are some instrucitons:
+To help prevent the configuration from breaking, it's helpful to configure the system as read only. The insructions are from:
 
-    http://armsdr.blogspot.com/2014/11/beaglebone-debian-read-only-filesystem.html'
+    http://armsdr.blogspot.com/2014/11/beaglebone-debian-read-only-filesystem.html
+
+First, back up the original fstab:
+
+	sudo cp /etc/fstab /etc/fstab_rw
+    
+Now, set the root filesystem to be readonly:
+
+	sudo sed -i 's/ext4  noatime/ext4  ro,noatime/g' /etc/fstab
+    
+Finally, add some temporary rw mounts so that the system can continue to function:
+
+	echo "tmpfs /tmp tmpfs nodev,nosuid,size=32M 0 0
+	tmpfs /srv tmpfs nodev,size=512K 0 0
+	tmpfs /var/log tmpfs defaults,noatime,size=1M 0 0
+	tmpfs /var/tmp tmpfs defaults,noatime,size=512K 0 0
+	tmpfs /var/run tmpfs defaults,noatime,size=512K 0 0" | sudo tee -a /etc/fstab
+
 
 Later, write capability can be restored using the following command:
 
@@ -179,15 +195,19 @@ And disabled again using:
 
     sudo mount -o remount,ro /
 
-## Speed up boot when Ethernet is connected
+## Speed up boot when Ethernet is not connected
 
-dhclient somehow sits for a long time before letting the system finish booting. Try this:
+The ethernet PHY on some BBBs can be flaky and cause a long delay during boot. To work around this, set it to not load at boot:
 
-    sudo sudo sed -i 's/#timeout 10/timeout 0/g' /etc/dhcp/dhclient.conf
+    sudo sudo sed -i 's/auto eth0/#auto eth0/g' /etc/network/interfaces    
+
+Later it can be enabled by typing:
+
+	sudo ifup eth0
 
 ## Set the time automatically (when network is available)
 
-	sudo apt-get install ntpdate
+	sudo apt-get install ntpdate -y
 	
 
 # Video playback
@@ -198,8 +218,8 @@ Playing a video is as simple as running the video player (after running the UDP 
     
 Note: These packages used to be required, but now are included in the default Debian image. You might need to install them if you're using a different system.
 
-    sudo apt-get install libavformat-dev x264 v4l-utils ffmpeg
-    sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv opencv-doc libcv-dev libcvaux-dev libhighgui-dev
+    sudo apt-get install libavformat-dev x264 v4l-utils ffmpeg -y
+    sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv opencv-doc libcv-dev libcvaux-dev libhighgui-dev -y
     
     
 #Helpful things for development
