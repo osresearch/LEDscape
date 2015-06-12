@@ -36,7 +36,7 @@ static const uint8_t gpios0[] = {
 };
 
 static const uint8_t gpios1[] = {
-	13, 15, 12, 14, 29, 16, 17, 28, 18, 19,
+	13, 15, 12, 14, 29, 16, 17, 28, 18, 19
 };
 
 static const uint8_t gpios2[] = {

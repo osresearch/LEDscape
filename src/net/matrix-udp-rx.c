@@ -97,7 +97,7 @@ main(
 	const char * startup_message = "";
 	int timeout = 60;
 	unsigned width = 512;
-	unsigned height = 64;
+	unsigned height = 32;
 	int no_init = 0;
 
 	while (1)
@@ -230,12 +230,12 @@ main(
 		}
 
 		struct timeval start_tv, stop_tv, delta_tv;
-		gettimeofday(&start_tv, NULL);
+		gettimeofday(&start_tv, 0);
 
 		// copy the 3-byte values into the 4-byte framebuffer
-		for (unsigned x = 0 ; x < width ; x++) // 256
+		for (unsigned x = 0 ; x < width ; x++)
 		{
-			for (unsigned y = 0 ; y < height ; y++) // 64
+			for (unsigned y = 0 ; y < height ; y++)
 			{
 				uint32_t * out = &fb[(height*frame_part + y)*width + x];
 				const uint8_t * in = &buf[1 + 3*(y*width + x)];
@@ -243,6 +243,7 @@ main(
 				uint8_t r = in[0];
 				uint8_t g = in[1];
 				uint8_t b = in[2];
+
 				*out = (r << 16) | (g << 8) | (b << 0);
 			}
 		}
@@ -251,7 +252,7 @@ main(
 		if (frame_part == 1)
 			ledscape_draw(leds, fb);
 
-		gettimeofday(&stop_tv, NULL);
+		gettimeofday(&stop_tv, 0);
 		timersub(&stop_tv, &start_tv, &delta_tv);
 
 		frames++;
