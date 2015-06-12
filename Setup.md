@@ -4,11 +4,17 @@ This is a quick introduction on how to set up LEDscape on a Debian-based image
 
 # Setting up the BBB environment
 
-To develop for LEDscape on a Debian environment, Start by copying the latest BBB image to an SD card. These instructions were made using version bone-debian-7.5-2014-05-14-2gb.img. The latest version can be found at:
+To develop for LEDscape on a Debian environment, Start by copying the latest BBB image to an SD card. These instructions were made using:
+
+    BBB-eMMC-flasher-ubuntu-14.04.2-console-armhf-2015-05-08-2gb.img
+
+The latest version can be found at:
 
     http://elinux.org/BeagleBoardDebian#Demo_Image
 
 First, we need to expand the image to use the whole SD card. By default, it is only 2GB.
+
+Note: If using a RevC or lower BBB, the EMMC is only 2GB so this isn't necessicary.
 
     cd /opt/scripts/tools/
     sudo ./grow_partition.sh
@@ -17,22 +23,27 @@ First, we need to expand the image to use the whole SD card. By default, it is o
 Next, update the the Debian environment:
 
     sudo apt-get update
+    sudo apt-get upgrade
     sudo apt-get install usbmount
-    sudo apt-get install git build-essential
+    sudo apt-get install git build-essential vim
     
 Disable the HDMI output:
 
 If you are using a Debian image from 2014.8.13 or newer, do this:
 
-    sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN'/g /boot/uEnv.txt
+    sudo cp /boot/uEnv.txt /boot/uEnv.txt.backup
+    sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/g' /boot/uEnv.txt
     sudo reboot
 
-If you are using an older Debian image, do this:
-
-    sudo sed -i 's/#cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN/cape_disable=capemgr.disable_partno=BB-BONELT-HDMI,BB-BONELT-HDMIN'/g /boot/uboot/uEnv.txt
-    sudo reboot
+Note: This is messed up on recent versions of Debian, need to hand edit.
 
 Otherwise, modify the uEnv boot file to disable HDMI and HDMIN overlays, then reboot.
+
+Enable a larger shared memory space (8MB) with the PRU:
+
+	echo 'options uio_pruss extram_pool_sz=0x800000' | sudo tee -a /etc/modprobe.d/ledscape.conf
+	
+and reboot again.
 
 # Next, set up LEDscape:
 
@@ -152,8 +163,34 @@ Extra: for video playback
     sudo systemctl enable videoplayer.service
 
 
-Video playback
-==============
+# Extra credit
+
+## Make the filesystem read-only
+
+To help prevent the configuration from breaking, it's helpful to configure the system as read only. Here are some instrucitons:
+
+    http://armsdr.blogspot.com/2014/11/beaglebone-debian-read-only-filesystem.html'
+
+Later, write capability can be restored using the following command:
+
+    sudo mount -o remount,rw /
+
+And disabled again using:
+
+    sudo mount -o remount,ro /
+
+## Speed up boot when Ethernet is connected
+
+dhclient somehow sits for a long time before letting the system finish booting. Try this:
+
+    sudo sudo sed -i 's/#timeout 10/timeout 0/g' /etc/dhcp/dhclient.conf
+
+## Set the time automatically (when network is available)
+
+	sudo apt-get install ntpdate
+	
+
+# Video playback
 
 Playing a video is as simple as running the video player (after running the UDP listener):
 
@@ -163,4 +200,13 @@ Note: These packages used to be required, but now are included in the default De
 
     sudo apt-get install libavformat-dev x264 v4l-utils ffmpeg
     sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv opencv-doc libcv-dev libcvaux-dev libhighgui-dev
+    
+    
+#Helpful things for development
 
+## Make VIM prettier
+
+Enable color highlighting
+
+	echo 'syntax on' >>~/.vimrc
+	
