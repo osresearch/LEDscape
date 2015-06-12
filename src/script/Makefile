@@ -1,7 +1,7 @@
-
+SCRIPTDIR = ../src/script/
 BINDIR = ../../bin/
 
-FILES = bbb-network-setup \
+scripts = bbb-network-setup \
 	find-serial \
 	install \
 	ledscape.service \
@@ -12,7 +12,11 @@ FILES = bbb-network-setup \
 	videoplayer \
 	videoplayer.service
 
-all: copy
+all: $(scripts)
 
-copy:
-	cp -f $(FILES) $(BINDIR)
+.PHONY: $(scripts)
+
+$(scripts): 
+	if test ! -e $(BINDIR)$@; \
+	then ln -s $(SCRIPTDIR)$@ $(BINDIR); \
+	fi
