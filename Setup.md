@@ -6,11 +6,11 @@ This is a quick introduction on how to set up LEDscape on a Debian-based image
 
 To develop for LEDscape on a Debian environment, Start by copying the latest BBB image to an SD card. These instructions were made using:
 
-    BBB-eMMC-flasher-ubuntu-14.04.2-console-armhf-2015-05-08-2gb.img
+    BBB-eMMC-flasher-debian-7.8-console-armhf-2015-03-01-2gb.img.xz
 
 The latest version can be found at:
 
-    http://elinux.org/BeagleBoardDebian#Demo_Image
+    http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#Debian_Releases
 
 First, we need to expand the image to use the whole SD card. By default, it is only 2GB.
 
