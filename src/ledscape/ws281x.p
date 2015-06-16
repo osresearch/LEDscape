@@ -46,80 +46,80 @@
  //* 
  //*/
 
-#define r11_gpio	2
-#define r11_pin		2
-#define g11_gpio	2
-#define g11_pin		5
-#define b11_gpio	1
-#define b11_pin		13
+#define r11_gpio    0
+#define r11_pin     27
+#define g11_gpio    2
+#define g11_pin     1
+#define b11_gpio    1
+#define b11_pin     14
 
-#define r12_gpio	0
-#define r12_pin		23
-#define g12_gpio	1
-#define g12_pin		15
-#define b12_gpio	0
-#define b12_pin		27
+#define r12_gpio    1
+#define r12_pin     15
+#define g12_gpio    0
+#define g12_pin     23
+#define b12_gpio    0
+#define b12_pin     26
 
-#define r21_gpio	2
-#define r21_pin		22
-#define g21_gpio	2
-#define g21_pin		23
-#define b21_gpio	0
-#define b21_pin		10
+#define r21_gpio    1
+#define r21_pin     12
+#define g21_gpio    1
+#define g21_pin     13
+#define b21_gpio    2
+#define b21_pin     5
 
-#define r22_gpio	0
-#define r22_pin		9
-#define g22_gpio	0
-#define g22_pin		8
-#define b22_gpio	2
-#define b22_pin		14
+#define r22_gpio    2
+#define r22_pin     4
+#define g22_gpio    2
+#define g22_pin     3
+#define b22_gpio    2
+#define b22_pin     2
 
-#define r31_gpio	2
-#define r31_pin		12
-#define g31_gpio	2
-#define g31_pin		10
-#define b31_gpio	2
-#define b31_pin		8
+#define r31_gpio    3
+#define r31_pin     16
+#define g31_gpio    0
+#define g31_pin     20
+#define b31_gpio    0
+#define b31_pin     14
 
-#define r32_gpio	2
-#define r32_pin		6
-#define g32_gpio	2
-#define g32_pin		7
-#define b32_gpio	2
-#define b32_pin		9
+#define r32_gpio    3
+#define r32_pin     19
+#define g32_gpio    0
+#define g32_pin     15
+#define b32_gpio    3
+#define b32_pin     21
 
-#define r41_gpio	2
-#define r41_pin		11
-#define g41_gpio	2
-#define g41_pin		13
-#define b41_gpio	2
-#define b41_pin		15
+#define r41_gpio    0
+#define r41_pin     2
+#define g41_gpio    1
+#define g41_pin     17
+#define b41_gpio    2
+#define b41_pin     22
 
-#define r42_gpio	2
-#define r42_pin		16
-#define g42_gpio	2
-#define g42_pin		17
-#define b42_gpio	0
-#define b42_pin		11
+#define r42_gpio    0
+#define r42_pin     3
+#define g42_gpio    0
+#define g42_pin     4
+#define b42_gpio    2
+#define b42_pin     24
 
-#define r51_gpio	2
-#define r51_pin		25
-#define g51_gpio	2
-#define g51_pin		24
-#define b51_gpio	2
-#define b51_pin		1
+#define r51_gpio    1
+#define r51_pin     19
+#define g51_gpio    0
+#define g51_pin     5
+#define b51_gpio    1
+#define b51_pin     18
 
-#define r52_gpio	1
-#define r52_pin		14
-#define g52_gpio	0
-#define g52_pin		26
-#define b52_gpio	1
-#define b52_pin		12
+#define r52_gpio    1
+#define r52_pin     16
+#define g52_gpio    1
+#define g52_pin     28
+#define b52_gpio    0
+#define b52_pin     31
 
-#define r61_gpio	2
-#define r61_pin		4
-#define g61_gpio	2
-#define g61_pin		3
+#define r61_gpio    1
+#define r61_pin     29
+#define g61_gpio    0
+#define g61_pin     30
 
 // Note: From here down, these are garbage, we only have 32 outputs.
 #define b61_gpio	0
