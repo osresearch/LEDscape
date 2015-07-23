@@ -24,7 +24,7 @@ Next, update the the Debian environment:
 
     sudo apt-get update
     sudo apt-get install usbmount -y
-    sudo apt-get install git build-essential vim -y
+    sudo apt-get install git build-essential python vim -y
     
 Disable the HDMI output:
 
@@ -142,16 +142,9 @@ There are a bunch of command line arguments, and the whole thing seems to be in 
 
 There's a handy script for starting LEDscape at boot. It should listen on the ethernet interface on port 9999 automatically.
 
-## Ubuntu
+## Debian
 
-Ubuntu appears to use upstart. Do this:
-
-    sudo cp ubuntu/ledscape.conf /etc/init
-    sudo start ledscape
-	
-## Debian / Angstrom
-
-Debian and Angstrom appear to be able to use systemd. Do this:
+Debian uses systemd. Do this:
 
     sudo cp bin/ledscape.service /etc/systemd/system
     sudo systemctl enable ledscape.service
@@ -161,6 +154,14 @@ Extra: for video playback
     sudo cp bin/videoplayer.service /etc/systemd/system
     sudo systemctl enable videoplayer.service
 
+## Ubuntu
+
+Note: The Ubuntu startup script is old and probably needs fixing.
+
+Ubuntu appears to use upstart. Do this:
+
+    sudo cp ubuntu/ledscape.conf /etc/init
+    sudo start ledscape
 
 # Extra credit
 
