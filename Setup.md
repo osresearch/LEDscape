@@ -216,11 +216,10 @@ Later it can be enabled by typing:
 Playing a video is as simple as running the video player (after running the UDP listener):
 
     bin/video_player -s 256x32 -l ../Daft\ Punk\ -\ Around\ The\ World.avi
-    
-Note: These packages used to be required, but now are included in the default Debian image. You might need to install them if you're using a different system.
 
-    sudo apt-get install libavformat-dev x264 v4l-utils ffmpeg -y
-    sudo apt-get install libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv opencv-doc libcv-dev libcvaux-dev libhighgui-dev -y
+To use the video player, some additional packages will need to be installed:
+    
+    sudo apt-get install libavformat-dev x264 v4l-utils ffmpeg libcv2.3 libcvaux2.3 libhighgui2.3 python-opencv opencv-doc libcv-dev libcvaux-dev libhighgui-dev -y
     
     
 #Helpful things for development
