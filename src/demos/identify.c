@@ -17,8 +17,8 @@ main(
 	char ** argv
 )
 {
-	const int width = 256;
-	const int height = 128;
+	int width = 256;
+	int height = 32;
 
 	ledscape_config_t * config = &ledscape_matrix_default;
 	if (argc > 1)
@@ -36,7 +36,7 @@ main(
 
 	ledscape_t * const leds = ledscape_init(config, 0);
 
-	//printf("init done %d,%d\n", width, height);
+	printf("init done %d,%d\n", width, height);
 	time_t last_time = time(NULL);
 	unsigned last_i = 0;
 
@@ -45,36 +45,55 @@ main(
 	int scroll_x = 128;
 	memset(p, 0x10, width*height*4);
 
-	for (int i = 0 ; i < 8 ; i++)
-	{
-		for (int j = 0 ; j < 8 ; j++)
-		{
-			ledscape_printf(
-				&p[8+j*32 + width*i*16],
-				width,
-				0xFF0000, // red
-				"%d-%d",
-				i,
-				j
-			);
-			ledscape_printf(
-				&p[1+j*32 + width*i*16],
-				width,
-				0x00FF00, // green
-				"^"
-			);
-			ledscape_printf(
-				&p[1+j*32 + width*(i*16+8)],
-				width,
-				0x0000FF, // blue
-				"|"
-			);
-			p[j*32+width*i*16] = 0xFFFF00;
-		}
-	}
+	int h = 4;
+	const uint32_t colors[] = {
+		0xFF0000,
+		0x00FF00,
+		0x0000FF,
+		0xFF00FF,
+		0x00FFFF,
+		0xFFFF00,
+	};
 
 	while (1)
 	{
+		if (h++ == 2*width)
+			h = 10;
+
+		for(int y = 0 ; y < height ; y++)
+		{
+			uint32_t * const row_ptr = &p[width*y];
+			const int scale = 63;
+			for(int x = 5 ; x < width ; x++)
+			{
+				uint32_t color = row_ptr[x];
+				int r = (color >> 16) & 0xFF;
+				int g = (color >>  8) & 0xFF;
+				int b = (color >>  0) & 0xFF;
+				r = (r * scale) / (scale+1);
+				g = (g * scale) / (scale+1);
+				b = (b * scale) / (scale+1);
+				if (r < 10) r = 10;
+				if (g < 10) g = 10;
+				if (b < 10) b = 10;
+				row_ptr[x] = r << 16 | g << 8 | b << 0;
+			}
+		}
+
+		for(int y = 0 ; y < height ; y++)
+		{
+			uint32_t * const row_ptr = &p[width*y];
+			uint32_t color = colors[y % 6];
+			row_ptr[0] = y & 1 ? 0xFFFFFF : 0x040404;
+			row_ptr[1] = y & 2 ? 0xFFFFFF : 0x040404;
+			row_ptr[2] = y & 4 ? 0xFFFFFF : 0x040404;
+			row_ptr[3] = y & 8 ? 0xFFFFFF : 0x040404;
+			row_ptr[4] = y & 16 ? 0xFFFFFF : 0x040404;
+
+			row_ptr[5] = color;
+			row_ptr[h/2] = color;
+		}
+
 		ledscape_draw(leds, p);
 		usleep(20000);
 
