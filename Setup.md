@@ -106,7 +106,10 @@ The first line of the configuration file describes the type of matrix. Here are 
 | ------------- |:-------------:|
 | ws2812        | Strip of WS2812/WS2812B LEDs, aka NeoPixels |
 
-TODO: What do the next numbers here mean?
+The following line consists of Width,Height. For LED strip mode, this means:
+
+W: length of the longest strip
+H: number of output strips
 
 ## Testing your configuration
 
