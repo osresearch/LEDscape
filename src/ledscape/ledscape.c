@@ -350,6 +350,8 @@ ledscape_strip_draw(
 		= leds->pru->ddr_addr + leds->frame_size * frame;
 //	frame = (frame + 1) & 1;
 
+	__asm__ __volatile__("":::"memory");
+
 	// Send the start command
 	leds->ws281x->command = 1;
 }
