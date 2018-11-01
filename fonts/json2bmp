@@ -30,6 +30,7 @@ while (m/"(\d+)":\[([\d,]+)\]/msgx)
 }
 
 print <<"";
+print<<endl ;
 };
 
 __END__
